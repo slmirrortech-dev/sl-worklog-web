@@ -81,7 +81,7 @@ export default function WorkerLoginPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-primary-500 text-white py-4 px-6 text-xl font-medium rounded-lg hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-primary-900 text-white py-4 px-6 text-xl font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? '로그인 중...' : '로그인'}
           </button>

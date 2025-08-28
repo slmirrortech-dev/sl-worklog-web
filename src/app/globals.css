@@ -61,6 +61,14 @@
   --color-primary-700: var(--primary-700);
   --color-primary-800: var(--primary-800);
   --color-primary-900: var(--primary-900);
+
+  /* 어센트 색상 (밝은 시안) */
+  --color-accent-400: var(--accent-400);
+  --color-accent-500: var(--accent-500);
+
+  --color-navy-700: var(--navy-700);
+  --color-navy-800: var(--navy-800);
+  --color-navy-900: var(--navy-900);
   
   --color-success-500: var(--success-500);
   --color-success-600: var(--success-600);

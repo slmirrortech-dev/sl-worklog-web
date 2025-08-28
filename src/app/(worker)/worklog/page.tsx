@@ -1,160 +1,47 @@
-'use client'
+import React from 'react'
+import { AlertCircle, User } from 'lucide-react'
+import Image from 'next/image'
 
-import { useState } from 'react'
-import { Play, Square, RotateCcw, User } from 'lucide-react'
-
-export default function WorklogPage() {
-  const [currentLine, setCurrentLine] = useState('A-01')
-  const [workStatus, setWorkStatus] = useState<'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED'>('NOT_STARTED')
-  const [startTime, setStartTime] = useState<Date | null>(null)
-  const [endTime, setEndTime] = useState<Date | null>(null)
-  
-  const handleStartWork = () => {
-    setStartTime(new Date())
-    setWorkStatus('IN_PROGRESS')
-  }
-
-  const handleEndWork = () => {
-    setEndTime(new Date())
-    setWorkStatus('COMPLETED')
-  }
-
-  const handleLineChange = (newLine: string) => {
-    setCurrentLine(newLine)
-  }
-
-  const formatTime = (date: Date | null) => {
-    if (!date) return '--:--'
-    return date.toLocaleTimeString('ko-KR', { 
-      hour: '2-digit', 
-      minute: '2-digit',
-      hour12: false 
-    })
-  }
-
-  const lines = ['A-01', 'A-02', 'B-01', 'B-02', 'C-01', 'C-02']
-
+const WorklogPage = () => {
   return (
-    <div className="p-6 space-y-8">
-      {/* Header */}
-      <div className="flex items-center justify-between bg-primary-50 p-6 rounded-lg">
-        <div className="flex items-center space-x-4">
-          <User className="w-8 h-8 text-primary-600" />
-          <div>
-            <p className="font-semibold text-xl text-gray-900">홍길동</p>
-            <p className="text-lg text-gray-600">작업자</p>
-          </div>
-        </div>
-        <div className="text-right">
-          <p className="text-lg text-gray-600">현재 시간</p>
-          <p className="font-mono text-2xl font-bold">
-            {new Date().toLocaleTimeString('ko-KR', { hour12: false })}
-          </p>
-        </div>
-      </div>
-
-      {/* Work Status */}
-      <div className="bg-white border-2 rounded-xl p-8">
-        <h2 className="text-2xl font-bold mb-6">작업 현황</h2>
-        
-        <div className="space-y-6">
-          <div className="flex justify-between items-center">
-            <span className="text-xl text-gray-600">작업 상태</span>
-            <span className={`px-4 py-2 rounded-full text-lg font-semibold ${
-              workStatus === 'NOT_STARTED' 
-                ? 'bg-gray-100 text-gray-700'
-                : workStatus === 'IN_PROGRESS'
-                ? 'bg-green-100 text-green-700'
-                : 'bg-primary-100 text-primary-700'
-            }`}>
-              {workStatus === 'NOT_STARTED' 
-                ? '시작 전' 
-                : workStatus === 'IN_PROGRESS' 
-                ? '작업 중' 
-                : '완료'}
-            </span>
-          </div>
-
-          <div className="flex justify-between items-center">
-            <span className="text-xl text-gray-600">현재 라인</span>
-            <span className="font-mono text-3xl font-bold text-primary-600">
-              {currentLine}
-            </span>
-          </div>
-
-          <div className="grid grid-cols-2 gap-6 pt-4 border-t-2">
-            <div className="text-center">
-              <p className="text-lg text-gray-600 mb-2">시작 시간</p>
-              <p className="font-mono text-2xl font-bold">
-                {formatTime(startTime)}
-              </p>
-            </div>
-            <div className="text-center">
-              <p className="text-lg text-gray-600 mb-2">종료 시간</p>
-              <p className="font-mono text-2xl font-bold">
-                {formatTime(endTime)}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Work Controls */}
-      <div className="space-y-4">
-        {workStatus === 'NOT_STARTED' && (
-          <button
-            onClick={handleStartWork}
-            className="w-full bg-green-600 text-white py-6 px-8 rounded-xl text-xl font-semibold flex items-center justify-center space-x-3 hover:bg-green-700"
-          >
-            <Play className="w-6 h-6" />
-            <span>작업 시작</span>
+    <div className="min-h-screen flex justify-center">
+      <div className="w-full max-w-sm">
+        <header className="px-6 py-6 bg-primary-50 flex items-center justify-between">
+          <Image src="/logo.png" alt="회사 로고" width={38} height={38} />
+          <button className="p-2 bg-white rounded-full shadow-sm hover:shadow-md transition-shadow">
+            <User className="w-6 h-6 text-primary-900" />
           </button>
-        )}
-
-        {workStatus === 'IN_PROGRESS' && (
+        </header>
+        <section className="px-6 pt-4 pb-8 bg-primary-50">
+          <h1 className="text-2xl font-display">
+            <strong>최승혁</strong>님,
+            <br />
+            오늘도 안전하고
+            <br />
+            힘찬 하루 되세요!
+          </h1>
+          {/*<div className="rounded-3xl ring-1 ring-gray-900/10 px-6 py-6">*/}
+          {/*  <h2>현재 작업 상태</h2>*/}
+          {/*  <p>작업 진행 중</p>*/}
+          {/*</div>*/}
           <button
-            onClick={handleEndWork}
-            className="w-full bg-red-600 text-white py-6 px-8 rounded-xl text-xl font-semibold flex items-center justify-center space-x-3 hover:bg-red-700"
+            type="submit"
+            className="mt-6 w-full bg-primary-900 text-white py-4 px-6 text-2xl font-medium rounded-xl focus:outline-none"
           >
-            <Square className="w-6 h-6" />
-            <span>작업 종료</span>
+            작업 시작하기
           </button>
-        )}
+        </section>
 
-        {workStatus === 'COMPLETED' && (
-          <button
-            onClick={() => {
-              setWorkStatus('NOT_STARTED')
-              setStartTime(null)
-              setEndTime(null)
-            }}
-            className="w-full bg-primary-600 text-white py-6 px-8 rounded-xl text-xl font-semibold flex items-center justify-center space-x-3 hover:bg-primary-700"
-          >
-            <RotateCcw className="w-6 h-6" />
-            <span>새 작업 시작</span>
-          </button>
-        )}
-      </div>
-
-      {/* Line Change */}
-      <div className="bg-white border-2 rounded-xl p-8">
-        <h3 className="text-2xl font-bold mb-6">작업라인 변경</h3>
-        <div className="grid grid-cols-2 gap-4">
-          {lines.map((line) => (
-            <button
-              key={line}
-              onClick={() => handleLineChange(line)}
-              className={`py-6 px-6 rounded-xl text-xl font-semibold transition-colors ${
-                currentLine === line
-                  ? 'bg-primary-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              {line}
-            </button>
-          ))}
-        </div>
+        <section className="px-6 py-8">
+          <h2 className="text-xl font-semibold mb-6">오늘 작업 기록</h2>
+          <div className="text-center py-8">
+            <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-lg text-gray-600">오늘 작업 내역이 없습니다.</p>
+          </div>
+        </section>
       </div>
     </div>
   )
 }
+
+export default WorklogPage
