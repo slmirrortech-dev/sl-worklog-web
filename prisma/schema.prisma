@@ -1,0 +1,63 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String      @id @default(cuid())
+  email       String      @unique
+  name        String
+  role        Role        @default(WORKER)
+  workLogs    WorkLog[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@map("users")
+}
+
+model WorkLog {
+  id            String      @id @default(cuid())
+  workerId      String
+  worker        User        @relation(fields: [workerId], references: [id])
+  startTime     DateTime?
+  endTime       DateTime?
+  lineChanges   LineChange[]
+  status        WorkStatus  @default(NOT_STARTED)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@map("work_logs")
+}
+
+model LineChange {
+  id          String    @id @default(cuid())
+  workLogId   String
+  workLog     WorkLog   @relation(fields: [workLogId], references: [id])
+  fromLine    String?
+  toLine      String
+  changeTime  DateTime  @default(now())
+  createdAt   DateTime  @default(now())
+
+  @@map("line_changes")
+}
+
+enum Role {
+  WORKER
+  ADMIN
+}
+
+enum WorkStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+}
