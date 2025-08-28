@@ -1,4 +1,5 @@
-import { Inter } from 'next/font/google'
+'use client'
+
 import '../globals.css'
 import React from 'react'
 
