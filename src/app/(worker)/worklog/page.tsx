@@ -8,6 +8,20 @@ import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 
 const WorklogPage = () => {
+  const [todayWorkHistory, setTodayWorkHistory] = useState([
+    {
+      startDate: '2026-08-28 20:00:10',
+      endDate: '2026-08-29 08:04:06',
+      line: '라인 1',
+      work: '공정 2',
+    },
+    {
+      startDate: '2026-08-27 10:03:20',
+      endDate: '2026-08-27 18:23:10',
+      line: '라인 3',
+      work: '공정 1',
+    },
+  ])
   const [startInfo, setStartInfo] = useState<null | {
     line: string
     work: string
@@ -38,7 +52,7 @@ const WorklogPage = () => {
   }
 
   return (
-    <div className="min-h-screen flex justify-center">
+    <div className="min-h-screen flex justify-center ">
       <div className="w-full max-w-sm">
         <header className="px-6 py-6 bg-primary-50 flex items-center justify-between">
           <Image src="/logo.png" alt="회사 로고" width={42} height={42} />
@@ -79,7 +93,7 @@ const WorklogPage = () => {
                       <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary-500"></span>
                     </span>
                     <span className="text-lg text-gray-600">
-                      {format(startTime, 'a HH:mm', { locale: ko })}
+                      {format(startTime, 'yyyy-MM-dd HH:mm:ss', { locale: ko })}
                     </span>
                   </div>
                 </div>
@@ -106,11 +120,45 @@ const WorklogPage = () => {
         </section>
 
         <section className="px-6 py-6">
-          <h2 className="text-xl font-semibold mb-6">오늘 작업 기록</h2>
-          <div className="text-center py-8">
-            <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-lg text-gray-600">종료된 작업이 없습니다.</p>
-          </div>
+          <h2 className="text-xl font-semibold mb-4">최근 작업 기록</h2>
+          {todayWorkHistory.length > 0 ? (
+            <ul className="space-y-4">
+              {todayWorkHistory.map(item => {
+                return (
+                  <li
+                    key={item.startDate}
+                    className="flex justify-between rounded-xl ring-1 ring-gray-200 bg-white px-4 py-5 mb-4 drop-shadow-md drop-shadow-gray-100"
+                  >
+                    <div>
+                      <p className="text-xl font-semibold">
+                        {format(item.startDate, 'yyyy-MM-dd')}
+                      </p>
+                      <span className="text-lg text-gray-500">
+                        {item.line} / {item.work}
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-lg">
+                        {format(item.startDate, 'HH:mm:ss')}
+                      </p>
+                      <p className="text-lg">
+                        <span>
+                          {format(item.startDate, 'yyyy-MM-dd') !==
+                            format(item.endDate, 'yyyy-MM-dd') && '다음날 '}
+                        </span>
+                        {format(item.endDate, 'HH:mm:ss')}
+                      </p>
+                    </div>
+                  </li>
+                )
+              })}
+            </ul>
+          ) : (
+            <div className="text-center py-8">
+              <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-lg text-gray-600">종료된 작업이 없습니다.</p>
+            </div>
+          )}
         </section>
       </div>
     </div>

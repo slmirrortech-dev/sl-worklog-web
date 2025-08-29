@@ -5,23 +5,39 @@ import { useRouter } from 'next/navigation'
 
 // 목업 데이터
 const lines = [
-  { id: 'line1', name: '라인 1' },
-  { id: 'line2', name: '라인 2' },
-  { id: 'line3', name: '라인 3' },
-  { id: 'line4', name: '라인 4' },
-  { id: 'line5', name: '라인 5' },
-  { id: 'line6', name: '라인 6' },
-  { id: 'line7', name: '라인 7' },
-  { id: 'line8', name: '라인 8' },
+  { id: 'line1', name: 'MV L/R' },
+  { id: 'line2', name: 'MX5 LH' },
+  { id: 'line3', name: 'MX5 RH' },
+  { id: 'line4', name: 'MQ4 LH' },
+  { id: 'line5', name: 'MQ4 RH' },
+  { id: 'line6', name: 'AX/CV/SG2 LH' },
+  { id: 'line7', name: 'AX/CV/SG2 RH' },
+  { id: 'line8', name: 'SW L/R' },
+  { id: 'line9', name: 'LB L/R' },
+  { id: 'line10', name: 'NX4A L/R' },
+  { id: 'line11', name: 'NQ5 LH' },
+  { id: 'line12', name: 'NQ5 RH' },
+  { id: 'line13', name: 'C121 L/R' },
+  { id: 'line14', name: 'OV1K L/R' },
+  { id: 'line15', name: 'LQ2 L/R' },
+  { id: 'line16', name: 'JA/YB LH' },
+  { id: 'line17', name: 'JA/YB RH' },
+  { id: 'line18', name: 'SV/CT/NH2 LH' },
+  { id: 'line19', name: 'SV/CT/NH2 RH' },
+  { id: 'line20', name: 'ME L/R' },
+  { id: 'line21', name: '프리미엄 A' },
+  { id: 'line22', name: '프리미엄 B' },
+  { id: 'line23', name: 'CMS' },
+  { id: 'line24', name: 'ETCS' },
 ]
 
 const works = [
-  { id: 'work1', name: '작업 1' },
-  { id: 'work2', name: '작업 2' },
-  { id: 'work3', name: '작업 3' },
-  { id: 'work4', name: '작업 4' },
-  { id: 'work5', name: '작업 5' },
-  { id: 'work6', name: '작업 6' },
+  { id: 'work1', name: 'P1' },
+  { id: 'work2', name: 'P2' },
+  { id: 'work3', name: 'P3' },
+  { id: 'work4', name: 'P3' },
+  { id: 'work5', name: 'P4' },
+  { id: 'work6', name: 'P5' },
 ]
 
 export default function StartPage() {
@@ -74,7 +90,7 @@ export default function StartPage() {
             </div>
           </div>
           <div>
-            <h2 className="text-xl font-semibold mb-4">작업 선택</h2>
+            <h2 className="text-xl font-semibold mb-4">공정 선택</h2>
             <div className="grid grid-cols-2 gap-3">
               {works.map(work => (
                 <button
@@ -133,7 +149,7 @@ export default function StartPage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-lg font-medium text-gray-600">
-                      작업
+                      공정
                     </span>
                     <span className="text-lg font-bold text-gray-900">
                       {works.find(work => work.id === selectedWork)?.name}
