@@ -19,7 +19,7 @@ export function useAuthCheck(requiredRoles?: Array<'ADMIN' | 'WORKER'>) {
       try {
         const response = await fetch('/api/auth/me', {
           method: 'GET',
-          credentials: 'include'
+          credentials: 'include',
         })
 
         if (response.ok) {
@@ -39,7 +39,7 @@ export function useAuthCheck(requiredRoles?: Array<'ADMIN' | 'WORKER'>) {
         } else {
           // 세션 만료 또는 없음
           setUser(null)
-          
+
           // 현재 경로에 따라 적절한 로그인 페이지로 리다이렉트
           const currentPath = window.location.pathname
           if (currentPath.startsWith('/admin')) {
@@ -51,7 +51,7 @@ export function useAuthCheck(requiredRoles?: Array<'ADMIN' | 'WORKER'>) {
       } catch (error) {
         console.error('Auth check error:', error)
         setUser(null)
-        
+
         // 에러 시에도 현재 경로에 따라 리다이렉트
         const currentPath = window.location.pathname
         if (currentPath.startsWith('/admin')) {
@@ -74,17 +74,17 @@ export async function logout() {
   try {
     await fetch('/api/auth/logout', {
       method: 'POST',
-      credentials: 'include'
+      credentials: 'include',
     })
   } catch (error) {
     console.error('Logout error:', error)
   }
-  
+
   // 모든 로컬 스토리지 정리
   localStorage.removeItem('user')
   localStorage.removeItem('admin-token')
   localStorage.removeItem('worker-info')
-  
+
   // 메인 페이지로 리다이렉트
   window.location.href = '/'
 }
