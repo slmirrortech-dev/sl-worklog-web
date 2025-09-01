@@ -4,6 +4,49 @@ import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
+/**
+ * @swagger
+ * /api/login:
+ *   post:
+ *     summary: 사용자 로그인
+ *     description: 사용자 ID/이메일과 비밀번호로 로그인
+ *     tags:
+ *       - Authentication
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/LoginRequest'
+ *           example:
+ *             id: "admin"
+ *             password: "password"
+ *     responses:
+ *       200:
+ *         description: 로그인 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/LoginResponse'
+ *       400:
+ *         description: 잘못된 요청
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: 인증 실패
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: 서버 오류
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
 export async function POST(request: NextRequest) {
   try {
     const { id, password } = await request.json()
