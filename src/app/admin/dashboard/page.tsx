@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { User, Plus, LogOut, Edit3, Trash2 } from 'lucide-react'
 import { useAuthCheck, logout } from '@/lib/auth-utils'
+import UsersTable from '@/app/admin/dashboard/layouts/users-table/UsersTable'
 
 interface Employee {
   id: string
@@ -142,158 +143,8 @@ const AdminDashboardPage = () => {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* 통계 카드 */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <User className="w-8 h-8 text-primary-500" />
-              <div className="ml-4">
-                <h3 className="text-sm font-medium text-gray-500">
-                  총 직원 수
-                </h3>
-                <p className="text-2xl font-semibold text-gray-900">
-                  {employees.length}명
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* 직원 등록 섹션 */}
-        <div className="bg-white rounded-lg shadow mb-8">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-medium text-gray-900">직원 관리</h2>
-              <button
-                onClick={() => setShowAddForm(!showAddForm)}
-                className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-              >
-                <Plus className="w-5 h-5" />
-                직원 등록
-              </button>
-            </div>
-          </div>
-
-          {/* 직원 등록/수정 폼 */}
-          {showAddForm && (
-            <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-              <form
-                onSubmit={
-                  editingEmployee ? handleUpdateEmployee : handleAddEmployee
-                }
-                className="grid grid-cols-1 md:grid-cols-3 gap-4"
-              >
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    사번
-                  </label>
-                  <input
-                    type="text"
-                    value={employeeId}
-                    onChange={e => setEmployeeId(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    placeholder="직원 사번을 입력하세요"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    이름
-                  </label>
-                  <input
-                    type="text"
-                    value={employeeName}
-                    onChange={e => setEmployeeName(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    placeholder="직원 이름을 입력하세요"
-                    required
-                  />
-                </div>
-                <div className="flex items-end gap-2">
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-                  >
-                    {editingEmployee ? '수정' : '등록'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={cancelEdit}
-                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
-                  >
-                    취소
-                  </button>
-                </div>
-              </form>
-            </div>
-          )}
-
-          {/* 직원 목록 */}
-          <div className="px-6 py-4">
-            {employees.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left py-3 px-4 font-medium text-gray-900">
-                        사번
-                      </th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-900">
-                        이름
-                      </th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-900">
-                        등록일
-                      </th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-900">
-                        관리
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {employees.map(employee => (
-                      <tr
-                        key={employee.id}
-                        className="border-b border-gray-100"
-                      >
-                        <td className="py-3 px-4 text-gray-900">
-                          {employee.employeeId}
-                        </td>
-                        <td className="py-3 px-4 text-gray-900">
-                          {employee.name}
-                        </td>
-                        <td className="py-3 px-4 text-gray-600">
-                          {new Date(employee.createdAt).toLocaleDateString(
-                            'ko-KR'
-                          )}
-                        </td>
-                        <td className="py-3 px-4">
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => handleEditEmployee(employee)}
-                              className="p-1 text-gray-400 hover:text-primary-600"
-                            >
-                              <Edit3 className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteEmployee(employee.id)}
-                              className="p-1 text-gray-400 hover:text-red-600"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="text-center py-8 text-gray-500">
-                등록된 직원이 없습니다.
-              </div>
-            )}
-          </div>
-        </div>
+        {/* 사용자 목록 */}
+        <UsersTable />
       </div>
     </div>
   )
