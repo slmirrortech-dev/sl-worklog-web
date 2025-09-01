@@ -18,7 +18,7 @@ const AdminLoginPage = () => {
     setError('')
 
     try {
-      const response = await fetch('/api/login', {
+      const response = await fetch('/api/auth/login/admin', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -30,6 +30,8 @@ const AdminLoginPage = () => {
       if (response.ok) {
         const data = await response.json()
         localStorage.setItem('admin-token', 'admin-logged-in')
+        // 인증 컨텍스트에 사용자 정보 저장
+        localStorage.setItem('user', JSON.stringify(data.user))
         router.push('/admin/dashboard')
       } else {
         const errorData = await response.json()
@@ -39,7 +41,7 @@ const AdminLoginPage = () => {
       console.error('Login error:', error)
       setError('로그인 중 오류가 발생했습니다.')
     }
-    
+
     setLoading(false)
   }
 
@@ -61,14 +63,17 @@ const AdminLoginPage = () => {
 
           <form onSubmit={handleLogin} className="space-y-6">
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="username"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 아이디
               </label>
               <input
                 id="username"
                 type="text"
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={e => setUsername(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 placeholder="마스터 아이디를 입력하세요"
                 required
@@ -76,14 +81,17 @@ const AdminLoginPage = () => {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 비밀번호
               </label>
               <input
                 id="password"
                 type="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={e => setPassword(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 placeholder="비밀번호를 입력하세요"
                 required

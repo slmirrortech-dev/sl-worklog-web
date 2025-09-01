@@ -7,6 +7,7 @@ const prisma = new PrismaClient()
 async function main() {
   const hash = await bcrypt.hash('0000', 10)
 
+  // 관리자 계정
   await prisma.user.upsert({
     where: { loginId: 'admin' },
     update: {},
@@ -18,6 +19,37 @@ async function main() {
       isSuperAdmin: true,
     },
   })
+
+  // 테스트 작업자 계정들
+  await prisma.user.upsert({
+    where: { loginId: 'worker01' },
+    update: {},
+    create: {
+      loginId: 'worker01',
+      password: hash,
+      name: '김작업자',
+      role: 'WORKER',
+      isSuperAdmin: false,
+    },
+  })
+
+  await prisma.user.upsert({
+    where: { loginId: 'worker02' },
+    update: {},
+    create: {
+      loginId: 'worker02',
+      password: hash,
+      name: '이작업자',
+      role: 'WORKER',
+      isSuperAdmin: false,
+    },
+  })
+
+  console.log('👤 Created users:')
+  console.log('- admin (관리자)')
+  console.log('- worker01 (김작업자)')
+  console.log('- worker02 (이작업자)')
+  console.log('📝 All passwords: 0000')
 }
 
 main()

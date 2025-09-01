@@ -1,8 +1,8 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { User, Plus, LogOut, Edit3, Trash2 } from 'lucide-react'
+import { useAuthCheck, logout } from '@/lib/auth-utils'
 
 interface Employee {
   id: string
@@ -17,26 +17,29 @@ const AdminDashboardPage = () => {
   const [employeeId, setEmployeeId] = useState('')
   const [employeeName, setEmployeeName] = useState('')
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null)
-  const router = useRouter()
 
+  // 세션 기반 인증 확인 (관리자만 접근 가능)
+  const { user, isLoading } = useAuthCheck(['ADMIN'])
+
+  // 직원 데이터 로드
   useEffect(() => {
-    // 로그인 체크
-    const adminToken = localStorage.getItem('admin-token')
-    if (!adminToken) {
-      router.push('/admin/login')
-      return
-    }
-
-    // 로컬 스토리지에서 직원 데이터 불러오기
     const savedEmployees = localStorage.getItem('employees')
     if (savedEmployees) {
       setEmployees(JSON.parse(savedEmployees))
     }
-  }, [router])
+  }, [])
+
+  // 로딩 중이거나 인증되지 않았다면 빈 페이지 표시
+  if (isLoading || !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-lg">로딩 중...</div>
+      </div>
+    )
+  }
 
   const handleLogout = () => {
-    localStorage.removeItem('admin-token')
-    router.push('/admin/login')
+    logout()
   }
 
   const handleAddEmployee = (e: React.FormEvent) => {

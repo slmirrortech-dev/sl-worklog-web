@@ -6,8 +6,12 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
+import { useAuthCheck, logout } from '@/lib/auth-utils'
 
 const WorklogPage = () => {
+  // 세션 기반 인증 확인 (작업자와 관리자 모두 접근 가능)
+  const { user, isLoading } = useAuthCheck(['WORKER', 'ADMIN'])
+  
   const [todayWorkHistory, setTodayWorkHistory] = useState([
     {
       startDate: '2026-08-28 20:00:10',
@@ -45,10 +49,25 @@ const WorklogPage = () => {
       setStartTime(startTime)
     }
 
-    if (workerInfo) {
+    // 워커 정보는 세션에서 우선 가져오고, 없으면 localStorage에서 가져오기
+    if (user) {
+      setWorkerInfo({
+        employeeId: user.loginId,
+        name: user.name
+      })
+    } else if (workerInfo) {
       setWorkerInfo(JSON.parse(workerInfo))
     }
-  }, [])
+  }, [user])
+
+  // 로딩 중이거나 인증되지 않았다면 빈 페이지 표시
+  if (isLoading || !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-lg">로딩 중...</div>
+      </div>
+    )
+  }
 
   const endWork = () => {
     localStorage.removeItem('start-info')

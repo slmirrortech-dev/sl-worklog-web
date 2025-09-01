@@ -14,22 +14,33 @@ export default function WorkerLoginPage() {
     e.preventDefault()
     setIsLoading(true)
 
-    // 등록된 직원 목록 확인
-    const savedEmployees = localStorage.getItem('employees')
-    const employees = savedEmployees ? JSON.parse(savedEmployees) : []
-    
-    // 사번으로 직원 찾기
-    const employee = employees.find((emp: any) => emp.employeeId === id)
-    
-    if (employee && password === '0000') {
-      // 로그인 성공 - 직원 정보 저장
-      localStorage.setItem('worker-info', JSON.stringify({
-        employeeId: employee.employeeId,
-        name: employee.name
-      }))
-      router.push('/worklog')
-    } else {
-      alert('사번 또는 비밀번호가 올바르지 않습니다.')
+    try {
+      const response = await fetch('/api/auth/login/worker', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ id, password }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        // 작업자 정보를 localStorage에 저장 (호환성을 위해)
+        localStorage.setItem('worker-info', JSON.stringify({
+          employeeId: data.user.loginId,
+          name: data.user.name
+        }))
+        // 인증 컨텍스트에도 저장
+        localStorage.setItem('user', JSON.stringify(data.user))
+        router.push('/worklog')
+      } else {
+        const errorData = await response.json()
+        alert(errorData.error || '사번 또는 비밀번호가 올바르지 않습니다.')
+      }
+    } catch (error) {
+      console.error('Login error:', error)
+      alert('로그인 중 오류가 발생했습니다.')
     }
     
     setIsLoading(false)
