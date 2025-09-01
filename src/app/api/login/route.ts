@@ -1,17 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 
-const prisma = new PrismaClient()
-
+export const runtime = 'nodejs'
 /**
  * @swagger
  * /api/login:
  *   post:
- *     summary: 사용자 로그인
- *     description: 사용자 ID/이메일과 비밀번호로 로그인
+ *     summary: 관리자 로그인
+ *     description: 최고관리자는 ID로 일반 관리자는 사번과 비밀번호로 로그인
  *     tags:
- *       - Authentication
+ *       - Auth
  *     requestBody:
  *       required: true
  *       content:
@@ -20,7 +19,7 @@ const prisma = new PrismaClient()
  *             $ref: '#/components/schemas/LoginRequest'
  *           example:
  *             id: "admin"
- *             password: "password"
+ *             password: "0000"
  *     responses:
  *       200:
  *         description: 로그인 성공
@@ -58,14 +57,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 사용자 조회 (email 또는 id로)
-    const user = await prisma.user.findFirst({
-      where: {
-        OR: [
-          { email: id },
-          { id: id }
-        ]
-      }
+    // 사용자 조회 (loginId로)
+    const user = await prisma.user.findUnique({
+      where: { loginId: id }
     })
 
     if (!user) {
@@ -75,35 +69,31 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 기본적으로 간단한 비밀번호 검증 (실제로는 해시된 비밀번호 사용)
-    // 임시로 admin/password 조합 허용
-    if (id === 'admin' && password === 'password') {
-      const response = NextResponse.json({
-        success: true,
-        user: {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role
-        }
-      })
-
-      // 세션 쿠키 설정
-      response.cookies.set('session', user.id, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 60 * 60 * 24 * 7 // 7일
-      })
-
-      return response
+    const isMatch = await bcrypt.compare(password, user.password)
+    if (!isMatch) {
+      return NextResponse.json(
+        { error: '로그인 정보가 올바르지 않습니다.' },
+        { status: 401 }
+      )
     }
+    const response = NextResponse.json({
+      success: true,
+      user: {
+        id: user.id,
+        loginId: user.loginId,
+        name: user.name,
+        role: user.role,
+      },
+    })
 
-    return NextResponse.json(
-      { error: '로그인 정보가 올바르지 않습니다.' },
-      { status: 401 }
-    )
+    response.cookies.set('session', user.id, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 60 * 60 * 24 * 7, // 7일
+    })
 
+    return response
   } catch (error) {
     console.error('Login error:', error)
     return NextResponse.json(

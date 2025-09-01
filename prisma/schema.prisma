@@ -14,50 +14,26 @@ datasource db {
 }
 
 model User {
-  id          String      @id @default(cuid())
-  email       String      @unique
-  name        String
-  role        Role        @default(WORKER)
-  workLogs    WorkLog[]
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id           String  @id @default(cuid())
+  loginId      String  @unique // 로그인용 ID (사번)
+  password     String
+  name         String
+  role         Role    @default(WORKER)
+  isSuperAdmin Boolean @default(false) // 최고관리자 플래그(ADMIN 중 일부만 true)
 
+  // 역할별 전용 컬럼(필요한 것만 추가)
+  licensePhoto String? // WORKER 전용 (ex. 면허/자격증 사진)
+  adminMemo    String? // ADMIN 전용 (필요시)
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([role])
   @@map("users")
 }
 
-model WorkLog {
-  id            String      @id @default(cuid())
-  workerId      String
-  worker        User        @relation(fields: [workerId], references: [id])
-  startTime     DateTime?
-  endTime       DateTime?
-  lineChanges   LineChange[]
-  status        WorkStatus  @default(NOT_STARTED)
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-
-  @@map("work_logs")
-}
-
-model LineChange {
-  id          String    @id @default(cuid())
-  workLogId   String
-  workLog     WorkLog   @relation(fields: [workLogId], references: [id])
-  fromLine    String?
-  toLine      String
-  changeTime  DateTime  @default(now())
-  createdAt   DateTime  @default(now())
-
-  @@map("line_changes")
-}
-
 enum Role {
-  WORKER
   ADMIN
-}
-
-enum WorkStatus {
-  NOT_STARTED
-  IN_PROGRESS
-  COMPLETED
+  WORKER
 }
