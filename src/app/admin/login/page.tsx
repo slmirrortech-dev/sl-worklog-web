@@ -55,7 +55,7 @@ const AdminLoginPage = () => {
               alt="회사 로고"
               width={100}
               height={100}
-              className="mx-auto mb-8"
+              className="mx-auto mb-6"
             />
             <h1 className="text-2xl font-bold text-gray-900">관리자 로그인</h1>
             <p className="text-gray-600 mt-2">관리자 계정으로 로그인하세요</p>
