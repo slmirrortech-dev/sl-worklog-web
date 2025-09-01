@@ -27,10 +27,13 @@ export default function WorkerLoginPage() {
       if (response.ok) {
         const data = await response.json()
         // 작업자 정보를 localStorage에 저장 (호환성을 위해)
-        localStorage.setItem('worker-info', JSON.stringify({
-          employeeId: data.user.loginId,
-          name: data.user.name
-        }))
+        localStorage.setItem(
+          'worker-info',
+          JSON.stringify({
+            employeeId: data.user.loginId,
+            name: data.user.name,
+          })
+        )
         // 인증 컨텍스트에도 저장
         localStorage.setItem('user', JSON.stringify(data.user))
         router.push('/worklog')
@@ -42,7 +45,7 @@ export default function WorkerLoginPage() {
       console.error('Login error:', error)
       alert('로그인 중 오류가 발생했습니다.')
     }
-    
+
     setIsLoading(false)
   }
 
@@ -55,9 +58,9 @@ export default function WorkerLoginPage() {
             <Image
               src="/logo.png"
               alt="회사 로고"
-              width={80}
-              height={80}
-              className="mx-auto mb-4"
+              width={110}
+              height={110}
+              className="mx-auto mb-8"
               priority
             />
           </div>
