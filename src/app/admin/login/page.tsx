@@ -17,12 +17,27 @@ const AdminLoginPage = () => {
     setLoading(true)
     setError('')
 
-    // 마스터 계정 검증 (실제로는 API 호출)
-    if (username === 'master' && password === 'master123') {
-      localStorage.setItem('admin-token', 'admin-logged-in')
-      router.push('/admin/dashboard')
-    } else {
-      setError('아이디 또는 비밀번호가 올바르지 않습니다.')
+    try {
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ id: username, password }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        localStorage.setItem('admin-token', 'admin-logged-in')
+        router.push('/admin/dashboard')
+      } else {
+        const errorData = await response.json()
+        setError(errorData.error || '아이디 또는 비밀번호가 올바르지 않습니다.')
+      }
+    } catch (error) {
+      console.error('Login error:', error)
+      setError('로그인 중 오류가 발생했습니다.')
     }
     
     setLoading(false)
