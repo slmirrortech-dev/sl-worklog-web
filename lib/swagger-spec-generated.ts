@@ -347,6 +347,36 @@ export const swaggerSpec = {
           },
         },
       },
+      delete: {
+        summary: '사용자 자격증 사진 삭제',
+        tags: [
+          'User',
+        ],
+        parameters: [
+          {
+            in: 'path',
+            name: 'id',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+        ],
+        responses: {
+          '200': {
+            description: '삭제 성공',
+          },
+          '403': {
+            description: '권한 없음',
+          },
+          '404': {
+            description: '사용자 또는 이미지 없음',
+          },
+          '500': {
+            description: '서버 오류',
+          },
+        },
+      },
     },
     '/api/users/{id}': {
       get: {

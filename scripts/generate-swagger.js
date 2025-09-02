@@ -13,7 +13,8 @@ const options = {
     servers: [
       {
         url: process.env.NEXTAUTH_URL || 'http://localhost:3000',
-        description: process.env.NODE_ENV === 'production' ? 'Production server' : 'Development server',
+        description:
+          process.env.NODE_ENV === 'production' ? 'Production server' : 'Development server',
       },
     ],
     components: {
@@ -96,10 +97,7 @@ const options = {
       },
     },
   },
-  apis: [
-    './src/app/api/**/*.ts',
-    './src/app/api/**/*.js'
-  ],
+  apis: ['./src/app/api/**/*.ts', './src/app/api/**/*.js'],
 }
 
 // Swagger 스펙 생성
@@ -110,23 +108,32 @@ const generateObjectString = (obj, indent = 0) => {
   const spaces = '  '.repeat(indent)
   if (Array.isArray(obj)) {
     if (obj.length === 0) return '[]'
-    const items = obj.map(item => 
-      typeof item === 'object' && item !== null 
-        ? generateObjectString(item, indent + 1)
-        : typeof item === 'string' ? `'${item}'` : JSON.stringify(item)
-    ).join(',\n' + '  '.repeat(indent + 1))
+    const items = obj
+      .map((item) =>
+        typeof item === 'object' && item !== null
+          ? generateObjectString(item, indent + 1)
+          : typeof item === 'string'
+            ? `'${item}'`
+            : JSON.stringify(item),
+      )
+      .join(',\n' + '  '.repeat(indent + 1))
     return `[\n${'  '.repeat(indent + 1)}${items},\n${spaces}]`
   } else if (typeof obj === 'object' && obj !== null) {
     const entries = Object.entries(obj)
     if (entries.length === 0) return '{}'
-    const props = entries.map(([key, value]) => {
-      // 특수문자가 있는 키는 홑따옴표로 감싸기
-      const formattedKey = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(key) ? key : `'${key}'`
-      const formattedValue = typeof value === 'object' && value !== null
-        ? generateObjectString(value, indent + 1)
-        : typeof value === 'string' ? `'${value}'` : JSON.stringify(value)
-      return `${spaces}  ${formattedKey}: ${formattedValue}`
-    }).join(',\n')
+    const props = entries
+      .map(([key, value]) => {
+        // 특수문자가 있는 키는 홑따옴표로 감싸기
+        const formattedKey = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(key) ? key : `'${key}'`
+        const formattedValue =
+          typeof value === 'object' && value !== null
+            ? generateObjectString(value, indent + 1)
+            : typeof value === 'string'
+              ? `'${value}'`
+              : JSON.stringify(value)
+        return `${spaces}  ${formattedKey}: ${formattedValue}`
+      })
+      .join(',\n')
     return `{\n${props},\n${spaces}}`
   }
   return typeof obj === 'string' ? `'${obj}'` : JSON.stringify(obj)

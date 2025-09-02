@@ -70,7 +70,7 @@ const UsersTable = () => {
             variant="link"
             size="sm"
             onClick={() => router.push(`/admin/dashboard/user/${user.id}`)}
-            className="border-gray-300 text-gray-600 hover:bg-gray-50 px-3 py-1 text-sm"
+            className="border-gray-300 text-gray-600 hover:bg-gray-50 px-3 py-1 text-sm cursor-pointer"
           >
             상세 보기
             <ChevronRight className="w-3 h-3 -ml-1" />

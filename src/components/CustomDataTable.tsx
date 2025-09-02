@@ -73,16 +73,15 @@ export function CustomDataTable({
   // 페이지 크기 옵션 생성 (총 데이터 수와 성능 고려)
   const getPageSizeOptions = (totalCount: number) => {
     const baseOptions = [5, 10, 20, 50]
-    const validOptions = baseOptions.filter(size => size < totalCount)
-    
+    const validOptions = baseOptions.filter((size) => size < totalCount)
+
     // 100개 이하일 때만 "전체" 옵션 추가
     if (totalCount <= 100 && totalCount > 0) {
       validOptions.push(totalCount)
     }
-    
+
     return validOptions
   }
-
 
   // 클라이언트에서 화면 크기 감지
   React.useEffect(() => {
@@ -143,7 +142,7 @@ export function CustomDataTable({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {getPageSizeOptions(totalCount).map(size => (
+                  {getPageSizeOptions(totalCount).map((size) => (
                     <SelectItem key={size} value={size.toString()}>
                       {size === totalCount ? '전체' : size.toString()}
                     </SelectItem>
@@ -219,7 +218,7 @@ export function CustomDataTable({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
-                  className="border-b border-gray-100 hover:bg-blue-50/50 cursor-pointer transition-colors duration-150"
+                  className="border-b border-gray-100 hover:bg-blue-50/50 transition-colors duration-150"
                   onClick={() => onRowClick?.(row.original)}
                 >
                   {row.getVisibleCells().map((cell) => (

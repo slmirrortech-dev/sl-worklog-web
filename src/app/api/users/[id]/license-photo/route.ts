@@ -118,7 +118,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     // 사용자 정보 조회
     const user = await prisma.user.findUnique({
       where: { id },
-      select: { id: true, name: true, licensePhoto: true }
+      select: { id: true, name: true, licensePhoto: true },
     })
 
     if (!user) {
@@ -144,15 +144,14 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     const updated = await prisma.user.update({
       where: { id },
       data: { licensePhoto: null },
-      select: { id: true, licensePhoto: true }
+      select: { id: true, licensePhoto: true },
     })
 
     return NextResponse.json({
       success: true,
       data: updated,
-      message: '면허증 이미지가 삭제되었습니다'
+      message: '면허증 이미지가 삭제되었습니다',
     })
-
   } catch (error) {
     console.error('면허증 삭제 실패:', error)
     return NextResponse.json({ error: '서버 오류가 발생했습니다' }, { status: 500 })
