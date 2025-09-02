@@ -175,27 +175,6 @@ const UserDetailPage = () => {
               <div className="h-6 border-l border-gray-300" />
               <h1 className="text-xl font-semibold text-gray-900">직원 상세정보</h1>
             </div>
-
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsEditing(!isEditing)}
-                className="border-gray-300 text-gray-700 hover:bg-gray-50"
-              >
-                <Edit className="w-4 h-4 mr-1" />
-                {isEditing ? '취소' : '수정'}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleDelete}
-                className="border-red-300 text-red-700 hover:bg-red-50"
-              >
-                <Trash2 className="w-4 h-4 mr-1" />
-                삭제
-              </Button>
-            </div>
           </div>
         </div>
       </header>
@@ -206,10 +185,32 @@ const UserDetailPage = () => {
           {/* 기본 정보 카드 */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-              <h2 className="text-lg font-medium text-gray-900 flex items-center">
-                <User className="w-5 h-5 mr-2 text-gray-600" />
-                기본 정보
-              </h2>
+              <div className="flex items-center justify-between flex-wrap gap-2.5">
+                <h2 className="text-lg font-medium text-gray-900 flex items-center">
+                  <User className="w-5 h-5 mr-2 text-gray-600" />
+                  기본 정보
+                </h2>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsEditing(!isEditing)}
+                    className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                  >
+                    <Edit className="w-4 h-4 mr-1" />
+                    {isEditing ? '취소' : '수정'}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleDelete}
+                    className="border-red-300 text-red-700 hover:bg-red-50"
+                  >
+                    <Trash2 className="w-4 h-4 mr-1" />
+                    삭제
+                  </Button>
+                </div>
+              </div>
             </div>
             <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -230,8 +231,8 @@ const UserDetailPage = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">등록일시</label>
                   <div className="flex items-center text-gray-900 bg-gray-50 px-4 py-2 rounded-lg">
-                    <Calendar className="w-4 h-4 mr-2 text-gray-500" />
-                    {user?.createdAt && format(user.createdAt, 'yyyy년 M월 dd일 HH:mm:ss')}
+                    <Calendar className="w-4 h-4 mr-2 text-gray-500 min-w-4" />
+                    {user?.createdAt && format(user.createdAt, 'yyyy년 MM월 dd일 HH:mm:ss')}
                   </div>
                 </div>
 
