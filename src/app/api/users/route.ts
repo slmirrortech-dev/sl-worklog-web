@@ -118,7 +118,7 @@ export async function GET(request: NextRequest) {
       },
       skip: skip,
       take: take,
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ role: 'desc' }, { createdAt: 'asc' }],
     })
 
     // 총 페이지 수 계산
