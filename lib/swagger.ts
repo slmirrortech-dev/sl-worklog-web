@@ -11,7 +11,8 @@ const options = {
     servers: [
       {
         url: process.env.NEXTAUTH_URL || 'http://localhost:3000',
-        description: process.env.NODE_ENV === 'production' ? 'Production server' : 'Development server',
+        description:
+          process.env.NODE_ENV === 'production' ? 'Production server' : 'Development server',
       },
     ],
     components: {
