@@ -58,6 +58,8 @@ export const columns: ColumnDef<TUser>[] = [
     cell: ({ row }) => {
       const isLicensePhoto = row.getValue('licensePhoto')
 
+      console.log('isLicensePhoto', isLicensePhoto)
+
       return (
         <div className="text-center">
           {isLicensePhoto ? (
@@ -205,6 +207,7 @@ const UsersTable = () => {
             <Button
               variant="default"
               size="lg"
+              onClick={() => router.push('/admin/dashboard/users/new')}
               className="bg-blue-600 hover:bg-blue-700 text-white px-4 md:px-6 py-2.5 font-medium shadow-sm text-sm md:text-base"
             >
               <Plus className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" />

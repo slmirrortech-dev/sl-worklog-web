@@ -114,11 +114,12 @@ export async function GET(request: NextRequest) {
         name: true,
         role: true,
         isActive: true,
+        licensePhoto: true,
         createdAt: true,
       },
       skip: skip,
       take: take,
-      orderBy: [{ role: 'desc' }, { createdAt: 'asc' }],
+      orderBy: [{ role: 'desc' }, { createdAt: 'desc' }],
     })
 
     // 총 페이지 수 계산

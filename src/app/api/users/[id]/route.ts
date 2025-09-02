@@ -58,6 +58,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       name: true,
       role: true,
       isActive: true,
+      licensePhoto: true,
       createdAt: true,
     },
   })
