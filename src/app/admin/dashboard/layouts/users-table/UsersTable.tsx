@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ColumnDef } from '@tanstack/react-table'
 import { Button } from '@/components/ui/button'
-import { Plus, FileImage, ArrowUpDown, X } from 'lucide-react'
+import { Plus, FileImage, ArrowUpDown, X, Eye, ChevronRight } from 'lucide-react'
 import { CustomDataTable } from '@/components/CustomDataTable'
 import { TUser } from '@/types/TUser'
 import { format } from 'date-fns'
@@ -30,6 +30,21 @@ const UsersTable = () => {
   const [selectedLicensePhoto, setSelectedLicensePhoto] = useState<string | null>(null)
   const [selectedUserName, setSelectedUserName] = useState<string>('')
 
+  // 모바일 화면 감지
+  const [isMobile, setIsMobile] = useState(false)
+
+  // 화면 크기 감지
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
   // 면허증 이미지 클릭 핸들러
   const handleLicensePhotoClick = (user: TUser) => {
     if (user.licensePhoto) {
@@ -44,7 +59,29 @@ const UsersTable = () => {
     setSelectedUserName('')
   }
 
-  const columns: ColumnDef<TUser>[] = [
+  const actionsColumn: ColumnDef<TUser> = {
+    id: 'actions',
+    header: () => <div className="text-center font-semibold text-gray-700 text-base"></div>,
+    cell: ({ row }) => {
+      const user = row.original as TUser
+      return (
+        <div className="text-right">
+          <Button
+            variant="link"
+            size="sm"
+            onClick={() => router.push(`/admin/dashboard/user/${user.id}`)}
+            className="border-gray-300 text-gray-600 hover:bg-gray-50 px-3 py-1 text-sm"
+          >
+            상세 보기
+            <ChevronRight className="w-3 h-3 -ml-1" />
+          </Button>
+        </div>
+      )
+    },
+  }
+
+  // 기본 컬럼들 정의
+  const baseColumns: ColumnDef<TUser>[] = [
     {
       accessorKey: 'loginId',
       header: () => {
@@ -149,6 +186,17 @@ const UsersTable = () => {
     },
   ]
 
+  // 반응형 컬럼 배열 생성
+  const columns = React.useMemo(() => {
+    if (isMobile) {
+      // 모바일: 상세보기 컬럼을 맨 앞에
+      return [actionsColumn, ...baseColumns]
+    } else {
+      // 데스크톱: 상세보기 컬럼을 맨 뒤에
+      return [...baseColumns, actionsColumn]
+    }
+  }, [isMobile])
+
   useEffect(() => {
     setPage(1)
   }, [pageSize, search])
@@ -199,11 +247,6 @@ const UsersTable = () => {
     })
   }, [users])
 
-  // 행 클릭 시 상세보기 페이지로 이동
-  const handleRowClick = (user: TUser) => {
-    router.push(`/admin/dashboard/user/${user.id}`)
-  }
-
   // 검색 버튼 클릭 시 실제 검색 실행
   const handleSearch = () => {
     setSearch(searchInput)
@@ -240,7 +283,6 @@ const UsersTable = () => {
           <CustomDataTable
             data={sortedData}
             columns={columns}
-            onRowClick={handleRowClick}
             page={page}
             pageSize={pageSize}
             totalCount={totalCount}
