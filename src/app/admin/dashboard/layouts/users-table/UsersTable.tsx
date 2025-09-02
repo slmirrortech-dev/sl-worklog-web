@@ -100,7 +100,7 @@ export const columns: ColumnDef<TUser>[] = [
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           className="h-8 px-2 text-base font-semibold text-gray-700 hover:bg-gray-100"
         >
-          사번
+          등록일시
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       </div>
