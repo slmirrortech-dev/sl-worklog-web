@@ -19,17 +19,6 @@ const AdminDashboardPage = () => {
   const [employeeName, setEmployeeName] = useState('')
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null)
 
-  // 직원 데이터 로드
-  useEffect(() => {
-    // 세션 기반 인증 확인 (관리자만 접근 가능)
-    // const { user, isLoading } = useAuthCheck(['ADMIN'])
-
-    const savedEmployees = localStorage.getItem('employees')
-    if (savedEmployees) {
-      setEmployees(JSON.parse(savedEmployees))
-    }
-  }, [])
-
   // 로딩 중이거나 인증되지 않았다면 빈 페이지 표시
   // if (isLoading || !user) {
   //   return (

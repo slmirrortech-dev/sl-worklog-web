@@ -18,6 +18,19 @@ export const runtime = 'nodejs'
  *           type: string
  *           enum: [ADMIN, WORKER]
  *         description: 필터할 역할 (미지정 시 전체)
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: 사번 또는 이름으로 검색
+ *       - in: query
+ *         name: page
+ *         schema: { type: number, default: 1 }
+ *         description: 페이지
+ *       - in: query
+ *         name: pageSize
+ *         schema: {type: number, default: 10}
+ *         description: 페이지 사이즈
  *     responses:
  *       200:
  *         description: 성공
@@ -43,8 +56,8 @@ export const runtime = 'nodejs'
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 export async function GET(request: NextRequest) {
+  /** 관리자 권한 확인 */
   const sessionUser = await getSessionUser(request)
-
   // 관리자 및 최고관리자만 허용
   if (sessionUser?.role !== 'ADMIN') {
     return NextResponse.json(
@@ -53,35 +66,83 @@ export async function GET(request: NextRequest) {
     )
   }
 
+  /** 쿼리 파라미터 확인 */
   const { searchParams } = new URL(request.url)
+  // 역할
   const roleParam = searchParams.get('role')?.toUpperCase() as
     | 'ADMIN'
     | 'WORKER'
+  const pageParam = parseInt(searchParams.get('page') || '1', 10)
+  const pageSizeParam = parseInt(searchParams.get('pageSize') || '10', 10)
+  const searchParam = searchParams.get('search') || ''
 
+  /** 유효성 검사 */
   if (roleParam && roleParam !== 'ADMIN' && roleParam !== 'WORKER') {
     return NextResponse.json(
       { error: 'role 값은 ADMIN 또는 WORKER 이어야 합니다' },
       { status: 400 }
     )
   }
+  if (
+    isNaN(pageParam) ||
+    pageParam < 1 ||
+    isNaN(pageSizeParam) ||
+    pageSizeParam < 1
+  ) {
+    return NextResponse.json(
+      { error: 'page와 pageSize는 1 이상의 유효한 숫자여야 합니다' },
+      { status: 400 }
+    )
+  }
 
-  const users = await prisma.user.findMany({
-    where: {
-      ...(roleParam ? { role: roleParam } : {}), // role 지정 필터, 없으면 전체 조회
-    },
-    select: {
-      id: true,
-      loginId: true,
-      name: true,
-      role: true,
-      isActive: true,
-      createdAt: true,
-    },
-    orderBy: { createdAt: 'desc' },
-  })
+  const skip = (pageParam - 1) * pageSizeParam
+  const take = pageSizeParam
+
+  // WHERE 절 구성
+  const whereClause: any = {}
+
+  if (roleParam) {
+    whereClause.role = roleParam
+  }
+
+  if (searchParam) {
+    whereClause.OR = [
+      { loginId: { contains: searchParam, mode: 'insensitive' } },
+      { name: { contains: searchParam, mode: 'insensitive' } },
+    ]
+  }
 
   try {
-    return NextResponse.json({ success: true, data: users })
+    // 총 데이터 수
+    const totalCount = await prisma.user.count({ where: whereClause })
+
+    const users = await prisma.user.findMany({
+      where: whereClause,
+      select: {
+        id: true,
+        loginId: true,
+        name: true,
+        role: true,
+        isActive: true,
+        createdAt: true,
+      },
+      skip: skip,
+      take: take,
+      orderBy: { createdAt: 'desc' },
+    })
+
+    // 총 페이지 수 계산
+    const totalPages = Math.ceil(totalCount / pageSizeParam)
+
+    return NextResponse.json({
+      success: true,
+
+      data: users,
+      totalCount,
+      totalPages,
+      currentPage: pageParam,
+      pageSize: pageSizeParam,
+    })
   } catch (error) {
     console.error(' error:', error)
     return NextResponse.json(

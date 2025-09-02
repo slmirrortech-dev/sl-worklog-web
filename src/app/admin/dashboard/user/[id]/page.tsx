@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import {
   ArrowLeft,
@@ -13,100 +13,16 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
-// 목업 데이터 (실제로는 API에서 가져와야 함)
-const MOCK_DATA = [
-  {
-    id: 'user_1',
-    loginId: '101234',
-    name: '김민수',
-    role: 'ADMIN',
-    licensePhoto: 'license_1.jpg',
-  },
-  {
-    id: 'user_2',
-    loginId: '102567',
-    name: '이영희',
-    role: 'ADMIN',
-    licensePhoto: null,
-  },
-  {
-    id: 'user_3',
-    loginId: '103890',
-    name: '박철수',
-    role: 'ADMIN',
-    licensePhoto: 'license_3.jpg',
-  },
-  {
-    id: 'user_4',
-    loginId: '104123',
-    name: '정수현',
-    role: 'ADMIN',
-    licensePhoto: null,
-  },
-  {
-    id: 'user_5',
-    loginId: '105456',
-    name: '최영진',
-    role: 'ADMIN',
-    licensePhoto: 'license_5.jpg',
-  },
-  {
-    id: 'user_6',
-    loginId: '106789',
-    name: '한미영',
-    role: 'ADMIN',
-    licensePhoto: null,
-  },
-  {
-    id: 'user_7',
-    loginId: '107012',
-    name: '오준호',
-    role: 'ADMIN',
-    licensePhoto: 'license_7.jpg',
-  },
-  {
-    id: 'user_8',
-    loginId: '108345',
-    name: '장서연',
-    role: 'WORKER',
-    licensePhoto: null,
-  },
-  {
-    id: 'user_9',
-    loginId: '109678',
-    name: '윤대현',
-    role: 'WORKER',
-    licensePhoto: 'license_9.jpg',
-  },
-  {
-    id: 'user_10',
-    loginId: '110901',
-    name: '강지현',
-    role: 'WORKER',
-    licensePhoto: null,
-  },
-  // ... 나머지 데이터는 필요에 따라 추가
-] as const
-
-type User = {
-  id: string
-  loginId: string
-  name: string
-  role: 'ADMIN' | 'WORKER'
-  licensePhoto: string | null
-}
-
 const UserDetailPage = () => {
+  const [data, setData] = useState<TUser[]>([])
   const params = useParams()
   const router = useRouter()
   const [isEditing, setIsEditing] = React.useState(false)
 
   // ID로 직원 찾기
-  const employee = MOCK_DATA.find(user => user.id === params.id) as
-    | User
-    | undefined
+  const users = data.find(user => user.id === params.id) as TUser | undefined
 
-  if (!employee) {
+  if (!users) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -123,9 +39,9 @@ const UserDetailPage = () => {
   }
 
   const handleDelete = () => {
-    if (confirm(`정말로 '${employee.name}' 직원을 삭제하시겠습니까?`)) {
+    if (confirm(`정말로 '${users.name}' 직원을 삭제하시겠습니까?`)) {
       // TODO: API 호출로 삭제
-      console.log('삭제:', employee)
+      console.log('삭제:', users)
       router.push('/admin/dashboard')
     }
   }
@@ -194,7 +110,7 @@ const UserDetailPage = () => {
                     사번
                   </label>
                   <div className="text-lg font-mono text-gray-900 bg-gray-50 px-4 py-2 rounded-lg">
-                    {employee.loginId}
+                    {users.loginId}
                   </div>
                 </div>
 
@@ -203,7 +119,7 @@ const UserDetailPage = () => {
                     이름
                   </label>
                   <div className="text-lg text-gray-900 bg-gray-50 px-4 py-2 rounded-lg">
-                    {employee.name}
+                    {users.name}
                   </div>
                 </div>
 
@@ -214,13 +130,13 @@ const UserDetailPage = () => {
                   <div className="flex items-center">
                     <span
                       className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                        employee.role === 'ADMIN'
+                        users.role === 'ADMIN'
                           ? 'bg-blue-100 text-blue-800 border border-blue-200'
                           : 'bg-green-100 text-green-800 border border-green-200'
                       }`}
                     >
                       <Shield className="w-4 h-4 mr-1" />
-                      {employee.role === 'ADMIN' ? '관리자' : '작업자'}
+                      {users.role === 'ADMIN' ? '관리자' : '작업자'}
                     </span>
                   </div>
                 </div>
@@ -247,7 +163,7 @@ const UserDetailPage = () => {
               </h2>
             </div>
             <div className="p-6">
-              {employee.licensePhoto ? (
+              {users.licensePhoto ? (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">
@@ -277,7 +193,7 @@ const UserDetailPage = () => {
                       <FileImage className="w-12 h-12 mx-auto mb-2" />
                       <p className="text-sm">면허증 이미지</p>
                       <p className="text-xs text-gray-400">
-                        {employee.licensePhoto}
+                        {users.licensePhoto}
                       </p>
                     </div>
                   </div>

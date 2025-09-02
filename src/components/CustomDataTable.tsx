@@ -7,13 +7,12 @@ import {
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
-  getPaginationRowModel,
   getSortedRowModel,
   SortingState,
   useReactTable,
   VisibilityState,
 } from '@tanstack/react-table'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Search } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 
@@ -38,11 +37,31 @@ export function CustomDataTable({
   data,
   columns,
   onRowClick,
+  page,
+  pageSize,
+  totalCount,
+  totalPages,
+  loading,
+  searchInput,
+  setPage,
+  setPageSize,
+  setSearchInput,
+  onSearch,
 }: {
   data: any[]
   columns: ColumnDef<any>[]
   showCheckboxes?: boolean
   onRowClick?: (row: any) => void
+  page: number
+  pageSize: number
+  totalCount: number
+  totalPages: number
+  loading?: boolean
+  searchInput?: string
+  setPage: (page: number) => void
+  setPageSize: (pageSize: number) => void
+  setSearchInput?: (searchInput: string) => void
+  onSearch?: () => void
 }) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -74,22 +93,22 @@ export function CustomDataTable({
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: 'includesString',
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
+    manualPagination: true,
+    pageCount: totalPages,
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
-    initialState: {
-      pagination: {
-        pageSize: 10,
-      },
-    },
     state: {
       sorting,
       columnFilters,
       columnVisibility,
       rowSelection,
       globalFilter,
+      pagination: {
+        pageIndex: page - 1,
+        pageSize: pageSize,
+      },
     },
   })
 
@@ -98,29 +117,17 @@ export function CustomDataTable({
       {/* 검색 및 필터 영역 */}
       <div className="p-4 md:p-6 border-b border-gray-200 bg-gray-50">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center">
-            <Input
-              placeholder="사번 또는 이름으로 검색"
-              value={globalFilter ?? ''}
-              onChange={event => {
-                const value = event.target.value
-                setGlobalFilter(value)
-              }}
-              className="w-full md:max-w-xs bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-            />
-          </div>
-
           {/* 페이지 크기 선택 */}
           <div className="flex items-center justify-center md:justify-end">
             <div className="flex items-center gap-2 text-sm">
               <span className="text-gray-600 whitespace-nowrap">페이지당</span>
               <Select
-                value={table.getState().pagination.pageSize.toString()}
+                value={pageSize.toString()}
                 onValueChange={value => {
-                  table.setPageSize(Number(value))
+                  setPageSize(Number(value))
                 }}
               >
-                <SelectTrigger className="w-16 h-8">
+                <SelectTrigger className="w-20 h-8">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -132,6 +139,32 @@ export function CustomDataTable({
               </Select>
               <span className="text-gray-600 whitespace-nowrap">개씩</span>
             </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Input
+              placeholder="사번 또는 이름으로 검색"
+              value={searchInput ?? ''}
+              onChange={event => {
+                const value = event.target.value
+                setSearchInput?.(value)
+              }}
+              onKeyDown={event => {
+                if (event.key === 'Enter') {
+                  onSearch?.()
+                }
+              }}
+              className="w-full md:max-w-xs h-10 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+            />
+            <Button
+              variant="outline"
+              size="default"
+              onClick={onSearch}
+              disabled={loading}
+              className="px-3 h-10"
+            >
+              <Search className="w-4 h-4" />
+            </Button>
           </div>
         </div>
       </div>
@@ -164,7 +197,20 @@ export function CustomDataTable({
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {loading ? (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-32 text-center py-12"
+                >
+                  <div className="flex flex-col items-center justify-center text-gray-500">
+                    <div className="text-base md:text-lg font-medium mb-2">
+                      데이터를 불러오는 중...
+                    </div>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map(row => (
                 <TableRow
                   key={row.id}
@@ -207,20 +253,10 @@ export function CustomDataTable({
       {/* 페이지네이션 */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 px-4 md:px-6 py-4 border-t border-gray-200 bg-gray-50/50">
         <div className="flex items-center gap-2 text-sm text-gray-600 order-2 md:order-1">
-          <span className="whitespace-nowrap">
-            총 {table.getFilteredRowModel().rows.length}개 항목
-          </span>
+          <span className="whitespace-nowrap">총 {totalCount}개 항목</span>
           <span className="text-gray-400 hidden md:inline">|</span>
           <span className="whitespace-nowrap hidden md:inline">
-            {table.getState().pagination.pageIndex *
-              table.getState().pagination.pageSize +
-              1}
-            -
-            {Math.min(
-              (table.getState().pagination.pageIndex + 1) *
-                table.getState().pagination.pageSize,
-              table.getFilteredRowModel().rows.length
-            )}{' '}
+            {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, totalCount)}{' '}
             표시 중
           </span>
         </div>
@@ -230,8 +266,8 @@ export function CustomDataTable({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
+            onClick={() => setPage(page - 1)}
+            disabled={page <= 1 || loading}
             className="border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed h-8 px-3"
           >
             <ChevronLeft className="w-4 h-4" />
@@ -239,10 +275,9 @@ export function CustomDataTable({
 
           {/* 숫자 버튼들 */}
           <div className="flex items-center space-x-1">
-            {Array.from({ length: table.getPageCount() }, (_, i) => {
+            {Array.from({ length: totalPages }, (_, i) => {
               const pageNumber = i + 1
-              const currentPage = table.getState().pagination.pageIndex + 1
-              const totalPages = table.getPageCount()
+              const currentPage = page
 
               // 모바일에서는 더 적은 페이지 버튼 표시
               const maxVisiblePages = isMobile ? 3 : 7
@@ -256,7 +291,7 @@ export function CustomDataTable({
                         currentPage === pageNumber ? 'default' : 'outline'
                       }
                       size="sm"
-                      onClick={() => table.setPageIndex(i)}
+                      onClick={() => setPage(pageNumber)}
                       className={`h-8 w-8 p-0 text-xs md:text-sm ${
                         currentPage === pageNumber
                           ? 'bg-blue-600 text-white'
@@ -277,7 +312,7 @@ export function CustomDataTable({
                         currentPage === pageNumber ? 'default' : 'outline'
                       }
                       size="sm"
-                      onClick={() => table.setPageIndex(i)}
+                      onClick={() => setPage(pageNumber)}
                       className={`h-8 w-8 p-0 text-xs md:text-sm ${
                         currentPage === pageNumber
                           ? 'bg-blue-600 text-white'
@@ -308,7 +343,7 @@ export function CustomDataTable({
                     key={i}
                     variant={currentPage === pageNumber ? 'default' : 'outline'}
                     size="sm"
-                    onClick={() => table.setPageIndex(i)}
+                    onClick={() => setPage(pageNumber)}
                     className={`h-8 w-8 p-0 text-xs md:text-sm ${
                       currentPage === pageNumber
                         ? 'bg-blue-600 text-white'
@@ -326,8 +361,8 @@ export function CustomDataTable({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
+            onClick={() => setPage(page + 1)}
+            disabled={page >= totalPages || loading}
             className="border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed h-8 px-3"
           >
             <ChevronRight className="w-4 h-4" />
