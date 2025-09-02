@@ -1,4 +1,5 @@
 import swaggerJSDoc from 'swagger-jsdoc'
+import path from 'path'
 
 const options = {
   definition: {
@@ -116,7 +117,10 @@ const options = {
       },
     },
   },
-  apis: ['./src/app/api/**/*.ts'], // API 경로
+  apis: [
+    path.join(process.cwd(), 'src/app/api/**/*.ts'),
+    path.join(process.cwd(), 'src/app/api/**/*.js'),
+  ], // API 경로
 }
 
 export const swaggerSpec = swaggerJSDoc(options)
