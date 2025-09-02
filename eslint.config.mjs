@@ -14,7 +14,14 @@ const eslintConfig = [
   ...compat.extends('prettier'),
   ...compat.plugins('prettier'),
   {
-    ignores: ['node_modules/**', '.next/**', 'out/**', 'build/**', 'next-env.d.ts'],
+    ignores: [
+      'node_modules/**',
+      '.next/**',
+      'out/**',
+      'build/**',
+      'next-env.d.ts',
+      'lib/swagger-spec-generated.ts',
+    ],
   },
   {
     rules: {
