@@ -13,12 +13,6 @@ interface Employee {
 }
 
 const AdminDashboardPage = () => {
-  const [_employees, _setEmployees] = useState<Employee[]>([])
-  const [_showAddForm, _setShowAddForm] = useState(false)
-  const [_employeeId, _setEmployeeId] = useState('')
-  const [_employeeName, _setEmployeeName] = useState('')
-  const [_editingEmployee, _setEditingEmployee] = useState<Employee | null>(null)
-
   const handleLogout = async () => {
     await logout()
   }
