@@ -103,7 +103,7 @@ const UsersTable = () => {
   const [totalPages, setTotalPages] = useState(0)
 
   const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState(10)
+  const [pageSize, setPageSize] = useState(5)
   const [search, setSearch] = useState('')
   const [searchInput, setSearchInput] = useState('')
 

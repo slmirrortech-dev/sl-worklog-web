@@ -4,4 +4,5 @@ export type TUser = {
   name: string
   role: 'ADMIN' | 'WORKER'
   licensePhoto: null | string
+  createdAt: Date
 }

@@ -62,6 +62,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     },
   })
 
+  if (!user) {
+    return NextResponse.json({ error: '해당 직원이 존재하지 않습니다.' }, { status: 400 })
+  }
+
   try {
     return NextResponse.json({ success: true, data: user })
   } catch (error) {
