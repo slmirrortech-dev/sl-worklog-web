@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { ArrowLeft, Edit, Trash2, FileImage, User, Calendar, Shield } from 'lucide-react'
+import { ArrowLeft, Edit, Trash2, FileImage, User, Calendar, Shield, Eye, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -26,6 +26,8 @@ const UserDetailPage = () => {
   const [editedRole, setEditedRole] = useState<'ADMIN' | 'WORKER'>('WORKER')
   const [isSaving, setIsSaving] = useState(false)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [isUploadingLicense, setIsUploadingLicense] = useState(false)
+  const [showImageModal, setShowImageModal] = useState(false)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -128,6 +130,76 @@ const UserDetailPage = () => {
       setEditedRole(user.role)
     }
     setIsEditing(false)
+  }
+
+  const refetchUser = async () => {
+    try {
+      const response = await fetch(`/api/users/${params.id}`, {
+        credentials: 'include',
+      })
+      const responseData = await response.json()
+
+      if (responseData.success && responseData.data) {
+        setUser(responseData.data)
+      }
+    } catch (error) {
+      console.error('사용자 정보 갱신 실패:', error)
+    }
+  }
+
+  const handleLicenseUpload = async (file: File) => {
+    if (!user) return
+
+    setIsUploadingLicense(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const response = await fetch(`/api/users/${user.id}/license-photo`, {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      })
+
+      const responseData = await response.json()
+
+      if (responseData.success) {
+        alert('면허증이 등록되었습니다.')
+        // 서버에서 최신 정보 다시 가져오기
+        await refetchUser()
+      } else {
+        alert(responseData.error || '면허증 등록에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('면허증 업로드 실패:', error)
+      alert('면허증 등록에 실패했습니다.')
+    } finally {
+      setIsUploadingLicense(false)
+    }
+  }
+
+  const handleLicenseDelete = async () => {
+    if (!user || !confirm('면허증을 삭제하시겠습니까?')) return
+
+    try {
+      const response = await fetch(`/api/users/${user.id}/license-photo`, {
+        method: 'DELETE',
+        credentials: 'include',
+      })
+
+      const responseData = await response.json()
+
+      if (responseData.success) {
+        alert('면허증이 삭제되었습니다.')
+        // 서버에서 최신 정보 다시 가져오기
+        await refetchUser()
+      } else {
+        alert(responseData.error || '면허증 삭제에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('면허증 삭제 실패:', error)
+      alert('면허증 삭제에 실패했습니다.')
+    }
   }
 
   if (!user && isLoading) {
@@ -296,85 +368,165 @@ const UserDetailPage = () => {
               </div>
             </div>
             <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">사번</label>
-                  <div className="text-lg font-mono text-gray-900 bg-gray-50 px-4 py-2 rounded-lg">
-                    {user?.loginId}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">이름</label>
-                  {isEditing ? (
-                    <Input
-                      value={editedName}
-                      onChange={(e) => setEditedName(e.target.value)}
-                      className="text-lg h-12 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                      placeholder="이름을 입력하세요"
-                    />
-                  ) : (
-                    <div className="text-lg text-gray-900 bg-gray-50 px-4 py-2 rounded-lg">
-                      {user?.name}
-                    </div>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">등록일시</label>
-                  <div className="flex items-center text-gray-900 bg-gray-50 px-4 py-2 rounded-lg">
-                    <Calendar className="w-4 h-4 mr-2 text-gray-500 min-w-4" />
-                    {user?.createdAt && format(user.createdAt, 'yyyy년 MM월 dd일 HH:mm:ss')}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">역할</label>
-                  {isEditing ? (
-                    user?.id === currentUserId ? (
-                      // 자기 자신일 때는 역할 변경 불가
-                      <div className="h-12 flex items-center px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-500">
-                        <Shield className="w-4 h-4 mr-2" />
-                        {user?.role === 'ADMIN' ? '관리자' : '작업자'} (본인 변경 불가)
+              <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                {/* 왼쪽: 공정면허증 */}
+                <div className="lg:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    <FileImage className="w-4 h-4 inline mr-1" />
+                    공정면허증
+                  </label>
+                  <div className="space-y-4">
+                    {user?.licensePhoto ? (
+                      <div className="space-y-4">
+                        {/* 면허증 이미지 표시 */}
+                        <div className="relative group w-full max-w-sm h-50 p-2 bg-gray-100 rounded-lg overflow-hidden border border-gray-300 cursor-pointer">
+                          <img
+                            src={user.licensePhoto}
+                            alt="공정면허증"
+                            className="w-full h-full object-contain"
+                          />
+                          {/* 호버 시 표시되는 오버레이 */}
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-2">
+                            <Button
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setShowImageModal(true)
+                              }}
+                              className="bg-white text-gray-800 hover:bg-gray-100"
+                            >
+                              <Eye className="w-4 h-4 mr-1" />
+                              확대보기
+                            </Button>
+                            <Button
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleLicenseDelete()
+                              }}
+                              variant="destructive"
+                              className="bg-red-600 text-white hover:bg-red-700"
+                            >
+                              <Trash2 className="w-4 h-4 mr-1" />
+                              삭제
+                            </Button>
+                          </div>
+                        </div>
                       </div>
                     ) : (
-                      <Select
-                        value={editedRole}
-                        onValueChange={(value: 'ADMIN' | 'WORKER') => setEditedRole(value)}
-                      >
-                        <SelectTrigger className="h-12 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="WORKER">
-                            <div className="flex items-center">
-                              <Shield className="w-4 h-4 mr-2" />
-                              작업자
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="ADMIN">
-                            <div className="flex items-center">
-                              <Shield className="w-4 h-4 mr-2" />
-                              관리자
-                            </div>
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    )
-                  ) : (
-                    <div className="flex items-center">
-                      <span
-                        className={`inline-flex items-center px-3 py-1 rounded-full text-base font-medium ${
-                          user?.role === 'ADMIN'
-                            ? 'bg-blue-100 text-blue-800 border border-blue-200'
-                            : 'bg-green-100 text-green-800 border border-green-200'
-                        }`}
-                      >
-                        <Shield className="w-4 h-4 mr-1" />
-                        {user?.role === 'ADMIN' ? '관리자' : '작업자'}
-                      </span>
+                      <div className="w-full max-w-sm h-50 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50">
+                        <div className="text-center text-gray-400">
+                          <FileImage className="w-8 h-8 mx-auto mb-6" />
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0]
+                              if (file) {
+                                handleLicenseUpload(file)
+                              }
+                            }}
+                            className="hidden"
+                            id="license-upload"
+                          />
+                          <label
+                            htmlFor="license-upload"
+                            className={`inline-flex items-center gap-1 px-3 py-1.5 border rounded-lg text-sm cursor-pointer transition-colors ${
+                              isUploadingLicense
+                                ? 'border-gray-300 text-gray-500 bg-gray-50 cursor-not-allowed'
+                                : 'border-blue-300 text-blue-700 hover:bg-blue-50'
+                            }`}
+                          >
+                            <FileImage className="w-4 h-4" />
+                            {isUploadingLicense ? '업로드 중...' : '업로드'}
+                          </label>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* 오른쪽: 기본 정보 */}
+                <div className="lg:col-span-3 space-y-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">사번</label>
+                    <div className="text-lg font-mono text-gray-900 bg-gray-50 px-4 py-2 rounded-lg">
+                      {user?.loginId}
                     </div>
-                  )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">이름</label>
+                    {isEditing ? (
+                      <Input
+                        value={editedName}
+                        onChange={(e) => setEditedName(e.target.value)}
+                        className="text-lg h-12 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                        placeholder="이름을 입력하세요"
+                      />
+                    ) : (
+                      <div className="text-lg text-gray-900 bg-gray-50 px-4 py-2 rounded-lg">
+                        {user?.name}
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">역할</label>
+                    {isEditing ? (
+                      user?.id === currentUserId ? (
+                        // 자기 자신일 때는 역할 변경 불가
+                        <div className="h-12 flex items-center px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-500">
+                          <Shield className="w-4 h-4 mr-2" />
+                          {user?.role === 'ADMIN' ? '관리자' : '작업자'} (본인 변경 불가)
+                        </div>
+                      ) : (
+                        <Select
+                          value={editedRole}
+                          onValueChange={(value: 'ADMIN' | 'WORKER') => setEditedRole(value)}
+                        >
+                          <SelectTrigger className="h-12 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="WORKER">
+                              <div className="flex items-center">
+                                <Shield className="w-4 h-4 mr-2" />
+                                작업자
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="ADMIN">
+                              <div className="flex items-center">
+                                <Shield className="w-4 h-4 mr-2" />
+                                관리자
+                              </div>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )
+                    ) : (
+                      <div className="flex items-center">
+                        <span
+                          className={`inline-flex items-center px-3 py-1 rounded-full text-base font-medium ${
+                            user?.role === 'ADMIN'
+                              ? 'bg-blue-100 text-blue-800 border border-blue-200'
+                              : 'bg-green-100 text-green-800 border border-green-200'
+                          }`}
+                        >
+                          <Shield className="w-4 h-4 mr-1" />
+                          {user?.role === 'ADMIN' ? '관리자' : '작업자'}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">등록일시</label>
+                    <div className="flex items-center text-gray-900 bg-gray-50 px-4 py-2 rounded-lg">
+                      <Calendar className="w-4 h-4 mr-2 text-gray-500 min-w-4" />
+                      {user?.createdAt && format(user.createdAt, 'yyyy년 MM월 dd일 HH:mm:ss')}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -403,70 +555,31 @@ const UserDetailPage = () => {
               </div>
             )}
           </div>
-
-          {/* 공정면허증 카드 */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-              <h2 className="text-lg font-medium text-gray-900 flex items-center">
-                <FileImage className="w-5 h-5 mr-2 text-gray-600" />
-                공정면허증
-              </h2>
-            </div>
-            <div className="p-6">
-              {user?.licensePhoto ? (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">면허증이 등록되어 있습니다.</span>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="border-gray-300 text-gray-700 hover:bg-gray-50"
-                      >
-                        <FileImage className="w-4 h-4 mr-1" />
-                        보기
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="border-blue-300 text-blue-700 hover:bg-blue-50"
-                      >
-                        교체
-                      </Button>
-                    </div>
-                  </div>
-                  {/* 실제로는 이미지를 표시 */}
-                  <div className="w-full h-48 bg-gray-100 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300">
-                    <div className="text-center text-gray-500">
-                      <FileImage className="w-12 h-12 mx-auto mb-2" />
-                      <p className="text-sm">면허증 이미지</p>
-                      <p className="text-xs text-gray-400">{user.licensePhoto}</p>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <FileImage className="w-8 h-8 text-gray-400" />
-                  </div>
-                  <h3 className="text-sm font-medium text-gray-900 mb-2">
-                    면허증이 등록되지 않았습니다
-                  </h3>
-                  <p className="text-sm text-gray-500 mb-4">공정면허증을 업로드해주세요.</p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="border-blue-300 text-blue-700 hover:bg-blue-50"
-                  >
-                    <FileImage className="w-4 h-4 mr-1" />
-                    면허증 등록
-                  </Button>
-                </div>
-              )}
-            </div>
-          </div>
         </div>
       </main>
+
+      {/* 이미지 모달 */}
+      {showImageModal && user?.licensePhoto && (
+        <div
+          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
+          onClick={() => setShowImageModal(false)}
+        >
+          <div className="relative max-w-4xl max-h-full">
+            <img
+              src={user.licensePhoto}
+              alt="공정면허증 확대보기"
+              className="max-w-full max-h-full object-contain rounded-lg"
+            />
+            <Button
+              size="sm"
+              onClick={() => setShowImageModal(false)}
+              className="absolute top-2 right-2 bg-white text-gray-800 hover:bg-gray-100"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSessionUser } from '@/lib/session'
 import { prisma } from '@/lib/prisma'
-import { mkdir, writeFile } from 'fs/promises'
+import { mkdir, writeFile, unlink } from 'fs/promises'
 import path from 'path'
 import crypto from 'crypto'
+import fs from 'fs'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -86,4 +87,74 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   })
 
   return NextResponse.json({ success: true, data: updated })
+}
+
+/**
+ * @swagger
+ * /api/users/{id}/license-photo:
+ *   delete:
+ *     summary: 사용자 자격증 사진 삭제
+ *     tags: [User]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200: { description: 삭제 성공 }
+ *       403: { description: 권한 없음 }
+ *       404: { description: 사용자 또는 이미지 없음 }
+ *       500: { description: 서버 오류 }
+ */
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const me = await getSessionUser(req)
+  if (!me || me.role !== 'ADMIN') {
+    return NextResponse.json({ error: '권한 없음' }, { status: 403 })
+  }
+
+  const { id } = await params
+
+  try {
+    // 사용자 정보 조회
+    const user = await prisma.user.findUnique({
+      where: { id },
+      select: { id: true, name: true, licensePhoto: true }
+    })
+
+    if (!user) {
+      return NextResponse.json({ error: '존재하지 않는 사용자' }, { status: 404 })
+    }
+
+    if (!user.licensePhoto) {
+      return NextResponse.json({ error: '삭제할 면허증 이미지가 없습니다' }, { status: 404 })
+    }
+
+    // 물리적 파일 삭제
+    const filePath = path.join(process.cwd(), 'public', user.licensePhoto)
+    try {
+      if (fs.existsSync(filePath)) {
+        await unlink(filePath)
+      }
+    } catch (fileError) {
+      console.error('파일 삭제 실패:', fileError)
+      // 파일 삭제에 실패해도 DB는 업데이트 진행
+    }
+
+    // DB에서 면허증 정보 삭제
+    const updated = await prisma.user.update({
+      where: { id },
+      data: { licensePhoto: null },
+      select: { id: true, licensePhoto: true }
+    })
+
+    return NextResponse.json({
+      success: true,
+      data: updated,
+      message: '면허증 이미지가 삭제되었습니다'
+    })
+
+  } catch (error) {
+    console.error('면허증 삭제 실패:', error)
+    return NextResponse.json({ error: '서버 오류가 발생했습니다' }, { status: 500 })
+  }
 }
