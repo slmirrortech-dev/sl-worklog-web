@@ -145,6 +145,11 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     return NextResponse.json({ error: '수정할 값이 없습니다' }, { status: 400 })
   }
 
+  // 자기 자신 강등 금지
+  if (sessionUser.id === id && sessionUser.role === 'ADMIN' && body.role === 'WORKER') {
+    return NextResponse.json({ error: '자기 자신을 작업자로 변경할 수 없습니다.' }, { status: 400 })
+  }
+
   const updated = await prisma.user.update({
     where: { id },
     data,

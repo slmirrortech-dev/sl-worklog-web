@@ -4,6 +4,14 @@ import React, { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft, Edit, Trash2, FileImage, User, Calendar, Shield } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { TUser } from '@/types/TUser'
 import { format } from 'date-fns'
 
@@ -14,27 +22,41 @@ const UserDetailPage = () => {
   const params = useParams()
   const router = useRouter()
   const [isEditing, setIsEditing] = React.useState(false)
+  const [editedName, setEditedName] = useState('')
+  const [editedRole, setEditedRole] = useState<'ADMIN' | 'WORKER'>('WORKER')
+  const [isSaving, setIsSaving] = useState(false)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchData = async () => {
       setIsLoading(true)
       setIsError(false)
       try {
-        const response = await fetch(`/api/users/${params.id}`, {
-          credentials: 'include',
-        })
+        // 현재 로그인한 사용자 정보와 상세 사용자 정보를 동시에 가져오기
+        const [userResponse, currentUserResponse] = await Promise.all([
+          fetch(`/api/users/${params.id}`, { credentials: 'include' }),
+          fetch('/api/auth/me', { credentials: 'include' }),
+        ])
 
-        const responseData = await response.json()
+        const userResponseData = await userResponse.json()
+        const currentUserData = await currentUserResponse.json()
 
-        if (responseData.success) {
-          if (responseData.data) {
-            setUser(responseData.data)
+        // 현재 로그인한 사용자 ID 설정
+        if (currentUserData.success && currentUserData.user) {
+          setCurrentUserId(currentUserData.user.id)
+        }
+
+        if (userResponseData.success) {
+          if (userResponseData.data) {
+            setUser(userResponseData.data)
+            setEditedName(userResponseData.data.name)
+            setEditedRole(userResponseData.data.role)
           } else {
             // 데이터 없으면 에러표시
             setIsError(true)
           }
         } else {
-          console.error(responseData.error || '사용자 목록을 불러오는데 실패했습니다.')
+          console.error(userResponseData.error || '사용자 목록을 불러오는데 실패했습니다.')
           setIsError(true)
           return
         }
@@ -46,8 +68,67 @@ const UserDetailPage = () => {
       }
     }
 
-    fetchUser()
+    fetchData()
   }, [])
+
+  const handleSave = async () => {
+    if (!user || !editedName.trim()) {
+      alert('이름은 필수입니다.')
+      return
+    }
+
+    setIsSaving(true)
+    try {
+      const updateData: { name: string; role?: 'ADMIN' | 'WORKER' } = {
+        name: editedName.trim(),
+      }
+
+      // 자기 자신이 아닐 때만 역할 변경 허용
+      if (user.id !== currentUserId) {
+        updateData.role = editedRole
+      }
+
+      const response = await fetch(`/api/users/${params.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(updateData),
+      })
+
+      const responseData = await response.json()
+
+      if (responseData.success) {
+        // 성공 시 사용자 데이터 업데이트
+        const updatedUser = {
+          ...user,
+          name: editedName.trim(),
+          // 자기 자신이 아닐 때만 역할 업데이트
+          role: user.id !== currentUserId ? editedRole : user.role,
+        }
+        setUser(updatedUser)
+        setIsEditing(false)
+        alert('사용자 정보가 수정되었습니다.')
+      } else {
+        console.error('사용자 수정 실패:', responseData.error)
+        alert(responseData.error || '사용자 수정에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('사용자 수정 실패:', error)
+      alert('사용자 수정에 실패했습니다.')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleCancel = () => {
+    if (user) {
+      setEditedName(user.name)
+      setEditedRole(user.role)
+    }
+    setIsEditing(false)
+  }
 
   if (!user && isLoading) {
     return (
@@ -194,17 +275,19 @@ const UserDetailPage = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setIsEditing(!isEditing)}
-                    className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                    onClick={() => setIsEditing(true)}
+                    disabled={isEditing}
+                    className="border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
                   >
                     <Edit className="w-4 h-4 mr-1" />
-                    {isEditing ? '취소' : '수정'}
+                    수정
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={handleDelete}
-                    className="border-red-300 text-red-700 hover:bg-red-50"
+                    disabled={isEditing}
+                    className="border-red-300 text-red-700 hover:bg-red-50 disabled:opacity-50"
                   >
                     <Trash2 className="w-4 h-4 mr-1" />
                     삭제
@@ -223,9 +306,18 @@ const UserDetailPage = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">이름</label>
-                  <div className="text-lg text-gray-900 bg-gray-50 px-4 py-2 rounded-lg">
-                    {user?.name}
-                  </div>
+                  {isEditing ? (
+                    <Input
+                      value={editedName}
+                      onChange={(e) => setEditedName(e.target.value)}
+                      className="text-lg h-12 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      placeholder="이름을 입력하세요"
+                    />
+                  ) : (
+                    <div className="text-lg text-gray-900 bg-gray-50 px-4 py-2 rounded-lg">
+                      {user?.name}
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -238,21 +330,78 @@ const UserDetailPage = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">역할</label>
-                  <div className="flex items-center">
-                    <span
-                      className={`inline-flex items-center px-3 py-1 rounded-full text-base font-medium ${
-                        user?.role === 'ADMIN'
-                          ? 'bg-blue-100 text-blue-800 border border-blue-200'
-                          : 'bg-green-100 text-green-800 border border-green-200'
-                      }`}
-                    >
-                      <Shield className="w-4 h-4 mr-1" />
-                      {user?.role === 'ADMIN' ? '관리자' : '작업자'}
-                    </span>
-                  </div>
+                  {isEditing ? (
+                    user?.id === currentUserId ? (
+                      // 자기 자신일 때는 역할 변경 불가
+                      <div className="h-12 flex items-center px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-500">
+                        <Shield className="w-4 h-4 mr-2" />
+                        {user?.role === 'ADMIN' ? '관리자' : '작업자'} (본인 변경 불가)
+                      </div>
+                    ) : (
+                      <Select
+                        value={editedRole}
+                        onValueChange={(value: 'ADMIN' | 'WORKER') => setEditedRole(value)}
+                      >
+                        <SelectTrigger className="h-12 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="WORKER">
+                            <div className="flex items-center">
+                              <Shield className="w-4 h-4 mr-2" />
+                              작업자
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="ADMIN">
+                            <div className="flex items-center">
+                              <Shield className="w-4 h-4 mr-2" />
+                              관리자
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )
+                  ) : (
+                    <div className="flex items-center">
+                      <span
+                        className={`inline-flex items-center px-3 py-1 rounded-full text-base font-medium ${
+                          user?.role === 'ADMIN'
+                            ? 'bg-blue-100 text-blue-800 border border-blue-200'
+                            : 'bg-green-100 text-green-800 border border-green-200'
+                        }`}
+                      >
+                        <Shield className="w-4 h-4 mr-1" />
+                        {user?.role === 'ADMIN' ? '관리자' : '작업자'}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
+
+            {/* 편집 모드일 때 저장/취소 버튼 */}
+            {isEditing && (
+              <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+                <div className="flex justify-end gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={handleCancel}
+                    disabled={isSaving}
+                    className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                  >
+                    취소
+                  </Button>
+                  <Button
+                    onClick={handleSave}
+                    disabled={isSaving}
+                    className="bg-blue-600 text-white hover:bg-blue-700"
+                  >
+                    <Edit className="w-4 h-4 mr-2" />
+                    {isSaving ? '저장 중...' : '저장'}
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* 공정면허증 카드 */}
