@@ -6,13 +6,13 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
-import { useAuthCheck, logout } from '@/lib/auth-utils'
+import { useAuthCheck } from '@/lib/auth-utils'
 
 const WorklogPage = () => {
   // 세션 기반 인증 확인 (작업자와 관리자 모두 접근 가능)
   const { user, isLoading } = useAuthCheck(['WORKER', 'ADMIN'])
-  
-  const [todayWorkHistory, setTodayWorkHistory] = useState([
+
+  const [todayWorkHistory, _setTodayWorkHistory] = useState([
     {
       startDate: '2026-08-28 20:00:10',
       endDate: '2026-08-29 08:04:06',
@@ -31,7 +31,7 @@ const WorklogPage = () => {
     work: string
   }>(null)
   const [startTime, setStartTime] = useState<null | string>(null)
-  const [workerInfo, setWorkerInfo] = useState<{employeeId: string, name: string} | null>(null)
+  const [workerInfo, setWorkerInfo] = useState<{ employeeId: string; name: string } | null>(null)
 
   useEffect(() => {
     const startInfo = localStorage.getItem('start-info')
@@ -53,7 +53,7 @@ const WorklogPage = () => {
     if (user) {
       setWorkerInfo({
         employeeId: user.loginId,
-        name: user.name
+        name: user.name,
       })
     } else if (workerInfo) {
       setWorkerInfo(JSON.parse(workerInfo))
@@ -148,7 +148,7 @@ const WorklogPage = () => {
           <h2 className="text-xl font-semibold mb-4">최근 작업 기록</h2>
           {todayWorkHistory.length > 0 ? (
             <ul className="space-y-4">
-              {todayWorkHistory.map(item => {
+              {todayWorkHistory.map((item) => {
                 return (
                   <li
                     key={item.startDate}
@@ -163,9 +163,7 @@ const WorklogPage = () => {
                       </span>
                     </div>
                     <div className="text-right">
-                      <p className="text-lg">
-                        {format(item.startDate, 'HH:mm:ss')}
-                      </p>
+                      <p className="text-lg">{format(item.startDate, 'HH:mm:ss')}</p>
                       <p className="text-lg">
                         <span>
                           {format(item.startDate, 'yyyy-MM-dd') !==

@@ -6,7 +6,7 @@ const WEEK = 60 * 60 * 24 * 7
 export function withSessionCookie(
   res: NextResponse,
   sessionValue: string,
-  opts?: { path?: string; maxAge?: number }
+  opts?: { path?: string; maxAge?: number },
 ) {
   res.cookies.set('session', sessionValue, {
     httpOnly: true,
@@ -25,10 +25,10 @@ export function clearSessionCookie(res: NextResponse, path: string = '/') {
 
 // 편의: 바로 JSON 응답 + 쿠키 설정까지
 export function jsonWithSession(
-  body: any,
+  body: unknown,
   sessionValue: string,
   init?: ResponseInit,
-  opts?: { path?: string; maxAge?: number }
+  opts?: { path?: string; maxAge?: number },
 ) {
   const res = NextResponse.json(body, init)
   return withSessionCookie(res, sessionValue, opts)

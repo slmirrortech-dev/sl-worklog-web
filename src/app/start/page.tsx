@@ -44,7 +44,7 @@ const works = [
 export default function StartPage() {
   // 세션 기반 인증 확인 (작업자와 관리자 모두 접근 가능)
   const { user, isLoading } = useAuthCheck(['WORKER', 'ADMIN'])
-  
+
   const router = useRouter()
   const [selectedLine, setSelectedLine] = useState('')
   const [selectedWork, setSelectedWork] = useState('')
@@ -68,7 +68,7 @@ export default function StartPage() {
     setShowModal(false)
     localStorage.setItem(
       'start-info',
-      `${lines.find(line => line.id === selectedLine)?.name}/${works.find(work => work.id === selectedWork)?.name}`
+      `${lines.find((line) => line.id === selectedLine)?.name}/${works.find((work) => work.id === selectedWork)?.name}`,
     )
     localStorage.setItem('start-time', new Date().toString())
     router.back()
@@ -79,15 +79,13 @@ export default function StartPage() {
       <div className="w-full max-w-sm">
         <section className="mb-12">
           <h1 className="text-2xl font-bold">작업 시작하기</h1>
-          <p className="text-base text-gray-500">
-            기록을 위해 정확한 라인을 선택해주세요.
-          </p>
+          <p className="text-base text-gray-500">기록을 위해 정확한 라인을 선택해주세요.</p>
         </section>
         <section className="mb-8 flex flex-col gap-6">
           <div>
             <h2 className="text-xl font-semibold mb-4">라인 선택</h2>
             <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
-              {lines.map(line => (
+              {lines.map((line) => (
                 <button
                   key={line.id}
                   onClick={() => setSelectedLine(line.id)}
@@ -105,7 +103,7 @@ export default function StartPage() {
           <div>
             <h2 className="text-xl font-semibold mb-4">공정 선택</h2>
             <div className="grid grid-cols-2 gap-3">
-              {works.map(work => (
+              {works.map((work) => (
                 <button
                   key={work.id}
                   onClick={() => setSelectedWork(work.id)}
@@ -143,29 +141,21 @@ export default function StartPage() {
         {showModal && (
           <div className="fixed inset-0 bg-gray-950/75 flex items-center justify-center z-50 px-6">
             <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
-              <p className="text-2xl font-bold text-center mb-2">
-                작업 선택 확인
-              </p>
-              <p className="text-lg text-gray-600 text-center mb-6">
-                작업을 시작하시겠습니까?
-              </p>
+              <p className="text-2xl font-bold text-center mb-2">작업 선택 확인</p>
+              <p className="text-lg text-gray-600 text-center mb-6">작업을 시작하시겠습니까?</p>
 
               <div className="bg-gray-100 rounded-xl p-6">
                 <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-lg font-medium text-gray-600">
-                      라인
-                    </span>
+                    <span className="text-lg font-medium text-gray-600">라인</span>
                     <span className="text-lg font-bold text-gray-900">
-                      {lines.find(line => line.id === selectedLine)?.name}
+                      {lines.find((line) => line.id === selectedLine)?.name}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-lg font-medium text-gray-600">
-                      공정
-                    </span>
+                    <span className="text-lg font-medium text-gray-600">공정</span>
                     <span className="text-lg font-bold text-gray-900">
-                      {works.find(work => work.id === selectedWork)?.name}
+                      {works.find((work) => work.id === selectedWork)?.name}
                     </span>
                   </div>
                 </div>

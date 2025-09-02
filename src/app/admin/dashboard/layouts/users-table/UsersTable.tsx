@@ -6,6 +6,7 @@ import { ColumnDef } from '@tanstack/react-table'
 import { Button } from '@/components/ui/button'
 import { Plus, FileImage } from 'lucide-react'
 import { CustomDataTable } from '@/components/CustomDataTable'
+import { TUser } from '@/types/TUser'
 
 export const columns: ColumnDef<TUser>[] = [
   {
@@ -21,20 +22,14 @@ export const columns: ColumnDef<TUser>[] = [
   },
   {
     accessorKey: 'name',
-    header: () => (
-      <div className="text-center font-semibold text-gray-700">이름</div>
-    ),
+    header: () => <div className="text-center font-semibold text-gray-700">이름</div>,
     cell: ({ row }) => (
-      <div className="text-center font-medium text-gray-900">
-        {row.getValue('name')}
-      </div>
+      <div className="text-center font-medium text-gray-900">{row.getValue('name')}</div>
     ),
   },
   {
     accessorKey: 'role',
-    header: () => (
-      <div className="text-center font-semibold text-gray-700">역할</div>
-    ),
+    header: () => <div className="text-center font-semibold text-gray-700">역할</div>,
     cell: ({ row }) => {
       const role = row.getValue('role') as 'ADMIN' | 'WORKER'
       const roleText = role === 'ADMIN' ? '관리자' : '작업자'
@@ -56,9 +51,7 @@ export const columns: ColumnDef<TUser>[] = [
   },
   {
     accessorKey: 'licensePhoto',
-    header: () => (
-      <div className="text-center font-semibold text-gray-700">공정면허증</div>
-    ),
+    header: () => <div className="text-center font-semibold text-gray-700">공정면허증</div>,
     cell: ({ row }) => {
       const isLicensePhoto = row.getValue('licensePhoto')
 
@@ -68,7 +61,7 @@ export const columns: ColumnDef<TUser>[] = [
             <Button
               variant="default"
               size="sm"
-              onClick={e => {
+              onClick={(e) => {
                 e.stopPropagation()
                 alert('업로드 된 이미지')
               }}
@@ -81,7 +74,7 @@ export const columns: ColumnDef<TUser>[] = [
             <Button
               variant="outline"
               size="sm"
-              onClick={e => {
+              onClick={(e) => {
                 e.stopPropagation()
                 alert('이미지 선택하기')
               }}
@@ -125,12 +118,9 @@ const UsersTable = () => {
         setError(null)
 
         const searchQuery = search ? `&search=${encodeURIComponent(search)}` : ''
-        const response = await fetch(
-          `/api/users?page=${page}&pageSize=${pageSize}${searchQuery}`,
-          {
-            credentials: 'include',
-          }
-        )
+        const response = await fetch(`/api/users?page=${page}&pageSize=${pageSize}${searchQuery}`, {
+          credentials: 'include',
+        })
 
         if (!response.ok) {
           setError(`HTTP error! status: ${response.status}`)
@@ -147,9 +137,9 @@ const UsersTable = () => {
           setError(responseData.error || '사용자 목록을 불러오는데 실패했습니다.')
           return
         }
-      } catch (err: any) {
-        console.error('fetch failed', err)
-        setError(err.message)
+      } catch (_error: unknown) {
+        console.error('fetch failed', _error)
+        setError(_error instanceof Error ? _error.message : 'An error occurred')
       } finally {
         setLoading(false)
       }
@@ -183,18 +173,16 @@ const UsersTable = () => {
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex-1">
-            <h2 className="text-xl md:text-2xl font-bold text-gray-900">
-              전체 직원 목록
-            </h2>
+            <h2 className="text-xl md:text-2xl font-bold text-gray-900">전체 직원 목록</h2>
             <p className="text-gray-600 mt-1 text-sm md:text-base">
               등록된 직원들을 관리하고 새로운 직원을 추가할 수 있습니다.
             </p>
             <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
               <span className="whitespace-nowrap">
-                관리자: {users.filter(user => user.role === 'ADMIN').length}명
+                관리자: {users.filter((user) => user.role === 'ADMIN').length}명
               </span>
               <span className="whitespace-nowrap">
-                작업자: {users.filter(user => user.role === 'WORKER').length}명
+                작업자: {users.filter((user) => user.role === 'WORKER').length}명
               </span>
             </div>
           </div>

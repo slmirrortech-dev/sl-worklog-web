@@ -6,7 +6,11 @@ import dynamic from 'next/dynamic'
 // SwaggerUI를 dynamic import로 로드 (SSR 방지)
 const SwaggerUI = dynamic(() => import('swagger-ui-react'), {
   ssr: false,
-  loading: () => <div className="flex items-center justify-center min-h-screen"><div className="text-lg">Loading API Documentation...</div></div>
+  loading: () => (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="text-lg">Loading API Documentation...</div>
+    </div>
+  ),
 })
 
 // CSS를 별도로 import
@@ -17,9 +21,9 @@ export default function ApiDocsPage() {
 
   useEffect(() => {
     fetch('/api/docs')
-      .then(res => res.json())
-      .then(data => setSpec(data))
-      .catch(err => console.error('Failed to load API docs:', err))
+      .then((res) => res.json())
+      .then((data) => setSpec(data))
+      .catch((err) => console.error('Failed to load API docs:', err))
   }, [])
 
   if (!spec) {

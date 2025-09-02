@@ -64,12 +64,9 @@ export function CustomDataTable({
   onSearch?: () => void
 }) {
   const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  )
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [globalFilter, setGlobalFilter] = React.useState('')
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({})
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = React.useState({})
   const [isMobile, setIsMobile] = React.useState(false)
 
@@ -123,7 +120,7 @@ export function CustomDataTable({
               <span className="text-gray-600 whitespace-nowrap">페이지당</span>
               <Select
                 value={pageSize.toString()}
-                onValueChange={value => {
+                onValueChange={(value) => {
                   setPageSize(Number(value))
                 }}
               >
@@ -145,11 +142,11 @@ export function CustomDataTable({
             <Input
               placeholder="사번 또는 이름으로 검색"
               value={searchInput ?? ''}
-              onChange={event => {
+              onChange={(event) => {
                 const value = event.target.value
                 setSearchInput?.(value)
               }}
-              onKeyDown={event => {
+              onKeyDown={(event) => {
                 if (event.key === 'Enter') {
                   onSearch?.()
                 }
@@ -173,12 +170,9 @@ export function CustomDataTable({
       <div className="overflow-x-auto">
         <Table className="min-w-[640px]">
           <TableHeader>
-            {table.getHeaderGroups().map(headerGroup => (
-              <TableRow
-                key={headerGroup.id}
-                className="border-b border-gray-200 bg-gray-50/50"
-              >
-                {headerGroup.headers.map(header => {
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id} className="border-b border-gray-200 bg-gray-50/50">
+                {headerGroup.headers.map((header) => {
                   return (
                     <TableHead
                       key={header.id}
@@ -186,10 +180,7 @@ export function CustomDataTable({
                     >
                       {header.isPlaceholder
                         ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                        : flexRender(header.column.columnDef.header, header.getContext())}
                     </TableHead>
                   )
                 })}
@@ -199,10 +190,7 @@ export function CustomDataTable({
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-32 text-center py-12"
-                >
+                <TableCell colSpan={columns.length} className="h-32 text-center py-12">
                   <div className="flex flex-col items-center justify-center text-gray-500">
                     <div className="text-base md:text-lg font-medium mb-2">
                       데이터를 불러오는 중...
@@ -211,36 +199,28 @@ export function CustomDataTable({
                 </TableCell>
               </TableRow>
             ) : table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map(row => (
+              table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
                   className="border-b border-gray-100 hover:bg-blue-50/50 cursor-pointer transition-colors duration-150"
                   onClick={() => onRowClick?.(row.original)}
                 >
-                  {row.getVisibleCells().map(cell => (
+                  {row.getVisibleCells().map((cell) => (
                     <TableCell
                       key={cell.id}
                       className="py-3 md:py-4 px-3 md:px-6 text-gray-900 text-sm md:text-base"
                     >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-32 text-center py-12"
-                >
+                <TableCell colSpan={columns.length} className="h-32 text-center py-12">
                   <div className="flex flex-col items-center justify-center text-gray-500">
-                    <div className="text-base md:text-lg font-medium mb-2">
-                      데이터가 없습니다
-                    </div>
+                    <div className="text-base md:text-lg font-medium mb-2">데이터가 없습니다</div>
                     <div className="text-sm">직원을 등록해주세요.</div>
                   </div>
                 </TableCell>
@@ -256,8 +236,7 @@ export function CustomDataTable({
           <span className="whitespace-nowrap">총 {totalCount}개 항목</span>
           <span className="text-gray-400 hidden md:inline">|</span>
           <span className="whitespace-nowrap hidden md:inline">
-            {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, totalCount)}{' '}
-            표시 중
+            {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, totalCount)} 표시 중
           </span>
         </div>
 
@@ -287,9 +266,7 @@ export function CustomDataTable({
                   return (
                     <Button
                       key={i}
-                      variant={
-                        currentPage === pageNumber ? 'default' : 'outline'
-                      }
+                      variant={currentPage === pageNumber ? 'default' : 'outline'}
                       size="sm"
                       onClick={() => setPage(pageNumber)}
                       className={`h-8 w-8 p-0 text-xs md:text-sm ${
@@ -308,9 +285,7 @@ export function CustomDataTable({
                   return (
                     <Button
                       key={i}
-                      variant={
-                        currentPage === pageNumber ? 'default' : 'outline'
-                      }
+                      variant={currentPage === pageNumber ? 'default' : 'outline'}
                       size="sm"
                       onClick={() => setPage(pageNumber)}
                       className={`h-8 w-8 p-0 text-xs md:text-sm ${
@@ -324,14 +299,10 @@ export function CustomDataTable({
                   )
                 } else if (
                   (pageNumber === 2 && currentPage > (isMobile ? 3 : 4)) ||
-                  (pageNumber === totalPages - 1 &&
-                    currentPage < totalPages - (isMobile ? 2 : 3))
+                  (pageNumber === totalPages - 1 && currentPage < totalPages - (isMobile ? 2 : 3))
                 ) {
                   return (
-                    <span
-                      key={i}
-                      className="px-1 md:px-2 text-gray-400 text-xs"
-                    >
+                    <span key={i} className="px-1 md:px-2 text-gray-400 text-xs">
                       ...
                     </span>
                   )

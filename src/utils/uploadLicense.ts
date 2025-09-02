@@ -7,6 +7,6 @@ export async function uploadLicense(userId: string, file: File) {
     body: fd,
     credentials: 'include',
   })
-  const json = await res.json()
-  // json.data.licensePhoto → "/uploads/licenses/xxx.jpg"
+  const _json = await res.json()
+  // _json.data.licensePhoto → "/uploads/licenses/xxx.jpg"
 }

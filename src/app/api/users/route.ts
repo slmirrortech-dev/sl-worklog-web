@@ -60,18 +60,13 @@ export async function GET(request: NextRequest) {
   const sessionUser = await getSessionUser(request)
   // 관리자 및 최고관리자만 허용
   if (sessionUser?.role !== 'ADMIN') {
-    return NextResponse.json(
-      { error: '관리자만 조회 가능합니다' },
-      { status: 403 }
-    )
+    return NextResponse.json({ error: '관리자만 조회 가능합니다' }, { status: 403 })
   }
 
   /** 쿼리 파라미터 확인 */
   const { searchParams } = new URL(request.url)
   // 역할
-  const roleParam = searchParams.get('role')?.toUpperCase() as
-    | 'ADMIN'
-    | 'WORKER'
+  const roleParam = searchParams.get('role')?.toUpperCase() as 'ADMIN' | 'WORKER'
   const pageParam = parseInt(searchParams.get('page') || '1', 10)
   const pageSizeParam = parseInt(searchParams.get('pageSize') || '10', 10)
   const searchParam = searchParams.get('search') || ''
@@ -80,18 +75,13 @@ export async function GET(request: NextRequest) {
   if (roleParam && roleParam !== 'ADMIN' && roleParam !== 'WORKER') {
     return NextResponse.json(
       { error: 'role 값은 ADMIN 또는 WORKER 이어야 합니다' },
-      { status: 400 }
+      { status: 400 },
     )
   }
-  if (
-    isNaN(pageParam) ||
-    pageParam < 1 ||
-    isNaN(pageSizeParam) ||
-    pageSizeParam < 1
-  ) {
+  if (isNaN(pageParam) || pageParam < 1 || isNaN(pageSizeParam) || pageSizeParam < 1) {
     return NextResponse.json(
       { error: 'page와 pageSize는 1 이상의 유효한 숫자여야 합니다' },
-      { status: 400 }
+      { status: 400 },
     )
   }
 
@@ -99,7 +89,7 @@ export async function GET(request: NextRequest) {
   const take = pageSizeParam
 
   // WHERE 절 구성
-  const whereClause: any = {}
+  const whereClause: Record<string, unknown> = {}
 
   if (roleParam) {
     whereClause.role = roleParam
@@ -145,10 +135,7 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error(' error:', error)
-    return NextResponse.json(
-      { error: '서버 오류가 발생했습니다.' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: '서버 오류가 발생했습니다.' }, { status: 500 })
   }
 }
 
@@ -200,10 +187,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const sessionUser = await getSessionUser(request)
   if (!sessionUser || sessionUser.role !== 'ADMIN') {
-    return NextResponse.json(
-      { error: '관리자만 등록 가능합니다' },
-      { status: 403 }
-    )
+    return NextResponse.json({ error: '관리자만 등록 가능합니다' }, { status: 403 })
   }
 
   const body = await request.json()
@@ -217,18 +201,18 @@ export async function POST(request: NextRequest) {
   }> = Array.isArray(body) ? body : [body]
 
   // 최소 검증
-  const invalid = items.filter(i => !i?.loginId || !i?.name)
+  const invalid = items.filter((i) => !i?.loginId || !i?.name)
   if (invalid.length) {
     return NextResponse.json(
       { error: `loginId와 name은 필수입니다. invalid count=${invalid.length}` },
-      { status: 400 }
+      { status: 400 },
     )
   }
 
   // payload 내 중복 제거
   const seen = new Set<string>()
   const dupInPayload: string[] = []
-  const uniqueItems = items.filter(i => {
+  const uniqueItems = items.filter((i) => {
     const key = i.loginId
     if (seen.has(key)) {
       dupInPayload.push(key)
@@ -239,15 +223,15 @@ export async function POST(request: NextRequest) {
   })
 
   // 이미 존재하는 loginId 조회
-  const loginIds = uniqueItems.map(i => i.loginId)
+  const loginIds = uniqueItems.map((i) => i.loginId)
   const existing = await prisma.user.findMany({
     where: { loginId: { in: loginIds } },
     select: { loginId: true },
   })
-  const existsSet = new Set(existing.map(e => e.loginId))
+  const existsSet = new Set(existing.map((e) => e.loginId))
 
   // 실제 생성할 목록
-  const toCreate = uniqueItems.filter(i => !existsSet.has(i.loginId))
+  const toCreate = uniqueItems.filter((i) => !existsSet.has(i.loginId))
 
   if (toCreate.length === 0) {
     return NextResponse.json(
@@ -260,7 +244,7 @@ export async function POST(request: NextRequest) {
         },
         data: [],
       },
-      { status: 409 }
+      { status: 409 },
     )
   }
 
@@ -268,7 +252,7 @@ export async function POST(request: NextRequest) {
   const passwordHash = await bcrypt.hash('0000', 10)
 
   await prisma.user.createMany({
-    data: toCreate.map(i => ({
+    data: toCreate.map((i) => ({
       loginId: i.loginId,
       name: i.name,
       role: (i.role ?? 'WORKER') as 'ADMIN' | 'WORKER',
@@ -282,7 +266,7 @@ export async function POST(request: NextRequest) {
 
   // 방금 만든 사용자 조회해서 id 반환
   const createdUsers = await prisma.user.findMany({
-    where: { loginId: { in: toCreate.map(i => i.loginId) } },
+    where: { loginId: { in: toCreate.map((i) => i.loginId) } },
     select: {
       id: true,
       loginId: true,
@@ -299,11 +283,11 @@ export async function POST(request: NextRequest) {
       success: true,
       createdCount: createdUsers.length,
       skipped: {
-        existing: existing.map(e => e.loginId),
+        existing: existing.map((e) => e.loginId),
         duplicatedInPayload: dupInPayload,
       },
       data: createdUsers,
     },
-    { status: 201 }
+    { status: 201 },
   )
 }

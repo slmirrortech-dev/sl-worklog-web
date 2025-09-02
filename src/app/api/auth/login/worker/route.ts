@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { authenticate, assertRole } from '@/lib/auth'
+import { authenticate } from '@/lib/auth'
 import { jsonWithSession } from '@/lib/session'
 export const runtime = 'nodejs'
 
@@ -46,15 +46,18 @@ export async function POST(req: NextRequest) {
     const { id, password } = await req.json()
     const user = await authenticate(id, password)
     if (!user) return NextResponse.json({ error: '인증 실패' }, { status: 401 })
-    
+
     // 작업자 및 관리자 모두 허용
     if (user.role !== 'WORKER' && user.role !== 'ADMIN') {
       return NextResponse.json({ error: '접근 권한이 없습니다' }, { status: 403 })
     }
 
     return jsonWithSession(
-      { success: true, user: { id: user.id, loginId: user.loginId, name: user.name, role: user.role } },
-      user.id
+      {
+        success: true,
+        user: { id: user.id, loginId: user.loginId, name: user.name, role: user.role },
+      },
+      user.id,
     )
   } catch (error) {
     console.error('Worker login error:', error)

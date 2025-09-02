@@ -32,7 +32,7 @@ export default function WorkerLoginPage() {
           JSON.stringify({
             employeeId: data.user.loginId,
             name: data.user.name,
-          })
+          }),
         )
         // 인증 컨텍스트에도 저장
         localStorage.setItem('user', JSON.stringify(data.user))
@@ -64,42 +64,34 @@ export default function WorkerLoginPage() {
               priority
             />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-3">
-            작업 시간 기록
-          </h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-3">작업 시간 기록</h1>
           <p className="text-lg text-gray-600">사번으로 로그인해주세요</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <label
-              htmlFor="id"
-              className="block text-lg font-medium text-gray-700 mb-2"
-            >
+            <label htmlFor="id" className="block text-lg font-medium text-gray-700 mb-2">
               사번
             </label>
             <input
               type="id"
               id="id"
               value={id}
-              onChange={e => setId(e.target.value)}
+              onChange={(e) => setId(e.target.value)}
               className="w-full px-4 py-4 text-lg border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               placeholder="사번을 입력하세요"
               required
             />
           </div>
           <div>
-            <label
-              htmlFor="password"
-              className="block text-lg font-medium text-gray-700 mb-2"
-            >
+            <label htmlFor="password" className="block text-lg font-medium text-gray-700 mb-2">
               비밀번호
             </label>
             <input
               type="password"
               id="password"
               value={password}
-              onChange={e => setPassword(e.target.value)}
+              onChange={(e) => setPassword(e.target.value)}
               className="w-full px-4 py-4 text-lg border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               placeholder="비밀번호를 입력하세요"
               required

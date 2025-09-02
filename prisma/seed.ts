@@ -66,9 +66,7 @@ async function main() {
 
   // 혹시 모를 기존 loginId 확보(여긴 비어있겠지만 안전하게)
   const existingIds = new Set<string>(
-    (await prisma.user.findMany({ select: { loginId: true } })).map(
-      u => u.loginId
-    )
+    (await prisma.user.findMany({ select: { loginId: true } })).map((u) => u.loginId),
   )
 
   // 총 생성 수(관리자 2 + 작업자 100)
@@ -107,22 +105,20 @@ async function main() {
   // 결과 출력
   console.log('✅ Seed complete')
   console.log('👑 Admins')
-  admins.forEach(a =>
+  admins.forEach((a) =>
     console.log(
-      `- ${a.name} / loginId: ${a.loginId} / pw: ${PASSWORD_PLAIN} / super: ${a.isSuperAdmin}`
-    )
+      `- ${a.name} / loginId: ${a.loginId} / pw: ${PASSWORD_PLAIN} / super: ${a.isSuperAdmin}`,
+    ),
   )
   console.log('👷 Workers (first 10 of 100)')
   workers
     .slice(0, 10)
-    .forEach(w =>
-      console.log(`- ${w.name} / loginId: ${w.loginId} / pw: ${PASSWORD_PLAIN}`)
-    )
+    .forEach((w) => console.log(`- ${w.name} / loginId: ${w.loginId} / pw: ${PASSWORD_PLAIN}`))
   console.log(`…and ${workers.length - 10} more workers.`)
 }
 
 main()
-  .catch(e => {
+  .catch((e) => {
     console.error(e)
     process.exit(1)
   })

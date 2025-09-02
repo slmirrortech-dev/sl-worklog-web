@@ -1,4 +1,4 @@
-const { PrismaClient } = require('@prisma/client')
+import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
@@ -10,7 +10,7 @@ async function main() {
     create: {
       email: 'admin',
       name: '관리자',
-      role: 'ADMIN'
+      role: 'ADMIN',
     },
   })
 

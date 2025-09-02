@@ -35,46 +35,29 @@ export const dynamic = 'force-dynamic'
  *       403: { description: 권한 없음 }
  *       404: { description: 없음 }
  */
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const me = await getSessionUser(req)
   if (!me || me.role !== 'ADMIN') {
     return NextResponse.json({ error: '권한 없음' }, { status: 403 })
   }
 
+  const { id } = await params
   const target = await prisma.user.findUnique({
-    where: { id: params.id },
+    where: { id },
     select: { id: true },
   })
-  if (!target)
-    return NextResponse.json({ error: '존재하지 않는 사용자' }, { status: 404 })
+  if (!target) return NextResponse.json({ error: '존재하지 않는 사용자' }, { status: 404 })
 
   const form = await req.formData()
   const file = form.get('file') as File | null
-  if (!file)
-    return NextResponse.json(
-      { error: 'file 필드가 필요합니다' },
-      { status: 400 }
-    )
+  if (!file) return NextResponse.json({ error: 'file 필드가 필요합니다' }, { status: 400 })
 
   if (!file.type?.startsWith('image/')) {
-    return NextResponse.json(
-      { error: '이미지 파일만 업로드 가능합니다' },
-      { status: 400 }
-    )
+    return NextResponse.json({ error: '이미지 파일만 업로드 가능합니다' }, { status: 400 })
   }
   // (선택) 5MB 제한
-  // @ts-ignore - Next.js File에 size 존재
-  if (
-    typeof (file as any).size === 'number' &&
-    (file as any).size > 5 * 1024 * 1024
-  ) {
-    return NextResponse.json(
-      { error: '파일 용량은 5MB 이하만 허용됩니다' },
-      { status: 400 }
-    )
+  if (typeof file.size === 'number' && file.size > 5 * 1024 * 1024) {
+    return NextResponse.json({ error: '파일 용량은 5MB 이하만 허용됩니다' }, { status: 400 })
   }
 
   const bytes = Buffer.from(await file.arrayBuffer())
@@ -88,7 +71,7 @@ export async function POST(
           ? '.webp'
           : '.bin')
 
-  const fileName = `${params.id}-${Date.now()}-${crypto.randomUUID()}${ext}`
+  const fileName = `${id}-${Date.now()}-${crypto.randomUUID()}${ext}`
   const dir = path.join(process.cwd(), 'public', 'uploads', 'licenses')
   await mkdir(dir, { recursive: true })
   const absPath = path.join(dir, fileName)
@@ -97,7 +80,7 @@ export async function POST(
   const publicPath = `/uploads/licenses/${fileName}` // <img src=...> 로 바로 사용 가능
 
   const updated = await prisma.user.update({
-    where: { id: params.id },
+    where: { id },
     data: { licensePhoto: publicPath },
     select: { id: true, licensePhoto: true },
   })

@@ -14,17 +14,20 @@ const eslintConfig = [
   ...compat.extends('prettier'),
   ...compat.plugins('prettier'),
   {
-    ignores: [
-      'node_modules/**',
-      '.next/**',
-      'out/**',
-      'build/**',
-      'next-env.d.ts',
-    ],
+    ignores: ['node_modules/**', '.next/**', 'out/**', 'build/**', 'next-env.d.ts'],
   },
   {
     rules: {
       'prettier/prettier': 'error',
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
+      '@typescript-eslint/ban-ts-comment': [
+        'warn',
+        { 'ts-expect-error': 'allow-with-description' },
+      ],
     },
   },
 ]

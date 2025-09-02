@@ -8,9 +8,6 @@ export async function authenticate(loginId: string, password: string) {
   return ok ? user : null
 }
 
-export function assertRole(
-  user: { role: 'ADMIN' | 'WORKER' },
-  allowed: Array<'ADMIN' | 'WORKER'>
-) {
+export function assertRole(user: { role: 'ADMIN' | 'WORKER' }, allowed: Array<'ADMIN' | 'WORKER'>) {
   if (!allowed.includes(user.role)) throw new Error('FORBIDDEN')
 }

@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
         name: true,
         role: true,
         isSuperAdmin: true,
-      }
+      },
     })
 
     if (!user) {
@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      user
+      user,
     })
   } catch (error) {
     console.error('Session check error:', error)
