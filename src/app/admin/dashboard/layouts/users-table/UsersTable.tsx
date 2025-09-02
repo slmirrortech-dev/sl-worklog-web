@@ -4,15 +4,16 @@ import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ColumnDef } from '@tanstack/react-table'
 import { Button } from '@/components/ui/button'
-import { Plus, FileImage } from 'lucide-react'
+import { Plus, FileImage, ArrowUpDown } from 'lucide-react'
 import { CustomDataTable } from '@/components/CustomDataTable'
 import { TUser } from '@/types/TUser'
+import { format } from 'date-fns'
 
 export const columns: ColumnDef<TUser>[] = [
   {
     accessorKey: 'loginId',
     header: () => {
-      return <div className="text-center font-semibold text-gray-700">사번</div>
+      return <div className="text-center font-semibold text-gray-700 text-base">사번</div>
     },
     cell: ({ row }) => (
       <div className="text-center font-mono text-sm font-medium text-gray-900">
@@ -22,14 +23,14 @@ export const columns: ColumnDef<TUser>[] = [
   },
   {
     accessorKey: 'name',
-    header: () => <div className="text-center font-semibold text-gray-700">이름</div>,
+    header: () => <div className="text-center font-semibold text-gray-700 text-base">이름</div>,
     cell: ({ row }) => (
       <div className="text-center font-medium text-gray-900">{row.getValue('name')}</div>
     ),
   },
   {
     accessorKey: 'role',
-    header: () => <div className="text-center font-semibold text-gray-700">역할</div>,
+    header: () => <div className="text-center font-semibold text-gray-700 text-base">역할</div>,
     cell: ({ row }) => {
       const role = row.getValue('role') as 'ADMIN' | 'WORKER'
       const roleText = role === 'ADMIN' ? '관리자' : '작업자'
@@ -51,7 +52,9 @@ export const columns: ColumnDef<TUser>[] = [
   },
   {
     accessorKey: 'licensePhoto',
-    header: () => <div className="text-center font-semibold text-gray-700">공정면허증</div>,
+    header: () => (
+      <div className="text-center font-semibold text-gray-700 text-base">공정면허증</div>
+    ),
     cell: ({ row }) => {
       const isLicensePhoto = row.getValue('licensePhoto')
 
@@ -87,6 +90,26 @@ export const columns: ColumnDef<TUser>[] = [
         </div>
       )
     },
+  },
+  {
+    accessorKey: 'createdAt',
+    header: ({ column }) => (
+      <div className="flex justify-center">
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          className="h-8 px-2 text-base font-semibold text-gray-700 hover:bg-gray-100"
+        >
+          사번
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      </div>
+    ),
+    cell: ({ row }) => (
+      <div className="text-center font-medium text-gray-500 text-base">
+        {format(row.getValue('createdAt'), 'yyyy-MM-dd HH:mm:ss')}
+      </div>
+    ),
   },
 ]
 

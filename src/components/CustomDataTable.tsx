@@ -70,6 +70,20 @@ export function CustomDataTable({
   const [rowSelection, setRowSelection] = React.useState({})
   const [isMobile, setIsMobile] = React.useState(false)
 
+  // 페이지 크기 옵션 생성 (총 데이터 수와 성능 고려)
+  const getPageSizeOptions = (totalCount: number) => {
+    const baseOptions = [5, 10, 20, 50]
+    const validOptions = baseOptions.filter(size => size < totalCount)
+    
+    // 100개 이하일 때만 "전체" 옵션 추가
+    if (totalCount <= 100 && totalCount > 0) {
+      validOptions.push(totalCount)
+    }
+    
+    return validOptions
+  }
+
+
   // 클라이언트에서 화면 크기 감지
   React.useEffect(() => {
     const checkMobile = () => {
@@ -123,15 +137,17 @@ export function CustomDataTable({
                 onValueChange={(value) => {
                   setPageSize(Number(value))
                 }}
+                disabled={getPageSizeOptions(totalCount).length <= 1}
               >
                 <SelectTrigger className="w-20 h-8">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="5">5</SelectItem>
-                  <SelectItem value="10">10</SelectItem>
-                  <SelectItem value="20">20</SelectItem>
-                  <SelectItem value="50">50</SelectItem>
+                  {getPageSizeOptions(totalCount).map(size => (
+                    <SelectItem key={size} value={size.toString()}>
+                      {size === totalCount ? '전체' : size.toString()}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <span className="text-gray-600 whitespace-nowrap">개씩</span>

@@ -1,16 +1,9 @@
 'use client'
 
-import React, { useState } from 'react'
+import React from 'react'
 import { LogOut } from 'lucide-react'
 import { logout } from '@/lib/auth-utils'
 import UsersTable from '@/app/admin/dashboard/layouts/users-table/UsersTable'
-
-interface Employee {
-  id: string
-  employeeId: string
-  name: string
-  createdAt: string
-}
 
 const AdminDashboardPage = () => {
   const handleLogout = async () => {
