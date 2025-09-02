@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "prod": "NODE_ENV=production next dev --turbopack",
+    "swagger:generate": "node scripts/generate-swagger.js",
+    "prebuild": "npm run swagger:generate",
     "build": "prisma generate && next build --turbopack",
     "start": "next start",
     "postinstall": "prisma generate",

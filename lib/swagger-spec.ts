@@ -372,5 +372,378 @@ export const swaggerSpec = {
         },
       },
     },
+    '/api/users/{id}': {
+      get: {
+        summary: '특정 사용자 조회',
+        description: '경로 파라미터 id로 사용자를 조회합니다',
+        tags: ['Users'],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+            description: '사용자 ID',
+          },
+        ],
+        responses: {
+          200: {
+            description: '사용자 정보',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/User',
+                },
+              },
+            },
+          },
+          400: {
+            description: '잘못된 요청',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ErrorResponse',
+                },
+              },
+            },
+          },
+          403: {
+            description: '접근 권한 없음',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ErrorResponse',
+                },
+              },
+            },
+          },
+          404: {
+            description: '사용자를 찾을 수 없음',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ErrorResponse',
+                },
+              },
+            },
+          },
+          500: {
+            description: '서버 오류',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ErrorResponse',
+                },
+              },
+            },
+          },
+        },
+      },
+      put: {
+        summary: '사용자 정보 수정',
+        description: '사용자 정보를 수정합니다',
+        tags: ['Users'],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+            description: '사용자 ID',
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  name: {
+                    type: 'string',
+                    description: '사용자 이름',
+                  },
+                  adminMemo: {
+                    type: 'string',
+                    description: '관리자 메모',
+                  },
+                  isActive: {
+                    type: 'boolean',
+                    description: '활성 상태',
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: '수정 성공',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/SuccessResponse',
+                },
+              },
+            },
+          },
+          400: {
+            description: '잘못된 요청',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ErrorResponse',
+                },
+              },
+            },
+          },
+          403: {
+            description: '접근 권한 없음',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ErrorResponse',
+                },
+              },
+            },
+          },
+          404: {
+            description: '사용자를 찾을 수 없음',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ErrorResponse',
+                },
+              },
+            },
+          },
+          500: {
+            description: '서버 오류',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ErrorResponse',
+                },
+              },
+            },
+          },
+        },
+      },
+      delete: {
+        summary: '사용자 삭제',
+        description: '사용자를 삭제합니다',
+        tags: ['Users'],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+            description: '사용자 ID',
+          },
+        ],
+        responses: {
+          200: {
+            description: '삭제 성공',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/SuccessResponse',
+                },
+              },
+            },
+          },
+          403: {
+            description: '접근 권한 없음',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ErrorResponse',
+                },
+              },
+            },
+          },
+          404: {
+            description: '사용자를 찾을 수 없음',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ErrorResponse',
+                },
+              },
+            },
+          },
+          500: {
+            description: '서버 오류',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ErrorResponse',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/api/users/{id}/license-photo': {
+      post: {
+        summary: '사용자 자격증 사진 업로드',
+        description: '사용자의 자격증 사진을 업로드합니다',
+        tags: ['Users'],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+            description: '사용자 ID',
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'multipart/form-data': {
+              schema: {
+                type: 'object',
+                properties: {
+                  file: {
+                    type: 'string',
+                    format: 'binary',
+                    description: '업로드할 이미지 파일',
+                  },
+                },
+                required: ['file'],
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: '업로드 성공',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: {
+                      type: 'boolean',
+                      example: true,
+                    },
+                    filePath: {
+                      type: 'string',
+                      description: '업로드된 파일 경로',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description: '잘못된 입력',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ErrorResponse',
+                },
+              },
+            },
+          },
+          403: {
+            description: '권한 없음',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ErrorResponse',
+                },
+              },
+            },
+          },
+          404: {
+            description: '사용자를 찾을 수 없음',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ErrorResponse',
+                },
+              },
+            },
+          },
+          500: {
+            description: '서버 오류',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ErrorResponse',
+                },
+              },
+            },
+          },
+        },
+      },
+      get: {
+        summary: '사용자 자격증 사진 조회',
+        description: '사용자의 자격증 사진을 조회합니다',
+        tags: ['Users'],
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+            description: '사용자 ID',
+          },
+        ],
+        responses: {
+          200: {
+            description: '이미지 파일',
+            content: {
+              'image/jpeg': {
+                schema: {
+                  type: 'string',
+                  format: 'binary',
+                },
+              },
+              'image/png': {
+                schema: {
+                  type: 'string',
+                  format: 'binary',
+                },
+              },
+            },
+          },
+          404: {
+            description: '이미지를 찾을 수 없음',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ErrorResponse',
+                },
+              },
+            },
+          },
+          500: {
+            description: '서버 오류',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ErrorResponse',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   },
 }
