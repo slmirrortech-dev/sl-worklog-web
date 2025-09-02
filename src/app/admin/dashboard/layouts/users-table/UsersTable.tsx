@@ -174,16 +174,8 @@ const UsersTable = () => {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex-1">
             <h2 className="text-xl md:text-2xl font-bold text-gray-900">전체 직원 목록</h2>
-            <p className="text-gray-600 mt-1 text-sm md:text-base">
-              등록된 직원들을 관리하고 새로운 직원을 추가할 수 있습니다.
-            </p>
-            <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
-              <span className="whitespace-nowrap">
-                관리자: {users.filter((user) => user.role === 'ADMIN').length}명
-              </span>
-              <span className="whitespace-nowrap">
-                작업자: {users.filter((user) => user.role === 'WORKER').length}명
-              </span>
+            <div className="flex items-center gap-4 mt-2 text-base text-gray-500">
+              <span className="whitespace-nowrap">총 {totalCount}명</span>
             </div>
           </div>
           <div className="flex items-center justify-end gap-3">
