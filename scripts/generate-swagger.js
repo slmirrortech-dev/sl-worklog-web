@@ -113,21 +113,23 @@ const generateObjectString = (obj, indent = 0) => {
     const items = obj.map(item => 
       typeof item === 'object' && item !== null 
         ? generateObjectString(item, indent + 1)
-        : JSON.stringify(item)
+        : typeof item === 'string' ? `'${item}'` : JSON.stringify(item)
     ).join(',\n' + '  '.repeat(indent + 1))
     return `[\n${'  '.repeat(indent + 1)}${items},\n${spaces}]`
   } else if (typeof obj === 'object' && obj !== null) {
     const entries = Object.entries(obj)
     if (entries.length === 0) return '{}'
     const props = entries.map(([key, value]) => {
+      // 특수문자가 있는 키는 홑따옴표로 감싸기
+      const formattedKey = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(key) ? key : `'${key}'`
       const formattedValue = typeof value === 'object' && value !== null
         ? generateObjectString(value, indent + 1)
-        : JSON.stringify(value)
-      return `${spaces}  ${key}: ${formattedValue}`
+        : typeof value === 'string' ? `'${value}'` : JSON.stringify(value)
+      return `${spaces}  ${formattedKey}: ${formattedValue}`
     }).join(',\n')
     return `{\n${props},\n${spaces}}`
   }
-  return JSON.stringify(obj)
+  return typeof obj === 'string' ? `'${obj}'` : JSON.stringify(obj)
 }
 
 const output = `// 자동 생성된 Swagger 스펙 - scripts/generate-swagger.js에서 생성

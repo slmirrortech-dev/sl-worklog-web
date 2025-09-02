@@ -1,162 +1,162 @@
 // 자동 생성된 Swagger 스펙 - scripts/generate-swagger.js에서 생성
 // API 라우트의 JSDoc 주석을 기반으로 자동 생성됩니다
 export const swaggerSpec = {
-  openapi: "3.0.0",
+  openapi: '3.0.0',
   info: {
-    title: "Factory Worklog API",
-    version: "1.0.0",
-    description: "공장 작업 기록 시스템 API",
+    title: 'Factory Worklog API',
+    version: '1.0.0',
+    description: '공장 작업 기록 시스템 API',
   },
   servers: [
     {
-      url: "http://localhost:3000",
-      description: "Development server",
+      url: 'http://localhost:3000',
+      description: 'Development server',
     },
   ],
   components: {
     schemas: {
       User: {
-        type: "object",
+        type: 'object',
         properties: {
           id: {
-            type: "string",
-            description: "사용자 고유 ID",
+            type: 'string',
+            description: '사용자 고유 ID',
           },
           loginId: {
-            type: "string",
-            description: "로그인 ID (사번)",
+            type: 'string',
+            description: '로그인 ID (사번)',
           },
           name: {
-            type: "string",
-            description: "사용자 이름",
+            type: 'string',
+            description: '사용자 이름',
           },
           role: {
-            type: "string",
+            type: 'string',
             enum: [
-              "WORKER",
-              "ADMIN",
+              'WORKER',
+              'ADMIN',
             ],
-            description: "사용자 역할",
+            description: '사용자 역할',
           },
           isSuperAdmin: {
-            type: "boolean",
-            description: "최고관리자 여부",
+            type: 'boolean',
+            description: '최고관리자 여부',
           },
         },
       },
       LoginRequest: {
-        type: "object",
+        type: 'object',
         required: [
-          "id",
-          "password",
+          'id',
+          'password',
         ],
         properties: {
           id: {
-            type: "string",
-            description: "로그인 ID (사번)",
+            type: 'string',
+            description: '로그인 ID (사번)',
           },
           password: {
-            type: "string",
-            description: "비밀번호",
+            type: 'string',
+            description: '비밀번호',
           },
         },
       },
       LoginResponse: {
-        type: "object",
+        type: 'object',
         properties: {
           success: {
-            type: "boolean",
-            description: "로그인 성공 여부",
+            type: 'boolean',
+            description: '로그인 성공 여부',
           },
           user: {
-            $ref: "#/components/schemas/User",
+            $ref: '#/components/schemas/User',
           },
         },
       },
       ErrorResponse: {
-        type: "object",
+        type: 'object',
         properties: {
           error: {
-            type: "string",
-            description: "에러 메시지",
+            type: 'string',
+            description: '에러 메시지',
           },
         },
       },
       SuccessResponse: {
-        type: "object",
+        type: 'object',
         properties: {
           success: {
-            type: "boolean",
-            description: "성공 여부",
+            type: 'boolean',
+            description: '성공 여부',
             example: true,
           },
           message: {
-            type: "string",
-            description: "성공 메시지",
+            type: 'string',
+            description: '성공 메시지',
           },
         },
       },
     },
   },
   paths: {
-    /api/auth/login/admin: {
+    '/api/auth/login/admin': {
       post: {
-        summary: "관리자 로그인",
-        description: "관리자 전용 로그인 엔드포인트",
+        summary: '관리자 로그인',
+        description: '관리자 전용 로그인 엔드포인트',
         tags: [
-          "Auth",
+          'Auth',
         ],
         requestBody: {
           required: true,
           content: {
-            application/json: {
+            'application/json': {
               schema: {
-                $ref: "#/components/schemas/LoginRequest",
+                $ref: '#/components/schemas/LoginRequest',
               },
               example: {
-                id: "admin",
-                password: "0000",
+                id: 'admin',
+                password: '0000',
               },
             },
           },
         },
         responses: {
-          200: {
-            description: "로그인 성공",
+          '200': {
+            description: '로그인 성공',
             content: {
-              application/json: {
+              'application/json': {
                 schema: {
-                  $ref: "#/components/schemas/LoginResponse",
+                  $ref: '#/components/schemas/LoginResponse',
                 },
               },
             },
           },
-          401: {
-            description: "인증 실패",
+          '401': {
+            description: '인증 실패',
             content: {
-              application/json: {
+              'application/json': {
                 schema: {
-                  $ref: "#/components/schemas/ErrorResponse",
+                  $ref: '#/components/schemas/ErrorResponse',
                 },
               },
             },
           },
-          403: {
-            description: "권한 없음 (관리자만 접근 가능)",
+          '403': {
+            description: '권한 없음 (관리자만 접근 가능)',
             content: {
-              application/json: {
+              'application/json': {
                 schema: {
-                  $ref: "#/components/schemas/ErrorResponse",
+                  $ref: '#/components/schemas/ErrorResponse',
                 },
               },
             },
           },
-          500: {
-            description: "서버 오류",
+          '500': {
+            description: '서버 오류',
             content: {
-              application/json: {
+              'application/json': {
                 schema: {
-                  $ref: "#/components/schemas/ErrorResponse",
+                  $ref: '#/components/schemas/ErrorResponse',
                 },
               },
             },
@@ -164,54 +164,54 @@ export const swaggerSpec = {
         },
       },
     },
-    /api/auth/login/worker: {
+    '/api/auth/login/worker': {
       post: {
-        summary: "작업자 로그인",
-        description: "작업자 및 관리자 로그인 엔드포인트",
+        summary: '작업자 로그인',
+        description: '작업자 및 관리자 로그인 엔드포인트',
         tags: [
-          "Auth",
+          'Auth',
         ],
         requestBody: {
           required: true,
           content: {
-            application/json: {
+            'application/json': {
               schema: {
-                $ref: "#/components/schemas/LoginRequest",
+                $ref: '#/components/schemas/LoginRequest',
               },
               example: {
-                id: "worker01",
-                password: "0000",
+                id: 'worker01',
+                password: '0000',
               },
             },
           },
         },
         responses: {
-          200: {
-            description: "로그인 성공",
+          '200': {
+            description: '로그인 성공',
             content: {
-              application/json: {
+              'application/json': {
                 schema: {
-                  $ref: "#/components/schemas/LoginResponse",
+                  $ref: '#/components/schemas/LoginResponse',
                 },
               },
             },
           },
-          401: {
-            description: "인증 실패",
+          '401': {
+            description: '인증 실패',
             content: {
-              application/json: {
+              'application/json': {
                 schema: {
-                  $ref: "#/components/schemas/ErrorResponse",
+                  $ref: '#/components/schemas/ErrorResponse',
                 },
               },
             },
           },
-          500: {
-            description: "서버 오류",
+          '500': {
+            description: '서버 오류',
             content: {
-              application/json: {
+              'application/json': {
                 schema: {
-                  $ref: "#/components/schemas/ErrorResponse",
+                  $ref: '#/components/schemas/ErrorResponse',
                 },
               },
             },
@@ -219,30 +219,30 @@ export const swaggerSpec = {
         },
       },
     },
-    /api/auth/logout: {
+    '/api/auth/logout': {
       post: {
-        summary: "로그아웃",
-        description: "세션 쿠키를 삭제하여 로그아웃",
+        summary: '로그아웃',
+        description: '세션 쿠키를 삭제하여 로그아웃',
         tags: [
-          "Auth",
+          'Auth',
         ],
         responses: {
-          200: {
-            description: "로그아웃 성공",
+          '200': {
+            description: '로그아웃 성공',
             content: {
-              application/json: {
+              'application/json': {
                 schema: {
-                  $ref: "#/components/schemas/SuccessResponse",
+                  $ref: '#/components/schemas/SuccessResponse',
                 },
               },
             },
           },
-          500: {
-            description: "서버 오류",
+          '500': {
+            description: '서버 오류',
             content: {
-              application/json: {
+              'application/json': {
                 schema: {
-                  $ref: "#/components/schemas/ErrorResponse",
+                  $ref: '#/components/schemas/ErrorResponse',
                 },
               },
             },
@@ -250,49 +250,49 @@ export const swaggerSpec = {
         },
       },
     },
-    /api/auth/me: {
+    '/api/auth/me': {
       get: {
-        summary: "현재 로그인 사용자 정보 조회",
-        description: "세션 쿠키를 통해 현재 로그인한 사용자 정보를 반환",
+        summary: '현재 로그인 사용자 정보 조회',
+        description: '세션 쿠키를 통해 현재 로그인한 사용자 정보를 반환',
         tags: [
-          "Auth",
+          'Auth',
         ],
         responses: {
-          200: {
-            description: "인증된 사용자 정보",
+          '200': {
+            description: '인증된 사용자 정보',
             content: {
-              application/json: {
+              'application/json': {
                 schema: {
-                  type: "object",
+                  type: 'object',
                   properties: {
                     success: {
-                      type: "boolean",
+                      type: 'boolean',
                       example: true,
                     },
                     user: {
-                      $ref: "#/components/schemas/User",
+                      $ref: '#/components/schemas/User',
                     },
                   },
                 },
               },
             },
           },
-          401: {
-            description: "인증되지 않음",
+          '401': {
+            description: '인증되지 않음',
             content: {
-              application/json: {
+              'application/json': {
                 schema: {
-                  $ref: "#/components/schemas/ErrorResponse",
+                  $ref: '#/components/schemas/ErrorResponse',
                 },
               },
             },
           },
-          500: {
-            description: "서버 오류",
+          '500': {
+            description: '서버 오류',
             content: {
-              application/json: {
+              'application/json': {
                 schema: {
-                  $ref: "#/components/schemas/ErrorResponse",
+                  $ref: '#/components/schemas/ErrorResponse',
                 },
               },
             },
@@ -300,32 +300,32 @@ export const swaggerSpec = {
         },
       },
     },
-    /api/users/{id}/license-photo: {
+    '/api/users/{id}/license-photo': {
       post: {
-        summary: "사용자 자격증 사진 업로드(로컬 저장)",
+        summary: '사용자 자격증 사진 업로드(로컬 저장)',
         tags: [
-          "User",
+          'User',
         ],
         parameters: [
           {
-            in: "path",
-            name: "id",
+            in: 'path',
+            name: 'id',
             required: true,
             schema: {
-              type: "string",
+              type: 'string',
             },
           },
         ],
         requestBody: {
           required: true,
           content: {
-            multipart/form-data: {
+            'multipart/form-data': {
               schema: {
-                type: "object",
+                type: 'object',
                 properties: {
                   file: {
-                    type: "string",
-                    format: "binary",
+                    type: 'string',
+                    format: 'binary',
                   },
                 },
               },
@@ -333,49 +333,49 @@ export const swaggerSpec = {
           },
         },
         responses: {
-          200: {
-            description: "업로드 성공",
+          '200': {
+            description: '업로드 성공',
           },
-          400: {
-            description: "잘못된 입력",
+          '400': {
+            description: '잘못된 입력',
           },
-          403: {
-            description: "권한 없음",
+          '403': {
+            description: '권한 없음',
           },
-          404: {
-            description: "없음",
+          '404': {
+            description: '없음',
           },
         },
       },
     },
-    /api/users/{id}: {
+    '/api/users/{id}': {
       get: {
-        summary: "특정 사용자 조회",
-        description: "경로 파라미터 id로 사용자를 조회합니다.",
+        summary: '특정 사용자 조회',
+        description: '경로 파라미터 id로 사용자를 조회합니다.',
         tags: [
-          "User",
+          'User',
         ],
         parameters: [
           {
-            in: "path",
-            name: "id",
+            in: 'path',
+            name: 'id',
             required: true,
             schema: {
-              type: "string",
+              type: 'string',
             },
-            description: "사용자 ID",
+            description: '사용자 ID',
           },
         ],
         responses: {
-          200: {
-            description: "성공",
+          '200': {
+            description: '성공',
             content: {
-              application/json: {
+              'application/json': {
                 schema: {
-                  type: "object",
+                  type: 'object',
                   properties: {
                     success: {
-                      type: "boolean",
+                      type: 'boolean',
                       example: true,
                     },
                   },
@@ -383,22 +383,22 @@ export const swaggerSpec = {
               },
             },
           },
-          400: {
-            description: "잘못된 요청",
+          '400': {
+            description: '잘못된 요청',
             content: {
-              application/json: {
+              'application/json': {
                 schema: {
-                  $ref: "#/components/schemas/ErrorResponse",
+                  $ref: '#/components/schemas/ErrorResponse',
                 },
               },
             },
           },
-          500: {
-            description: "서버 오류",
+          '500': {
+            description: '서버 오류',
             content: {
-              application/json: {
+              'application/json': {
                 schema: {
-                  $ref: "#/components/schemas/ErrorResponse",
+                  $ref: '#/components/schemas/ErrorResponse',
                 },
               },
             },
@@ -406,42 +406,42 @@ export const swaggerSpec = {
         },
       },
       patch: {
-        summary: "사용자 정보 수정",
+        summary: '사용자 정보 수정',
         tags: [
-          "User",
+          'User',
         ],
         parameters: [
           {
-            in: "path",
-            name: "id",
+            in: 'path',
+            name: 'id',
             required: true,
             schema: {
-              type: "string",
+              type: 'string',
             },
           },
         ],
         requestBody: {
           required: true,
           content: {
-            application/json: {
+            'application/json': {
               schema: {
-                type: "object",
+                type: 'object',
                 properties: {
                   name: {
-                    type: "string",
+                    type: 'string',
                   },
                   role: {
-                    type: "string",
+                    type: 'string',
                     enum: [
-                      "ADMIN",
-                      "WORKER",
+                      'ADMIN',
+                      'WORKER',
                     ],
-                    default: "WORKER",
+                    default: 'WORKER',
                   },
                   licensePhoto: {
-                    type: "string",
+                    type: 'string',
                     nullable: true,
-                    description: "파일 업로드는 POST /api/users/{id}/license-photo 로 처리하세요.",
+                    description: '파일 업로드는 POST /api/users/{id}/license-photo 로 처리하세요.',
                   },
                 },
               },
@@ -449,102 +449,102 @@ export const swaggerSpec = {
           },
         },
         responses: {
-          200: {
-            description: "성공",
+          '200': {
+            description: '성공',
           },
-          400: {
-            description: "잘못된 입력",
+          '400': {
+            description: '잘못된 입력',
           },
-          403: {
-            description: "권한 없음",
+          '403': {
+            description: '권한 없음',
           },
-          404: {
-            description: "없음",
+          '404': {
+            description: '없음',
           },
         },
       },
       delete: {
-        summary: "사용자 영구 삭제",
+        summary: '사용자 영구 삭제',
         tags: [
-          "User",
+          'User',
         ],
         parameters: [
           {
-            in: "path",
-            name: "id",
+            in: 'path',
+            name: 'id',
             required: true,
             schema: {
-              type: "string",
+              type: 'string',
             },
           },
         ],
         responses: {
-          200: {
-            description: "삭제됨",
+          '200': {
+            description: '삭제됨',
           },
-          403: {
-            description: "권한 없음",
+          '403': {
+            description: '권한 없음',
           },
         },
       },
     },
-    /api/users: {
+    '/api/users': {
       get: {
-        summary: "모든 직원 목록",
-        description: "모든 직원 목록을 조회한다",
+        summary: '모든 직원 목록',
+        description: '모든 직원 목록을 조회한다',
         tags: [
-          "User",
+          'User',
         ],
         parameters: [
           {
-            in: "query",
-            name: "role",
+            in: 'query',
+            name: 'role',
             schema: {
-              type: "string",
+              type: 'string',
               enum: [
-                "ADMIN",
-                "WORKER",
+                'ADMIN',
+                'WORKER',
               ],
             },
-            description: "필터할 역할 (미지정 시 전체)",
+            description: '필터할 역할 (미지정 시 전체)',
           },
           {
-            in: "query",
-            name: "search",
+            in: 'query',
+            name: 'search',
             schema: {
-              type: "string",
+              type: 'string',
             },
-            description: "사번 또는 이름으로 검색",
+            description: '사번 또는 이름으로 검색',
           },
           {
-            in: "query",
-            name: "page",
+            in: 'query',
+            name: 'page',
             schema: {
-              type: "number",
+              type: 'number',
               default: 1,
             },
-            description: "페이지",
+            description: '페이지',
           },
           {
-            in: "query",
-            name: "pageSize",
+            in: 'query',
+            name: 'pageSize',
             schema: {
-              type: "number",
+              type: 'number',
               default: 10,
             },
-            description: "페이지 사이즈",
+            description: '페이지 사이즈',
           },
         ],
         responses: {
-          200: {
-            description: "성공",
+          '200': {
+            description: '성공',
             content: {
-              application/json: {
+              'application/json': {
                 schema: {
-                  type: "object",
+                  type: 'object',
                   properties: {
                     success: {
-                      type: "boolean",
+                      type: 'boolean',
                       example: true,
                     },
                   },
@@ -552,22 +552,22 @@ export const swaggerSpec = {
               },
             },
           },
-          400: {
-            description: "잘못된 요청",
+          '400': {
+            description: '잘못된 요청',
             content: {
-              application/json: {
+              'application/json': {
                 schema: {
-                  $ref: "#/components/schemas/ErrorResponse",
+                  $ref: '#/components/schemas/ErrorResponse',
                 },
               },
             },
           },
-          500: {
-            description: "서버 오류",
+          '500': {
+            description: '서버 오류',
             content: {
-              application/json: {
+              'application/json': {
                 schema: {
-                  $ref: "#/components/schemas/ErrorResponse",
+                  $ref: '#/components/schemas/ErrorResponse',
                 },
               },
             },
@@ -575,85 +575,85 @@ export const swaggerSpec = {
         },
       },
       post: {
-        summary: "신규 사용자 등록(단일 또는 다건)",
+        summary: '신규 사용자 등록(단일 또는 다건)',
         tags: [
-          "User",
+          'User',
         ],
         requestBody: {
           required: true,
           content: {
-            application/json: {
+            'application/json': {
               schema: {
                 oneOf: [
                   {
-                    type: "object",
+                    type: 'object',
                     required: [
-                      "loginId",
-                      "name",
+                      'loginId',
+                      'name',
                     ],
                     properties: {
                       loginId: {
-                        type: "string",
-                        description: "사번/로그인ID",
+                        type: 'string',
+                        description: '사번/로그인ID',
                       },
                       name: {
-                        type: "string",
+                        type: 'string',
                       },
                       role: {
-                        type: "string",
+                        type: 'string',
                         enum: [
-                          "ADMIN",
-                          "WORKER",
+                          'ADMIN',
+                          'WORKER',
                         ],
-                        default: "WORKER",
+                        default: 'WORKER',
                       },
                       licensePhoto: {
-                        type: "string",
+                        type: 'string',
                         nullable: true,
                       },
                       adminMemo: {
-                        type: "string",
+                        type: 'string',
                         nullable: true,
                       },
                       isActive: {
-                        type: "boolean",
+                        type: 'boolean',
                         default: true,
                       },
                     },
                   },
                   {
-                    type: "array",
+                    type: 'array',
                     items: {
-                      type: "object",
+                      type: 'object',
                       required: [
-                        "loginId",
-                        "name",
+                        'loginId',
+                        'name',
                       ],
                       properties: {
                         loginId: {
-                          type: "string",
+                          type: 'string',
                         },
                         name: {
-                          type: "string",
+                          type: 'string',
                         },
                         role: {
-                          type: "string",
+                          type: 'string',
                           enum: [
-                            "ADMIN",
-                            "WORKER",
+                            'ADMIN',
+                            'WORKER',
                           ],
-                          default: "WORKER",
+                          default: 'WORKER',
                         },
                         licensePhoto: {
-                          type: "string",
+                          type: 'string',
                           nullable: true,
                         },
                         adminMemo: {
-                          type: "string",
+                          type: 'string',
                           nullable: true,
                         },
                         isActive: {
-                          type: "boolean",
+                          type: 'boolean',
                           default: true,
                         },
                       },
@@ -664,22 +664,22 @@ export const swaggerSpec = {
               examples: {
                 single: {
                   value: {
-                    loginId: "W00123",
-                    name: "홍길동",
-                    role: "WORKER",
+                    loginId: 'W00123',
+                    name: '홍길동',
+                    role: 'WORKER',
                   },
                 },
                 multiple: {
                   value: [
                     {
-                      loginId: "W00123",
-                      name: "홍길동",
-                      role: "WORKER",
+                      loginId: 'W00123',
+                      name: '홍길동',
+                      role: 'WORKER',
                     },
                     {
-                      loginId: "A00001",
-                      name: "관리자",
-                      role: "ADMIN",
+                      loginId: 'A00001',
+                      name: '관리자',
+                      role: 'ADMIN',
                     },
                   ],
                 },
@@ -688,17 +688,17 @@ export const swaggerSpec = {
           },
         },
         responses: {
-          201: {
-            description: "생성됨",
+          '201': {
+            description: '생성됨',
           },
-          400: {
-            description: "잘못된 요청",
+          '400': {
+            description: '잘못된 요청',
           },
-          403: {
-            description: "권한 없음",
+          '403': {
+            description: '권한 없음',
           },
-          409: {
-            description: "일부/전부 중복",
+          '409': {
+            description: '일부/전부 중복',
           },
         },
       },
