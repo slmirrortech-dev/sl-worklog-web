@@ -1,16 +1,14 @@
-export async function uploadLicenseCompressed(
-  userId: string,
-  file: File,
-  endpoint = `/api/users/${userId}/license-photo`,
-) {
+export async function uploadLicenseCompressed(userId: string, file: File) {
   const fd = new FormData()
-  fd.set('file', file) // 압축된 파일
+  fd.set('file', file)
 
-  const res = await fetch(endpoint, {
+  const res = await fetch(`/api/users/${userId}/license-photo`, {
     method: 'POST',
     body: fd,
+    credentials: 'include',
   })
+
   const json = await res.json()
-  if (!res.ok) throw new Error(json?.error || '업로드 실패')
-  return json // { success, data: { id, licensePhoto }, previewUrl? }
+  if (!res.ok) throw new Error(json?.message || '업로드 실패')
+  return json as { success: boolean; data: { id: string; licensePhoto: string } }
 }
