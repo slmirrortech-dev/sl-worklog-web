@@ -32,10 +32,7 @@ export const swaggerSpec = {
           },
           role: {
             type: 'string',
-            enum: [
-              'WORKER',
-              'ADMIN',
-            ],
+            enum: ['WORKER', 'ADMIN'],
             description: '사용자 역할',
           },
           isSuperAdmin: {
@@ -46,10 +43,7 @@ export const swaggerSpec = {
       },
       LoginRequest: {
         type: 'object',
-        required: [
-          'id',
-          'password',
-        ],
+        required: ['id', 'password'],
         properties: {
           id: {
             type: 'string',
@@ -103,9 +97,7 @@ export const swaggerSpec = {
       post: {
         summary: '관리자 로그인',
         description: '관리자 전용 로그인 엔드포인트',
-        tags: [
-          'Auth',
-        ],
+        tags: ['Auth'],
         requestBody: {
           required: true,
           content: {
@@ -168,9 +160,7 @@ export const swaggerSpec = {
       post: {
         summary: '작업자 로그인',
         description: '작업자 및 관리자 로그인 엔드포인트',
-        tags: [
-          'Auth',
-        ],
+        tags: ['Auth'],
         requestBody: {
           required: true,
           content: {
@@ -223,9 +213,7 @@ export const swaggerSpec = {
       post: {
         summary: '로그아웃',
         description: '세션 쿠키를 삭제하여 로그아웃',
-        tags: [
-          'Auth',
-        ],
+        tags: ['Auth'],
         responses: {
           '200': {
             description: '로그아웃 성공',
@@ -254,9 +242,7 @@ export const swaggerSpec = {
       get: {
         summary: '현재 로그인 사용자 정보 조회',
         description: '세션 쿠키를 통해 현재 로그인한 사용자 정보를 반환',
-        tags: [
-          'Auth',
-        ],
+        tags: ['Auth'],
         responses: {
           '200': {
             description: '인증된 사용자 정보',
@@ -304,9 +290,7 @@ export const swaggerSpec = {
       get: {
         summary: '특정 사용자 조회',
         description: '경로 파라미터 id로 사용자를 조회합니다.',
-        tags: [
-          'User',
-        ],
+        tags: ['User'],
         parameters: [
           {
             in: 'path',
@@ -359,9 +343,7 @@ export const swaggerSpec = {
       },
       patch: {
         summary: '사용자 정보 수정',
-        tags: [
-          'User',
-        ],
+        tags: ['User'],
         parameters: [
           {
             in: 'path',
@@ -384,10 +366,7 @@ export const swaggerSpec = {
                   },
                   role: {
                     type: 'string',
-                    enum: [
-                      'ADMIN',
-                      'WORKER',
-                    ],
+                    enum: ['ADMIN', 'WORKER'],
                     default: 'WORKER',
                   },
                   licensePhoto: {
@@ -417,9 +396,7 @@ export const swaggerSpec = {
       },
       delete: {
         summary: '사용자 영구 삭제',
-        tags: [
-          'User',
-        ],
+        tags: ['User'],
         parameters: [
           {
             in: 'path',
@@ -444,19 +421,14 @@ export const swaggerSpec = {
       get: {
         summary: '모든 직원 목록',
         description: '모든 직원 목록을 조회한다',
-        tags: [
-          'User',
-        ],
+        tags: ['User'],
         parameters: [
           {
             in: 'query',
             name: 'role',
             schema: {
               type: 'string',
-              enum: [
-                'ADMIN',
-                'WORKER',
-              ],
+              enum: ['ADMIN', 'WORKER'],
             },
             description: '필터할 역할 (미지정 시 전체)',
           },
@@ -528,9 +500,7 @@ export const swaggerSpec = {
       },
       post: {
         summary: '신규 사용자 등록(단일 또는 다건)',
-        tags: [
-          'User',
-        ],
+        tags: ['User'],
         requestBody: {
           required: true,
           content: {
@@ -539,10 +509,7 @@ export const swaggerSpec = {
                 oneOf: [
                   {
                     type: 'object',
-                    required: [
-                      'loginId',
-                      'name',
-                    ],
+                    required: ['loginId', 'name'],
                     properties: {
                       loginId: {
                         type: 'string',
@@ -553,10 +520,7 @@ export const swaggerSpec = {
                       },
                       role: {
                         type: 'string',
-                        enum: [
-                          'ADMIN',
-                          'WORKER',
-                        ],
+                        enum: ['ADMIN', 'WORKER'],
                         default: 'WORKER',
                       },
                       licensePhoto: {
@@ -577,10 +541,7 @@ export const swaggerSpec = {
                     type: 'array',
                     items: {
                       type: 'object',
-                      required: [
-                        'loginId',
-                        'name',
-                      ],
+                      required: ['loginId', 'name'],
                       properties: {
                         loginId: {
                           type: 'string',
@@ -590,10 +551,7 @@ export const swaggerSpec = {
                         },
                         role: {
                           type: 'string',
-                          enum: [
-                            'ADMIN',
-                            'WORKER',
-                          ],
+                          enum: ['ADMIN', 'WORKER'],
                           default: 'WORKER',
                         },
                         licensePhoto: {
