@@ -20,11 +20,11 @@ model User {
   password     String
   name         String
   role         Role    @default(WORKER)
-  isSuperAdmin Boolean @default(false) // 최고관리자 플래그(ADMIN 중 일부만 true)
+  isSuperAdmin Boolean @default(false) // 최고관리자 플래그(ADMIN 중 일부만 true) // 삭제예정
 
   // 역할별 전용 컬럼(필요한 것만 추가)
   licensePhoto String? // WORKER 전용 (ex. 면허/자격증 사진)
-  adminMemo    String? // ADMIN 전용 (필요시)
+  adminMemo    String? // ADMIN 전용 (필요시) // 삭제 예정
 
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())

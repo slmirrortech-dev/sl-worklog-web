@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { ApiError } from './errors'
 
 const WEEK = 60 * 60 * 24 * 7
 
@@ -23,7 +24,6 @@ export function clearSessionCookie(res: NextResponse, path: string = '/') {
   return res
 }
 
-// 편의: 바로 JSON 응답 + 쿠키 설정까지
 export function jsonWithSession(
   body: unknown,
   sessionValue: string,
@@ -48,4 +48,13 @@ export async function getSessionUser(req: NextRequest) {
       isSuperAdmin: true,
     },
   })
+}
+
+/** 관리자 권한 필수 */
+export async function requireAdmin(req: NextRequest) {
+  const user = await getSessionUser(req)
+  if (!user || user.role !== 'ADMIN') {
+    throw new ApiError('관리자 권한이 필요합니다.', 403, 'FORBIDDEN')
+  }
+  return user
 }

@@ -1,15 +1,31 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getSessionUser } from '@/lib/session' // 싱글톤
+import { requireAdmin } from '@/lib/session'
+import type { UserDto } from '@/types/dto/user.dto'
+import { ApiResponse } from '@/lib/response'
+import { ApiError } from '@/lib/errors'
+import { withErrorHandler } from '@/lib/api-handler'
+import { findUserOrThrow } from '@/lib/service/user.servie'
+
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
+
+export const userSelect: Record<keyof UserDto, true> = {
+  id: true,
+  loginId: true,
+  name: true,
+  role: true,
+  isActive: true,
+  licensePhoto: true,
+  createdAt: true,
+  updatedAt: true,
+}
 
 /**
  * @swagger
  * /api/users/{id}:
  *   get:
  *     summary: 특정 사용자 조회
- *     description: 경로 파라미터 id로 사용자를 조회합니다.
  *     tags: [User]
  *     parameters:
  *       - in: path
@@ -28,52 +44,30 @@ export const dynamic = 'force-dynamic'
  *                 success:
  *                   type: boolean
  *                   example: true
- *       400:
- *         description: 잘못된 요청
+ *                 message:
+ *                   type: string
+ *                   example: 사용자 조회 성공
+ *                 data:
+ *                   $ref: '#/components/schemas/User'
+ *       404:
+ *         description: 없음
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
- *       500:
- *         description: 서버 오류
+ *       403:
+ *         description: 권한 없음
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const sessionUser = await getSessionUser(request)
-
-  // 관리자 및 최고관리자만 허용
-  if (sessionUser?.role !== 'ADMIN') {
-    return NextResponse.json({ error: '관리자만 조회 가능합니다' }, { status: 403 })
-  }
-
-  const { id } = await params
-  const user = await prisma.user.findUnique({
-    where: { id },
-    select: {
-      id: true,
-      loginId: true,
-      name: true,
-      role: true,
-      isActive: true,
-      licensePhoto: true,
-      createdAt: true,
-    },
-  })
-
-  if (!user) {
-    return NextResponse.json({ error: '해당 직원이 존재하지 않습니다.' }, { status: 400 })
-  }
-
-  try {
-    return NextResponse.json({ success: true, data: user })
-  } catch (error) {
-    console.error(' error:', error)
-    return NextResponse.json({ error: '서버 오류가 발생했습니다.' }, { status: 500 })
-  }
+async function getUser(req: NextRequest, { params }: { params: { id: string } }) {
+  await requireAdmin(req)
+  const user = await findUserOrThrow(params.id)
+  return ApiResponse.success(user, '사용자 조회 성공')
 }
+export const GET = withErrorHandler(getUser)
 
 /**
  * @swagger
@@ -91,83 +85,71 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *               role:
- *                 type: string
- *                 enum: [ADMIN, WORKER]
- *                 default: WORKER
- *               licensePhoto:
- *                 type: string
- *                 nullable: true
- *                 description: 파일 업로드는 POST /api/users/{id}/license-photo 로 처리하세요.
+ *             $ref: '#/components/schemas/User'
  *     responses:
- *       200: { description: 성공 }
- *       403: { description: 권한 없음 }
- *       404: { description: 없음 }
- *       400: { description: 잘못된 입력 }
+ *       200:
+ *         description: 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: 사용자 수정 성공
+ *                 data:
+ *                   $ref: '#/components/schemas/User'
+ *       400:
+ *         description: 잘못된 입력
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       403:
+ *         description: 권한 없음
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: 없음
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
-export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const sessionUser = await getSessionUser(request)
-  if (!sessionUser || sessionUser.role !== 'ADMIN') {
-    return NextResponse.json({ error: '권한 없음' }, { status: 403 })
-  }
+async function updateUser(req: NextRequest, { params }: { params: { id: string } }) {
+  const currentUser = await requireAdmin(req)
+  const body = await req.json().catch(() => ({}))
 
-  const { id } = await params
+  await findUserOrThrow(params.id)
 
-  // 본문이 없거나 JSON 아님 → {} 로 처리
-  const body = (await request.json().catch(() => ({}))) as {
-    name?: string
-    role?: 'ADMIN' | 'WORKER'
-    isActive?: boolean
-    adminMemo?: string | null
-    licensePhoto?: string | null
-  }
-
-  // 존재 확인
-  const exists = await prisma.user.findUnique({
-    where: { id },
-    select: { id: true },
-  })
-  if (!exists) return NextResponse.json({ error: '존재하지 않는 사용자' }, { status: 404 })
-
-  // 넘어온 필드만 업데이트
   const data: Record<string, unknown> = {}
   if (body.name !== undefined) data.name = body.name
   if (body.role !== undefined) data.role = body.role
   if (body.isActive !== undefined) data.isActive = body.isActive
-  if (body.adminMemo !== undefined) data.adminMemo = body.adminMemo
   if (body.licensePhoto !== undefined) data.licensePhoto = body.licensePhoto
 
-  // 아무 변경도 없으면 안내
   if (Object.keys(data).length === 0) {
-    return NextResponse.json({ error: '수정할 값이 없습니다' }, { status: 400 })
+    throw new ApiError('수정할 값이 없습니다', 400, 'NO_UPDATE')
   }
 
-  // 자기 자신 강등 금지
-  if (sessionUser.id === id && sessionUser.role === 'ADMIN' && body.role === 'WORKER') {
-    return NextResponse.json({ error: '자기 자신을 작업자로 변경할 수 없습니다.' }, { status: 400 })
+  if (currentUser.id === params.id && body.role === 'WORKER') {
+    throw new ApiError('자기 자신을 작업자로 변경할 수 없습니다.', 400, 'SELF_DOWNGRADE')
   }
 
   const updated = await prisma.user.update({
-    where: { id },
+    where: { id: params.id },
     data,
-    select: {
-      id: true,
-      loginId: true,
-      name: true,
-      role: true,
-      isActive: true,
-      adminMemo: true,
-      licensePhoto: true,
-      updatedAt: true,
-    },
+    select: userSelect,
   })
 
-  return NextResponse.json({ success: true, data: updated })
+  return ApiResponse.success(updated, '사용자 수정 성공')
 }
+export const PATCH = withErrorHandler(updateUser)
 
 /**
  * @swagger
@@ -181,19 +163,43 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
  *         required: true
  *         schema: { type: string }
  *     responses:
- *       200: { description: 삭제됨 }
- *       403: { description: 권한 없음 }
+ *       200:
+ *         description: 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: 사용자 삭제 성공
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       example: clx123abc
+ *       403:
+ *         description: 권한 없음
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: 없음
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  const sessionUser = await getSessionUser(request)
-  if (!sessionUser || sessionUser.role !== 'ADMIN') {
-    return NextResponse.json({ error: '권한 없음' }, { status: 403 })
-  }
+async function deleteUser(req: NextRequest, { params }: { params: { id: string } }) {
+  await requireAdmin(req)
+  await findUserOrThrow(params.id)
 
-  const { id } = await params
-  await prisma.user.delete({ where: { id } })
-  return NextResponse.json({ success: true })
+  await prisma.user.delete({ where: { id: params.id } })
+  return ApiResponse.success({ id: params.id }, '사용자 삭제 성공')
 }
+export const DELETE = withErrorHandler(deleteUser)
