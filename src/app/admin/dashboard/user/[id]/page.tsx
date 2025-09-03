@@ -14,8 +14,10 @@ import {
 } from '@/components/ui/select'
 import { TUser } from '@/types/TUser'
 import { format } from 'date-fns'
+import useLicenseUploader from '@/app/hooks/useLicenseUploader'
 
 const UserDetailPage = () => {
+  const licenseUploaderHook = useLicenseUploader()
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [isError, setIsError] = useState<boolean>(false)
   const [user, setUser] = useState<TUser | null>(null)
@@ -26,15 +28,32 @@ const UserDetailPage = () => {
   const [editedRole, setEditedRole] = useState<'ADMIN' | 'WORKER'>('WORKER')
   const [isSaving, setIsSaving] = useState(false)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
-  const [isUploadingLicense, setIsUploadingLicense] = useState(false)
+  const [isUploadingLicense, setIsUploadingLicense] = useState(false) // (hook에서 로딩 제공하면 이건 지워도 됨)
   const [showImageModal, setShowImageModal] = useState(false)
+
+  // 🔹 서명 URL 상태
+  const userIdParam = String(params.id)
+  const [licenseUrl, setLicenseUrl] = useState<string | null>(null)
+
+  // 🔹 서명 URL 가져오기
+  async function refreshLicenseUrl() {
+    try {
+      const res = await fetch(`/api/users/${userIdParam}/license-photo/url`, {
+        credentials: 'include',
+        cache: 'no-store',
+      })
+      const { url } = await res.json()
+      setLicenseUrl(url ?? null)
+    } catch {
+      setLicenseUrl(null)
+    }
+  }
 
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true)
       setIsError(false)
       try {
-        // 현재 로그인한 사용자 정보와 상세 사용자 정보를 동시에 가져오기
         const [userResponse, currentUserResponse] = await Promise.all([
           fetch(`/api/users/${params.id}`, { credentials: 'include' }),
           fetch('/api/auth/me', { credentials: 'include' }),
@@ -43,7 +62,6 @@ const UserDetailPage = () => {
         const userResponseData = await userResponse.json()
         const currentUserData = await currentUserResponse.json()
 
-        // 현재 로그인한 사용자 ID 설정
         if (currentUserData.success && currentUserData.user) {
           setCurrentUserId(currentUserData.user.id)
         }
@@ -54,11 +72,10 @@ const UserDetailPage = () => {
             setEditedName(userResponseData.data.name)
             setEditedRole(userResponseData.data.role)
           } else {
-            // 데이터 없으면 에러표시
             setIsError(true)
           }
         } else {
-          console.error(userResponseData.error || '사용자 목록을 불러오는데 실패했습니다.')
+          console.error(userResponseData.error || '사용자 정보를 불러오지 못했습니다.')
           setIsError(true)
           return
         }
@@ -73,6 +90,16 @@ const UserDetailPage = () => {
     fetchData()
   }, [])
 
+  // 🔹 user의 licensePhoto(스토리지 경로)가 준비되면 서명 URL 로딩
+  useEffect(() => {
+    if (user?.licensePhoto) {
+      refreshLicenseUrl()
+    } else {
+      setLicenseUrl(null)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.licensePhoto, userIdParam])
+
   const handleSave = async () => {
     if (!user || !editedName.trim()) {
       alert('이름은 필수입니다.')
@@ -85,16 +112,13 @@ const UserDetailPage = () => {
         name: editedName.trim(),
       }
 
-      // 자기 자신이 아닐 때만 역할 변경 허용
       if (user.id !== currentUserId) {
         updateData.role = editedRole
       }
 
       const response = await fetch(`/api/users/${params.id}`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify(updateData),
       })
@@ -102,11 +126,9 @@ const UserDetailPage = () => {
       const responseData = await response.json()
 
       if (responseData.success) {
-        // 성공 시 사용자 데이터 업데이트
         const updatedUser = {
           ...user,
           name: editedName.trim(),
-          // 자기 자신이 아닐 때만 역할 업데이트
           role: user.id !== currentUserId ? editedRole : user.role,
         }
         setUser(updatedUser)
@@ -138,61 +160,27 @@ const UserDetailPage = () => {
         credentials: 'include',
       })
       const responseData = await response.json()
-
       if (responseData.success && responseData.data) {
-        setUser(responseData.data)
+        setUser(responseData.data) // ← 이로 인해 위 useEffect가 돌면서 licenseUrl도 갱신됨
       }
     } catch (error) {
       console.error('사용자 정보 갱신 실패:', error)
     }
   }
 
-  const handleLicenseUpload = async (file: File) => {
-    if (!user) return
-
-    setIsUploadingLicense(true)
-    try {
-      const formData = new FormData()
-      formData.append('file', file)
-
-      const response = await fetch(`/api/users/${user.id}/license-photo`, {
-        method: 'POST',
-        credentials: 'include',
-        body: formData,
-      })
-
-      const responseData = await response.json()
-
-      if (responseData.success) {
-        alert('면허증이 등록되었습니다.')
-        // 서버에서 최신 정보 다시 가져오기
-        await refetchUser()
-      } else {
-        alert(responseData.error || '면허증 등록에 실패했습니다.')
-      }
-    } catch (error) {
-      console.error('면허증 업로드 실패:', error)
-      alert('면허증 등록에 실패했습니다.')
-    } finally {
-      setIsUploadingLicense(false)
-    }
-  }
-
   const handleLicenseDelete = async () => {
     if (!user || !confirm('면허증을 삭제하시겠습니까?')) return
-
     try {
       const response = await fetch(`/api/users/${user.id}/license-photo`, {
         method: 'DELETE',
         credentials: 'include',
       })
-
       const responseData = await response.json()
 
       if (responseData.success) {
         alert('면허증이 삭제되었습니다.')
-        // 서버에서 최신 정보 다시 가져오기
-        await refetchUser()
+        setLicenseUrl(null) // 🔹 즉시 비우기
+        await refetchUser() // 🔹 사용자 정보 갱신(licensePhoto=null)
       } else {
         alert(responseData.error || '면허증 삭제에 실패했습니다.')
       }
@@ -294,7 +282,6 @@ const UserDetailPage = () => {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json' },
         })
-
         const data = await handleFetch.json()
         if (data.success) {
           alert('삭제 완료 되었습니다.')
@@ -380,11 +367,17 @@ const UserDetailPage = () => {
                       <div className="space-y-4">
                         {/* 면허증 이미지 표시 */}
                         <div className="relative group w-full max-w-sm h-50 p-2 bg-gray-100 rounded-lg overflow-hidden border border-gray-300 cursor-pointer">
-                          <img
-                            src={user.licensePhoto}
-                            alt="공정면허증"
-                            className="w-full h-full object-contain"
-                          />
+                          {licenseUrl ? (
+                            <img
+                              src={licenseUrl}
+                              alt="공정면허증"
+                              className="w-full h-full object-contain"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-400">
+                              이미지 로딩 중…
+                            </div>
+                          )}
                           {/* 호버 시 표시되는 오버레이 */}
                           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-2">
                             <Button
@@ -418,13 +411,15 @@ const UserDetailPage = () => {
                         <div className="text-center text-gray-400">
                           <FileImage className="w-8 h-8 mx-auto mb-6" />
                           <input
+                            ref={licenseUploaderHook.inputRef}
                             type="file"
                             accept="image/*"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0]
-                              if (file) {
-                                handleLicenseUpload(file)
-                              }
+                            onChange={async (e) => {
+                              // (참고) hook 내부에서 압축+업로드 처리
+                              await licenseUploaderHook.onChange(e, userIdParam)
+                              // 업로드 완료 후 최신 정보/URL 갱신
+                              await refetchUser()
+                              await refreshLicenseUrl()
                             }}
                             className="hidden"
                             id="license-upload"
@@ -475,7 +470,6 @@ const UserDetailPage = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">역할</label>
                     {isEditing ? (
                       user?.id === currentUserId ? (
-                        // 자기 자신일 때는 역할 변경 불가
                         <div className="h-12 flex items-center px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-500">
                           <Shield className="w-4 h-4 mr-2" />
                           {user?.role === 'ADMIN' ? '관리자' : '작업자'} (본인 변경 불가)
@@ -565,11 +559,15 @@ const UserDetailPage = () => {
           onClick={() => setShowImageModal(false)}
         >
           <div className="relative max-w-4xl max-h-full">
-            <img
-              src={user.licensePhoto}
-              alt="공정면허증 확대보기"
-              className="max-w-full max-h-full object-contain rounded-lg"
-            />
+            {licenseUrl ? (
+              <img
+                src={licenseUrl}
+                alt="공정면허증 확대보기"
+                className="max-w-full max-h-full object-contain rounded-lg"
+              />
+            ) : (
+              <div className="text-white">이미지 로딩 중…</div>
+            )}
             <Button
               size="sm"
               onClick={() => setShowImageModal(false)}

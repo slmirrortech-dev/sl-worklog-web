@@ -1,146 +1,95 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSessionUser } from '@/lib/session'
 import { prisma } from '@/lib/prisma'
-import { mkdir, writeFile, unlink } from 'fs/promises'
-import path from 'path'
-import crypto from 'crypto'
-import fs from 'fs'
+import { supabaseServer } from '@/lib/supabase/server'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-/**
- * @swagger
- * /api/users/{id}/license-photo:
- *   post:
- *     summary: 사용자 자격증 사진 업로드(로컬 저장)
- *     tags: [User]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema: { type: string }
- *     requestBody:
- *       required: true
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             properties:
- *               file:
- *                 type: string
- *                 format: binary
- *     responses:
- *       200: { description: 업로드 성공 }
- *       400: { description: 잘못된 입력 }
- *       403: { description: 권한 없음 }
- *       404: { description: 없음 }
- */
+const BUCKET = 'licensePhoto'
+const ALLOWED = ['image/jpeg', 'image/jpg'] // ← JPEG만 허용
+const LIMIT = 5 * 1024 * 1024 // 5MB
+
+/** POST: 업로드(덮어쓰기) */
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const me = await getSessionUser(req)
-  if (!me || me.role !== 'ADMIN') {
-    return NextResponse.json({ error: '권한 없음' }, { status: 403 })
-  }
+  if (!me || me.role !== 'ADMIN') return NextResponse.json({ error: '권한 없음' }, { status: 403 })
 
   const { id } = await params
-  const target = await prisma.user.findUnique({
+  const user = await prisma.user.findUnique({
     where: { id },
-    select: { id: true },
+    select: { id: true, licensePhoto: true },
   })
-  if (!target) return NextResponse.json({ error: '존재하지 않는 사용자' }, { status: 404 })
+  if (!user) return NextResponse.json({ error: '존재하지 않는 사용자' }, { status: 404 })
 
   const form = await req.formData()
   const file = form.get('file') as File | null
   if (!file) return NextResponse.json({ error: 'file 필드가 필요합니다' }, { status: 400 })
 
-  if (!file.type?.startsWith('image/')) {
-    return NextResponse.json({ error: '이미지 파일만 업로드 가능합니다' }, { status: 400 })
+  // JPEG만 받음 (클라는 PNG/HEIC를 JPEG로 변환해서 보낸다는 전제)
+  if (!ALLOWED.includes(file.type || '')) {
+    return NextResponse.json(
+      { error: '이미지는 JPEG만 허용됩니다. PNG/HEIC는 JPEG로 변환 후 업로드하세요.' },
+      { status: 400 },
+    )
   }
-  // (선택) 5MB 제한
-  if (typeof file.size === 'number' && file.size > 5 * 1024 * 1024) {
+  if (typeof file.size === 'number' && file.size > LIMIT) {
     return NextResponse.json({ error: '파일 용량은 5MB 이하만 허용됩니다' }, { status: 400 })
   }
 
   const bytes = Buffer.from(await file.arrayBuffer())
-  const ext =
-    path.extname(file.name || '') ||
-    (file.type === 'image/png'
-      ? '.png'
-      : file.type === 'image/jpeg'
-        ? '.jpg'
-        : file.type === 'image/webp'
-          ? '.webp'
-          : '.bin')
+  const key = `users/${id}/license.jpg`
 
-  const fileName = `${id}-${Date.now()}-${crypto.randomUUID()}${ext}`
-  const dir = path.join(process.cwd(), 'public', 'uploads', 'licenses')
-  await mkdir(dir, { recursive: true })
-  const absPath = path.join(dir, fileName)
-  await writeFile(absPath, bytes)
+  // 기존에 다른 경로를 쓰고 있었다면 정리(키가 다를 때만)
+  if (user.licensePhoto && user.licensePhoto !== key) {
+    await supabaseServer.storage
+      .from(BUCKET)
+      .remove([user.licensePhoto])
+      .catch(() => {})
+  }
 
-  const publicPath = `/uploads/licenses/${fileName}` // <img src=...> 로 바로 사용 가능
+  const { data, error } = await supabaseServer.storage.from(BUCKET).upload(key, bytes, {
+    contentType: 'image/jpeg',
+    upsert: true, // 덮어쓰기
+    cacheControl: '0',
+  })
+  if (error) return NextResponse.json({ error: `업로드 실패: ${error.message}` }, { status: 500 })
 
+  // DB에 파일 경로 저장
   const updated = await prisma.user.update({
     where: { id },
-    data: { licensePhoto: publicPath },
+    data: { licensePhoto: data.path },
     select: { id: true, licensePhoto: true },
   })
 
-  return NextResponse.json({ success: true, data: updated })
+  // 프리뷰용 서명 URL(1시간)
+  const { data: signed } = await supabaseServer.storage.from(BUCKET).createSignedUrl(key, 60 * 60)
+
+  return NextResponse.json({ success: true, data: updated, previewUrl: signed?.signedUrl })
 }
 
-/**
- * @swagger
- * /api/users/{id}/license-photo:
- *   delete:
- *     summary: 사용자 자격증 사진 삭제
- *     tags: [User]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema: { type: string }
- *     responses:
- *       200: { description: 삭제 성공 }
- *       403: { description: 권한 없음 }
- *       404: { description: 사용자 또는 이미지 없음 }
- *       500: { description: 서버 오류 }
- */
+/** DELETE: 삭제 */
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const me = await getSessionUser(req)
-  if (!me || me.role !== 'ADMIN') {
-    return NextResponse.json({ error: '권한 없음' }, { status: 403 })
-  }
+  if (!me || me.role !== 'ADMIN') return NextResponse.json({ error: '권한 없음' }, { status: 403 })
 
   const { id } = await params
 
   try {
-    // 사용자 정보 조회
     const user = await prisma.user.findUnique({
       where: { id },
-      select: { id: true, name: true, licensePhoto: true },
+      select: { id: true, licensePhoto: true },
     })
-
-    if (!user) {
-      return NextResponse.json({ error: '존재하지 않는 사용자' }, { status: 404 })
-    }
-
-    if (!user.licensePhoto) {
+    if (!user) return NextResponse.json({ error: '존재하지 않는 사용자' }, { status: 404 })
+    if (!user.licensePhoto)
       return NextResponse.json({ error: '삭제할 면허증 이미지가 없습니다' }, { status: 404 })
-    }
 
-    // 물리적 파일 삭제
-    const filePath = path.join(process.cwd(), 'public', user.licensePhoto)
-    try {
-      if (fs.existsSync(filePath)) {
-        await unlink(filePath)
-      }
-    } catch (fileError) {
-      console.error('파일 삭제 실패:', fileError)
-      // 파일 삭제에 실패해도 DB는 업데이트 진행
-    }
+    const value = user.licensePhoto
 
-    // DB에서 면허증 정보 삭제
+    // Supabase Storage 파일 삭제
+    const { error } = await supabaseServer.storage.from(BUCKET).remove([value])
+    if (error) console.error('Storage 삭제 실패:', error.message)
+
     const updated = await prisma.user.update({
       where: { id },
       data: { licensePhoto: null },
