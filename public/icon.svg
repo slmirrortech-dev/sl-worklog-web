@@ -1,0 +1,14 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" fill="#2563eb" rx="64"/>
+  <g fill="white">
+    <!-- Factory icon -->
+    <path d="M128 224V352H384V224L256 144L128 224Z"/>
+    <rect x="160" y="256" width="32" height="64"/>
+    <rect x="240" y="256" width="32" height="64"/>
+    <rect x="320" y="256" width="32" height="64"/>
+    <!-- Chimney smoke -->
+    <ellipse cx="200" cy="160" rx="8" ry="20" fill="white" opacity="0.6"/>
+    <ellipse cx="312" cy="160" rx="8" ry="20" fill="white" opacity="0.6"/>
+  </g>
+  <text x="256" y="420" text-anchor="middle" fill="white" font-family="system-ui" font-size="48" font-weight="bold">작업</text>
+</svg>
