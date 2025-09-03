@@ -62,9 +62,10 @@ export const userSelect: Record<keyof UserDto, true> = {
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-async function getUser(req: NextRequest, { params }: { params: { id: string } }) {
+async function getUser(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   await requireAdmin(req)
-  const user = await findUserOrThrow(params.id)
+  const { id } = await params
+  const user = await findUserOrThrow(id)
   return ApiResponse.success(user, '사용자 조회 성공')
 }
 export const GET = withErrorHandler(getUser)
@@ -121,11 +122,12 @@ export const GET = withErrorHandler(getUser)
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-async function updateUser(req: NextRequest, { params }: { params: { id: string } }) {
+async function updateUser(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const currentUser = await requireAdmin(req)
   const body = await req.json().catch(() => ({}))
+  const { id } = await params
 
-  await findUserOrThrow(params.id)
+  await findUserOrThrow(id)
 
   const data: Record<string, unknown> = {}
   if (body.name !== undefined) data.name = body.name
@@ -137,12 +139,12 @@ async function updateUser(req: NextRequest, { params }: { params: { id: string }
     throw new ApiError('수정할 값이 없습니다', 400, 'NO_UPDATE')
   }
 
-  if (currentUser.id === params.id && body.role === 'WORKER') {
+  if (currentUser.id === id && body.role === 'WORKER') {
     throw new ApiError('자기 자신을 작업자로 변경할 수 없습니다.', 400, 'SELF_DOWNGRADE')
   }
 
   const updated = await prisma.user.update({
-    where: { id: params.id },
+    where: { id },
     data,
     select: userSelect,
   })
@@ -195,11 +197,12 @@ export const PATCH = withErrorHandler(updateUser)
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-async function deleteUser(req: NextRequest, { params }: { params: { id: string } }) {
+async function deleteUser(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   await requireAdmin(req)
-  await findUserOrThrow(params.id)
+  const { id } = await params
+  await findUserOrThrow(id)
 
-  await prisma.user.delete({ where: { id: params.id } })
-  return ApiResponse.success({ id: params.id }, '사용자 삭제 성공')
+  await prisma.user.delete({ where: { id } })
+  return ApiResponse.success({ id }, '사용자 삭제 성공')
 }
 export const DELETE = withErrorHandler(deleteUser)
