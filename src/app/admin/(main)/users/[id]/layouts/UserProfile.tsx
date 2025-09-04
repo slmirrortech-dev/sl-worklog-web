@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/select'
 import { getUser, updateUser } from '@/lib/api/user'
 import type { UpdateUserDto } from '@/types/dto/user.dto'
-import LicenseBox from '@/app/admin/dashboard/user/[id]/layouts/LicenseBox'
+import LicenseBox from '@/app/admin/(main)/users/[id]/layouts/LicenseBox'
 import { useRouter } from 'next/navigation'
 
 /** 기본 정보 */
@@ -89,7 +89,7 @@ const UserProfile = ({ user }: { user: UserModel }) => {
         const data = await handleFetch.json()
         if (data.success) {
           alert('삭제 완료 되었습니다.')
-          router.push('/admin/dashboard')
+          router.push('/admin/users')
         } else {
           console.error('사용자 삭제 실패')
           return

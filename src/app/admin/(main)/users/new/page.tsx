@@ -165,7 +165,7 @@ const NewUsersPage = () => {
       }
 
       alert(`${createResult.createdCount}명의 직원이 등록되었습니다.`)
-      router.push('/admin/dashboard')
+      router.push('/admin/users')
     } catch (error) {
       console.error('직원 등록 실패:', error)
       alert('직원 등록에 실패했습니다.')
@@ -176,26 +176,26 @@ const NewUsersPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* 헤더 */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => router.push('/admin/dashboard')}
-                className="text-gray-600 hover:text-gray-900"
-              >
-                <ArrowLeft className="w-4 h-4 mr-1" />
-                목록
-              </Button>
-              <div className="h-6 border-l border-gray-300" />
-              <h1 className="text-xl font-semibold text-gray-900">신규 직원 등록</h1>
-            </div>
-          </div>
-        </div>
-      </header>
+      {/*/!* 헤더 *!/*/}
+      {/*<header className="bg-white shadow-sm border-b">*/}
+      {/*  <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">*/}
+      {/*    <div className="flex items-center justify-between h-16">*/}
+      {/*      <div className="flex items-center gap-4">*/}
+      {/*        <Button*/}
+      {/*          variant="ghost"*/}
+      {/*          size="sm"*/}
+      {/*          onClick={() => router.push('/admin/users')}*/}
+      {/*          className="text-gray-600 hover:text-gray-900"*/}
+      {/*        >*/}
+      {/*          <ArrowLeft className="w-4 h-4 mr-1" />*/}
+      {/*          목록*/}
+      {/*        </Button>*/}
+      {/*        <div className="h-6 border-l border-gray-300" />*/}
+      {/*        <h1 className="text-xl font-semibold text-gray-900">신규 직원 등록</h1>*/}
+      {/*      </div>*/}
+      {/*    </div>*/}
+      {/*  </div>*/}
+      {/*</header>*/}
 
       {/* 메인 콘텐츠 */}
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -359,7 +359,7 @@ const NewUsersPage = () => {
             <Button
               variant="outline"
               size="lg"
-              onClick={() => router.push('/admin/dashboard')}
+              onClick={() => router.push('/admin/users')}
               className="border-gray-300 text-gray-700 hover:bg-gray-50 text-base"
             >
               취소

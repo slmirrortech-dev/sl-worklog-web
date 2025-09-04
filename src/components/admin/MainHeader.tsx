@@ -15,25 +15,25 @@ const MainHeader = () => {
   const navItems = [
     {
       name: '통계',
-      href: '/admin/dashboard/stats',
+      href: '/admin/dashboard',
       icon: BarChart3,
       description: '전체 데이터 통계',
     },
     {
       name: '실시간 현황',
-      href: '/admin/dashboard/status',
+      href: '/admin/status',
       icon: Activity,
       description: '작업자 실시간 상황',
     },
     {
       name: '직원 관리',
-      href: '/admin/dashboard',
+      href: '/admin/users',
       icon: Users,
       description: '직원 정보 관리',
     },
     {
       name: '작업장 설정',
-      href: '/admin/dashboard/process',
+      href: '/admin/process',
       icon: Settings,
       description: '라인 및 공정 관리',
     },

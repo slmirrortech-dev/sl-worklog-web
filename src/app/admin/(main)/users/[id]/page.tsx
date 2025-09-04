@@ -1,5 +1,5 @@
 import { findUserOrThrow } from '@/lib/service/user.servie'
-import UserProfile from '@/app/admin/dashboard/user/[id]/layouts/UserProfile'
+import UserProfile from '@/app/admin/(main)/users/[id]/layouts/UserProfile'
 import { toUserModel } from '@/types/adapter/user.adapter'
 
 interface UserDetailPageProps {
