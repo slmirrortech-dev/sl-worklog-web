@@ -1,0 +1,172 @@
+import React, { useState } from 'react'
+import { Edit, Factory, GripVertical, Plus, Trash2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+
+interface DragListItem {
+  id: string
+  name: string
+  processes?: any[]
+  order?: number
+}
+
+interface DragListProps {
+  data: DragListItem[]
+  selectedId?: string
+  setSelectedId?: (id: string) => void
+  onDrop: (e: React.DragEvent, index: number) => void
+  onDelete?: (id: string) => void
+  onAdd?: (name: string) => void
+  type?: 'line' | 'process'
+}
+
+const DragList = ({
+  data,
+  selectedId,
+  setSelectedId,
+  onDrop,
+  onDelete,
+  onAdd,
+  type = 'line',
+}: DragListProps) => {
+  const [isAdding, setIsAdding] = useState(false)
+  const [newItemName, setNewItemName] = useState('')
+
+  const handleAdd = () => {
+    if (!newItemName.trim() || !onAdd) return
+    
+    onAdd(newItemName)
+    setNewItemName('')
+    setIsAdding(false)
+  }
+
+  return (
+    <div className="flex flex-col gap-2 p-4">
+      {data.map((item, index) => {
+        const isSelected = selectedId === item.id
+        return (
+          <div
+            key={item.id}
+            draggable
+            className={`p-3 rounded-lg cursor-pointer transition-colors flex items-center justify-between group border ${
+              isSelected ? 'bg-blue-100 border-blue-200' : 'hover:bg-gray-50'
+            }`}
+            onClick={() => setSelectedId?.(item.id)}
+            onDragStart={(e) => {
+              e.dataTransfer.setData('text/plain', index.toString())
+            }}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => onDrop(e, index)}
+          >
+            <div className="flex items-center flex-1 gap-2">
+              <GripVertical className="w-4 h-4 text-gray-400 cursor-move" />
+              {type === 'process' ? (
+                <div className="flex items-center justify-center w-6 h-6 bg-blue-100 text-blue-600 rounded-full text-sm font-medium mr-3">
+                  {index + 1}
+                </div>
+              ) : (
+                <Factory className="w-4 h-4 text-gray-500" />
+              )}
+              <span className={`font-medium ${isSelected ? 'text-blue-900' : 'text-gray-900'}`}>
+                {item.name}
+              </span>
+              {type === 'line' && (
+                <span className="text-sm text-gray-500">
+                  ({item.processes?.length || 0}개 공정)
+                </span>
+              )}
+            </div>
+            <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  // 편집 로직
+                }}
+                className={`h-7 w-7 p-0 text-gray-500 hover:text-gray-700`}
+              >
+                <Edit className={'w-4 h-4'} />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onDelete?.(item.id)
+                }}
+                className={`'h-8 w-8' p-0 text-red-500 hover:text-red-700`}
+              >
+                <Trash2 className={`'w-4 h-4'`} />
+              </Button>
+            </div>
+          </div>
+        )
+      })}
+
+      {/* 인라인 항목 추가 */}
+      {onAdd && (
+        <>
+          {isAdding ? (
+            <div className={`p-3 rounded-lg border-2 border-dashed ${
+              type === 'line' ? 'border-blue-300 bg-blue-50' : 'border-green-300 bg-green-50'
+            }`}>
+              <div className="flex items-center gap-2">
+                {type === 'process' ? (
+                  <div className="flex items-center justify-center w-6 h-6 bg-green-100 text-green-600 rounded-full text-sm font-medium">
+                    {data.length + 1}
+                  </div>
+                ) : (
+                  <Factory className={`w-4 h-4 ${type === 'line' ? 'text-blue-600' : 'text-green-600'}`} />
+                )}
+                <Input
+                  placeholder={`${type === 'line' ? '라인' : '공정'} 이름을 입력하세요`}
+                  value={newItemName}
+                  onChange={(e) => setNewItemName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleAdd()
+                    if (e.key === 'Escape') setIsAdding(false)
+                  }}
+                  className={`flex-1 h-8 text-sm ${
+                    type === 'line' 
+                      ? 'border-blue-300 focus:border-blue-500' 
+                      : 'border-green-300 focus:border-green-500'
+                  }`}
+                  autoFocus
+                />
+                <Button size="sm" onClick={handleAdd} className="h-8 px-2">
+                  추가
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setIsAdding(false)
+                    setNewItemName('')
+                  }}
+                  className="h-8 px-2"
+                >
+                  취소
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <Button
+              variant="ghost"
+              className={`w-full p-3 h-auto border-2 border-dashed border-gray-300 ${
+                type === 'line'
+                  ? 'hover:border-blue-300 hover:bg-blue-50 text-gray-600 hover:text-blue-600'
+                  : 'hover:border-green-300 hover:bg-green-50 text-gray-600 hover:text-green-600'
+              }`}
+              onClick={() => setIsAdding(true)}
+            >
+              <Plus className="w-4 h-4 mr-2" />새 {type === 'line' ? '라인' : '공정'} 추가
+            </Button>
+          )}
+        </>
+      )}
+    </div>
+  )
+}
+
+export default DragList
