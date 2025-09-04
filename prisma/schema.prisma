@@ -14,21 +14,22 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+// 사용자 정보
 model User {
   id           String  @id @default(cuid())
   loginId      String  @unique // 로그인용 ID (사번)
   password     String
   name         String
   role         Role    @default(WORKER)
-  isSuperAdmin Boolean @default(false) // 최고관리자 플래그(ADMIN 중 일부만 true) // 삭제예정
 
-  // 역할별 전용 컬럼(필요한 것만 추가)
-  licensePhoto String? // WORKER 전용 (ex. 면허/자격증 사진)
-  adminMemo    String? // ADMIN 전용 (필요시) // 삭제 예정
+  // 역할별 전용 컬럼
+  licensePhoto String?
 
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  workLogs   WorkLog[]
 
   @@index([role])
   @@map("users")
@@ -37,4 +38,41 @@ model User {
 enum Role {
   ADMIN
   WORKER
+}
+
+
+// 작업 라인
+model Line {
+  id        String    @id @default(cuid())
+  name      String
+  order     Int
+  processes Process[]
+  createdAt DateTime  @default(now())
+}
+// 작업 공정
+model Process {
+  id        String   @id @default(cuid())
+  name      String
+  order     Int
+  lineId    String
+  line      Line     @relation(fields: [lineId], references: [id])
+
+  workLogs  WorkLog[]
+  createdAt DateTime  @default(now())
+}
+
+// 작업 기록
+model WorkLog {
+  id        String   @id @default(cuid())
+  userId    String // User.id 를 참조
+  processId String
+  startedAt DateTime @default(now())
+  endedAt   DateTime?
+
+  user    User    @relation(fields: [userId], references: [id])
+  process Process @relation(fields: [processId], references: [id])
+
+  @@index([userId])
+  @@index([processId])
+  @@index([startedAt])
 }
