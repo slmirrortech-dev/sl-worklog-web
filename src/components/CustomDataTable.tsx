@@ -34,6 +34,7 @@ import {
 } from '@/components/ui/select'
 
 export function CustomDataTable({
+  id = '',
   data,
   columns,
   onRowClick,
@@ -48,6 +49,7 @@ export function CustomDataTable({
   setSearchInput,
   onSearch,
 }: {
+  id: string
   data: any[]
   columns: ColumnDef<any>[]
   showCheckboxes?: boolean
@@ -125,59 +127,43 @@ export function CustomDataTable({
   return (
     <div className="w-full">
       {/* 검색 및 필터 영역 */}
-      <div className="p-4 md:p-6 border-b border-gray-200 bg-gray-50">
+      <div className="p-4 md:p-4 border-b border-gray-200 bg-gray-50">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          {/* 페이지 크기 선택 */}
-          <div className="flex items-center justify-center md:justify-end">
-            <div className="flex items-center gap-2 text-sm">
-              <span className="text-gray-600 whitespace-nowrap">페이지당</span>
-              <Select
-                value={pageSize.toString()}
-                onValueChange={(value) => {
-                  setPageSize(Number(value))
-                }}
-                disabled={getPageSizeOptions(totalCount).length <= 1}
-              >
-                <SelectTrigger className="w-20 h-8">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {getPageSizeOptions(totalCount).map((size) => (
-                    <SelectItem key={size} value={size.toString()}>
-                      {size === totalCount ? '전체' : size.toString()}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <span className="text-gray-600 whitespace-nowrap">개씩</span>
-            </div>
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <span className="whitespace-nowrap">총 {totalCount}개 항목</span>
+            <span className="text-gray-400 hidden md:inline">|</span>
+            <span className="whitespace-nowrap hidden md:inline">
+              {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, totalCount)} 표시 중
+            </span>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Input
-              placeholder="사번 또는 이름으로 검색"
-              value={searchInput ?? ''}
-              onChange={(event) => {
-                const value = event.target.value
-                setSearchInput?.(value)
-              }}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter') {
-                  onSearch?.()
-                }
-              }}
-              className="w-full md:max-w-xs h-10 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-            />
-            <Button
-              variant="outline"
-              size="default"
-              onClick={onSearch}
-              disabled={loading}
-              className="px-3 h-10"
-            >
-              <Search className="w-4 h-4" />
-            </Button>
-          </div>
+          {id !== 'worklog' && (
+            <div className="flex items-center gap-2">
+              <Input
+                placeholder="사번 또는 이름으로 검색"
+                value={searchInput ?? ''}
+                onChange={(event) => {
+                  const value = event.target.value
+                  setSearchInput?.(value)
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    onSearch?.()
+                  }
+                }}
+                className="w-full md:max-w-xs h-10 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+              />
+              <Button
+                variant="outline"
+                size="default"
+                onClick={onSearch}
+                disabled={loading}
+                className="px-3 h-10"
+              >
+                <Search className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -247,12 +233,30 @@ export function CustomDataTable({
 
       {/* 페이지네이션 */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 px-4 md:px-6 py-4 border-t border-gray-200 bg-gray-50/50">
-        <div className="flex items-center gap-2 text-sm text-gray-600 order-2 md:order-1">
-          <span className="whitespace-nowrap">총 {totalCount}개 항목</span>
-          <span className="text-gray-400 hidden md:inline">|</span>
-          <span className="whitespace-nowrap hidden md:inline">
-            {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, totalCount)} 표시 중
-          </span>
+        {/* 페이지 크기 선택 */}
+        <div className="flex items-center justify-center md:justify-end">
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-gray-600 whitespace-nowrap">페이지당</span>
+            <Select
+              value={pageSize.toString()}
+              onValueChange={(value) => {
+                setPageSize(Number(value))
+              }}
+              disabled={getPageSizeOptions(totalCount).length <= 1}
+            >
+              <SelectTrigger className="w-20 h-8">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {getPageSizeOptions(totalCount).map((size) => (
+                  <SelectItem key={size} value={size.toString()}>
+                    {size === totalCount ? '전체' : size.toString()}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <span className="text-gray-600 whitespace-nowrap">개씩</span>
+          </div>
         </div>
 
         <div className="flex items-center space-x-2 order-1 md:order-2">

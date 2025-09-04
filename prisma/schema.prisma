@@ -30,6 +30,7 @@ model User {
   updatedAt DateTime @updatedAt
 
   workLogs   WorkLog[]
+  changeHistories WorkLogHistory[] @relation("AdminHistory")
 
   @@index([role])
   @@map("users")
@@ -68,11 +69,38 @@ model WorkLog {
   processId String
   startedAt DateTime @default(now())
   endedAt   DateTime?
+  durationMinutes  Int   // 작업 시간
+  shiftType       ShiftType
+  isDefective     Boolean  @default(false) // 불량 여부
+  memo String // 메모
+
 
   user    User    @relation(fields: [userId], references: [id])
   process Process @relation(fields: [processId], references: [id])
 
+  histories WorkLogHistory[]
+
   @@index([userId])
   @@index([processId])
   @@index([startedAt])
+}
+
+enum ShiftType {
+  DAY       // 주간
+  NIGHT     // 야간
+  OVERTIME  // 잔업
+  UNKNOWN   // 알수없음
+}
+
+model WorkLogHistory {
+  id          String   @id @default(cuid())
+  workLogId   String
+  field       String         // 예: "endedAt", "isDefective", "memo"
+  oldValue    String?
+  newValue    String?
+  changedBy   String         // User.id (관리자)
+  changedAt   DateTime @default(now())
+
+  workLog WorkLog @relation(fields: [workLogId], references: [id])
+  admin   User    @relation("AdminHistory", fields: [changedBy], references: [id])
 }
