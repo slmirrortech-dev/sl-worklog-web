@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { Eye, FileImage, Trash2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import useLicenseUploader from '@/app/hooks/useLicenseUploader'
+import LicenseModal from '@/components/admin/LicenseModal'
 
 const LicenseBox = ({
   id,
@@ -24,7 +25,7 @@ const LicenseBox = ({
         const res = await fetch(`/api/users/${id}/license-photo/url`, {
           credentials: 'include',
           cache: 'force-cache',
-          next: { revalidate: 60 * 30 } // 30분 캐시
+          next: { revalidate: 60 * 30 }, // 30분 캐시
         })
         const { url } = await res.json()
         setLicenseUrl(url ?? null)
@@ -62,32 +63,33 @@ const LicenseBox = ({
         {licensePhoto ? (
           <div className="relative group w-full max-w-sm h-50 p-4 bg-gray-100 rounded-lg overflow-hidden border border-gray-300">
             {licenseUrl ? (
-              <img src={licenseUrl} alt="공정면허증" className="w-full h-full object-contain" />
+              <>
+                <img src={licenseUrl} alt="공정면허증" className="w-full h-full object-contain" />
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-4">
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    className="bg-red-600 text-white"
+                    onClick={() => handleLicenseDelete()}
+                  >
+                    <Trash2 className="w-4 h-4 mr-1" />
+                    삭제
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="bg-white text-gray-800 hover:bg-gray-100"
+                    onClick={() => setShowImageModal(true)}
+                  >
+                    <Eye className="w-4 h-4 mr-1" />
+                    확대보기
+                  </Button>
+                </div>
+              </>
             ) : (
               <div className="w-full h-full flex items-center justify-center text-gray-400">
                 이미지 로딩 중…
               </div>
             )}
-
-            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-4">
-              <Button
-                size="sm"
-                variant="destructive"
-                className="bg-red-600 text-white"
-                onClick={() => handleLicenseDelete()}
-              >
-                <Trash2 className="w-4 h-4 mr-1" />
-                삭제
-              </Button>
-              <Button
-                size="sm"
-                className="bg-white text-gray-800 hover:bg-gray-100"
-                onClick={() => setShowImageModal(true)}
-              >
-                <Eye className="w-4 h-4 mr-1" />
-                확대보기
-              </Button>
-            </div>
           </div>
         ) : (
           <div className="w-full max-w-sm h-50 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50">
@@ -118,29 +120,7 @@ const LicenseBox = ({
       </div>
       {/* 이미지 모달 */}
       {showImageModal && licenseUrl && (
-        <div
-          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
-          onClick={() => setShowImageModal(false)}
-        >
-          <div className="relative max-w-4xl max-h-full">
-            {licenseUrl ? (
-              <img
-                src={licenseUrl}
-                alt="공정면허증 확대보기"
-                className="max-w-full max-h-full object-contain rounded-lg"
-              />
-            ) : (
-              <div className="text-white">이미지 로딩 중…</div>
-            )}
-            <Button
-              size="sm"
-              onClick={() => setShowImageModal(false)}
-              className="absolute top-2 right-2 bg-white text-gray-800 hover:bg-gray-100"
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
+        <LicenseModal licenseUrl={licenseUrl} setShowImageModal={setShowImageModal} />
       )}
     </>
   )
