@@ -68,7 +68,7 @@ const MainHeader = () => {
                   title={item.description}
                 >
                   <item.icon className="w-4 h-4" />
-                  <span className="text-sm font-medium">{item.name}</span>
+                  <span className="text-base font-medium">{item.name}</span>
                 </Button>
               </Link>
             ))}
@@ -118,7 +118,7 @@ const MainHeader = () => {
                 className="flex items-center gap-1 px-2 py-1 h-8 text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors whitespace-nowrap"
               >
                 <item.icon className="w-3 h-3" />
-                <span className="text-xs">{item.name}</span>
+                <span className="text-sm">{item.name}</span>
               </Button>
             </Link>
           ))}
