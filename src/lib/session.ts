@@ -45,7 +45,6 @@ export async function getSessionUser(req: NextRequest) {
       loginId: true,
       name: true,
       role: true,
-      isSuperAdmin: true,
     },
   })
 }
