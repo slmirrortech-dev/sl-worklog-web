@@ -3,358 +3,55 @@ import React, { useState, useEffect } from 'react'
 import { User, Clock, AlertCircle } from 'lucide-react'
 
 // 라인과 공정 데이터 (ProcessSetting에서 가져온 구조)
-const initialLines: {
-  id: string
-  name: string
-  order: number
-  processes: { id: string; name: string; order: number }[]
-}[] = [
+const linesData = [
   {
     id: '1',
     name: 'MV L/R',
-    order: 1,
     processes: [
-      { id: '1-1', name: 'P1', order: 1 },
-      { id: '1-2', name: 'P2', order: 2 },
-      { id: '1-3', name: 'P3', order: 3 },
-      { id: '1-4', name: 'P4', order: 4 },
-      { id: '1-5', name: 'P5', order: 5 },
-      { id: '1-6', name: 'P6', order: 6 },
-      { id: '1-7', name: 'P7', order: 7 },
+      { id: '1-1', name: 'P1' },
+      { id: '1-2', name: 'P2' },
+      { id: '1-3', name: 'P3' },
+      { id: '1-4', name: 'P4' },
+      { id: '1-5', name: 'P5' },
+      { id: '1-6', name: 'P6' },
+      { id: '1-7', name: 'P7' },
     ],
   },
   {
     id: '2',
     name: 'MX5 LH',
-    order: 2,
     processes: [
-      { id: '2-1', name: 'P1', order: 1 },
-      { id: '2-2', name: 'P2', order: 2 },
-      { id: '2-3', name: 'P3', order: 3 },
-      { id: '2-4', name: 'P4', order: 4 },
-      { id: '2-5', name: 'P5', order: 5 },
-      { id: '2-6', name: 'P6', order: 6 },
-      { id: '2-7', name: 'P7', order: 7 },
+      { id: '2-1', name: 'P1' },
+      { id: '2-2', name: 'P2' },
+      { id: '2-3', name: 'P3' },
+      { id: '2-4', name: 'P4' },
+      { id: '2-5', name: 'P5' },
+      { id: '2-6', name: 'P6' },
+      { id: '2-7', name: 'P7' },
     ],
   },
   {
     id: '3',
     name: 'MX5 RH',
-    order: 3,
     processes: [
-      { id: '3-1', name: 'P1', order: 1 },
-      { id: '3-2', name: 'P2', order: 2 },
-      { id: '3-3', name: 'P3', order: 3 },
-      { id: '3-4', name: 'P4', order: 4 },
-      { id: '3-5', name: 'P5', order: 5 },
-      { id: '3-6', name: 'P6', order: 6 },
-      { id: '3-7', name: 'P7', order: 7 },
-    ],
-  },
-  {
-    id: '4',
-    name: 'MQ4 LH',
-    order: 4,
-    processes: [
-      { id: '4-1', name: 'P1', order: 1 },
-      { id: '4-2', name: 'P2', order: 2 },
-      { id: '4-3', name: 'P3', order: 3 },
-      { id: '4-4', name: 'P4', order: 4 },
-      { id: '4-5', name: 'P5', order: 5 },
-      { id: '4-6', name: 'P6', order: 6 },
-      { id: '4-7', name: 'P7', order: 7 },
-    ],
-  },
-  {
-    id: '5',
-    name: 'MQ4 RH',
-    order: 5,
-    processes: [
-      { id: '5-1', name: 'P1', order: 1 },
-      { id: '5-2', name: 'P2', order: 2 },
-      { id: '5-3', name: 'P3', order: 3 },
-      { id: '5-4', name: 'P4', order: 4 },
-      { id: '5-5', name: 'P5', order: 5 },
-      { id: '5-6', name: 'P6', order: 6 },
-      { id: '5-7', name: 'P7', order: 7 },
-    ],
-  },
-  {
-    id: '6',
-    name: 'AX/CV/SG2 LH',
-    order: 6,
-    processes: [
-      { id: '6-1', name: 'P1', order: 1 },
-      { id: '6-2', name: 'P2', order: 2 },
-      { id: '6-3', name: 'P3', order: 3 },
-      { id: '6-4', name: 'P4', order: 4 },
-      { id: '6-5', name: 'P5', order: 5 },
-      { id: '6-6', name: 'P6', order: 6 },
-      { id: '6-7', name: 'P7', order: 7 },
-    ],
-  },
-  {
-    id: '7',
-    name: 'AX/CV/SG2 RH',
-    order: 7,
-    processes: [
-      { id: '7-1', name: 'P1', order: 1 },
-      { id: '7-2', name: 'P2', order: 2 },
-      { id: '7-3', name: 'P3', order: 3 },
-      { id: '7-4', name: 'P4', order: 4 },
-      { id: '7-5', name: 'P5', order: 5 },
-      { id: '7-6', name: 'P6', order: 6 },
-      { id: '7-7', name: 'P7', order: 7 },
-    ],
-  },
-  {
-    id: '8',
-    name: 'SW L/R',
-    order: 8,
-    processes: [
-      { id: '8-1', name: 'P1', order: 1 },
-      { id: '8-2', name: 'P2', order: 2 },
-      { id: '8-3', name: 'P3', order: 3 },
-      { id: '8-4', name: 'P4', order: 4 },
-      { id: '8-5', name: 'P5', order: 5 },
-      { id: '8-6', name: 'P6', order: 6 },
-      { id: '8-7', name: 'P7', order: 7 },
-    ],
-  },
-  {
-    id: '9',
-    name: 'LB L/R',
-    order: 9,
-    processes: [
-      { id: '9-1', name: 'P1', order: 1 },
-      { id: '9-2', name: 'P2', order: 2 },
-      { id: '9-3', name: 'P3', order: 3 },
-      { id: '9-4', name: 'P4', order: 4 },
-      { id: '9-5', name: 'P5', order: 5 },
-      { id: '9-6', name: 'P6', order: 6 },
-      { id: '9-7', name: 'P7', order: 7 },
-    ],
-  },
-  {
-    id: '10',
-    name: 'NX4A L/R',
-    order: 10,
-    processes: [
-      { id: '10-1', name: 'P1', order: 1 },
-      { id: '10-2', name: 'P2', order: 2 },
-      { id: '10-3', name: 'P3', order: 3 },
-      { id: '10-4', name: 'P4', order: 4 },
-      { id: '10-5', name: 'P5', order: 5 },
-      { id: '10-6', name: 'P6', order: 6 },
-      { id: '10-7', name: 'P7', order: 7 },
-    ],
-  },
-  {
-    id: '11',
-    name: 'NQ5 LH',
-    order: 11,
-    processes: [
-      { id: '11-1', name: 'P1', order: 1 },
-      { id: '11-2', name: 'P2', order: 2 },
-      { id: '11-3', name: 'P3', order: 3 },
-      { id: '11-4', name: 'P4', order: 4 },
-      { id: '11-5', name: 'P5', order: 5 },
-      { id: '11-6', name: 'P6', order: 6 },
-      { id: '11-7', name: 'P7', order: 7 },
-    ],
-  },
-  {
-    id: '12',
-    name: 'NQ5 RH',
-    order: 12,
-    processes: [
-      { id: '12-1', name: 'P1', order: 1 },
-      { id: '12-2', name: 'P2', order: 2 },
-      { id: '12-3', name: 'P3', order: 3 },
-      { id: '12-4', name: 'P4', order: 4 },
-      { id: '12-5', name: 'P5', order: 5 },
-      { id: '12-6', name: 'P6', order: 6 },
-      { id: '12-7', name: 'P7', order: 7 },
-    ],
-  },
-  {
-    id: '13',
-    name: 'C121 L/R',
-    order: 13,
-    processes: [
-      { id: '13-1', name: 'P1', order: 1 },
-      { id: '13-2', name: 'P2', order: 2 },
-      { id: '13-3', name: 'P3', order: 3 },
-      { id: '13-4', name: 'P4', order: 4 },
-      { id: '13-5', name: 'P5', order: 5 },
-      { id: '13-6', name: 'P6', order: 6 },
-      { id: '13-7', name: 'P7', order: 7 },
-    ],
-  },
-  {
-    id: '14',
-    name: 'OV1K L/R',
-    order: 14,
-    processes: [
-      { id: '14-1', name: 'P1', order: 1 },
-      { id: '14-2', name: 'P2', order: 2 },
-      { id: '14-3', name: 'P3', order: 3 },
-      { id: '14-4', name: 'P4', order: 4 },
-      { id: '14-5', name: 'P5', order: 5 },
-      { id: '14-6', name: 'P6', order: 6 },
-      { id: '14-7', name: 'P7', order: 7 },
-    ],
-  },
-  {
-    id: '15',
-    name: 'LQ2 L/R',
-    order: 15,
-    processes: [
-      { id: '15-1', name: 'P1', order: 1 },
-      { id: '15-2', name: 'P2', order: 2 },
-      { id: '15-3', name: 'P3', order: 3 },
-      { id: '15-4', name: 'P4', order: 4 },
-      { id: '15-5', name: 'P5', order: 5 },
-      { id: '15-6', name: 'P6', order: 6 },
-      { id: '15-7', name: 'P7', order: 7 },
-    ],
-  },
-  {
-    id: '16',
-    name: 'JA/YB LH',
-    order: 16,
-    processes: [
-      { id: '16-1', name: 'P1', order: 1 },
-      { id: '16-2', name: 'P2', order: 2 },
-      { id: '16-3', name: 'P3', order: 3 },
-      { id: '16-4', name: 'P4', order: 4 },
-      { id: '16-5', name: 'P5', order: 5 },
-      { id: '16-6', name: 'P6', order: 6 },
-      { id: '16-7', name: 'P7', order: 7 },
-    ],
-  },
-  {
-    id: '17',
-    name: 'JA/YB RH',
-    order: 17,
-    processes: [
-      { id: '17-1', name: 'P1', order: 1 },
-      { id: '17-2', name: 'P2', order: 2 },
-      { id: '17-3', name: 'P3', order: 3 },
-      { id: '17-4', name: 'P4', order: 4 },
-      { id: '17-5', name: 'P5', order: 5 },
-      { id: '17-6', name: 'P6', order: 6 },
-      { id: '17-7', name: 'P7', order: 7 },
-    ],
-  },
-  {
-    id: '18',
-    name: 'SV/CT/NH2 LH',
-    order: 18,
-    processes: [
-      { id: '18-1', name: 'P1', order: 1 },
-      { id: '18-2', name: 'P2', order: 2 },
-      { id: '18-3', name: 'P3', order: 3 },
-      { id: '18-4', name: 'P4', order: 4 },
-      { id: '18-5', name: 'P5', order: 5 },
-      { id: '18-6', name: 'P6', order: 6 },
-      { id: '18-7', name: 'P7', order: 7 },
-    ],
-  },
-  {
-    id: '19',
-    name: 'SV/CT/NH2 RH',
-    order: 19,
-    processes: [
-      { id: '19-1', name: 'P1', order: 1 },
-      { id: '19-2', name: 'P2', order: 2 },
-      { id: '19-3', name: 'P3', order: 3 },
-      { id: '19-4', name: 'P4', order: 4 },
-      { id: '19-5', name: 'P5', order: 5 },
-      { id: '19-6', name: 'P6', order: 6 },
-      { id: '19-7', name: 'P7', order: 7 },
-    ],
-  },
-  {
-    id: '20',
-    name: 'ME L/R',
-    order: 20,
-    processes: [
-      { id: '20-1', name: 'P1', order: 1 },
-      { id: '20-2', name: 'P2', order: 2 },
-      { id: '20-3', name: 'P3', order: 3 },
-      { id: '20-4', name: 'P4', order: 4 },
-      { id: '20-5', name: 'P5', order: 5 },
-      { id: '20-6', name: 'P6', order: 6 },
-      { id: '20-7', name: 'P7', order: 7 },
-    ],
-  },
-  {
-    id: '21',
-    name: '프리미엄 A',
-    order: 21,
-    processes: [
-      { id: '21-1', name: 'P1', order: 1 },
-      { id: '21-2', name: 'P2', order: 2 },
-      { id: '21-3', name: 'P3', order: 3 },
-      { id: '21-4', name: 'P4', order: 4 },
-      { id: '21-5', name: 'P5', order: 5 },
-      { id: '21-6', name: 'P6', order: 6 },
-      { id: '21-7', name: 'P7', order: 7 },
-    ],
-  },
-  {
-    id: '22',
-    name: '프리미엄 B',
-    order: 22,
-    processes: [
-      { id: '22-1', name: 'P1', order: 1 },
-      { id: '22-2', name: 'P2', order: 2 },
-      { id: '22-3', name: 'P3', order: 3 },
-      { id: '22-4', name: 'P4', order: 4 },
-      { id: '22-5', name: 'P5', order: 5 },
-      { id: '22-6', name: 'P6', order: 6 },
-      { id: '22-7', name: 'P7', order: 7 },
-    ],
-  },
-  {
-    id: '23',
-    name: 'CMS',
-    order: 23,
-    processes: [
-      { id: '23-1', name: 'P1', order: 1 },
-      { id: '23-2', name: 'P2', order: 2 },
-      { id: '23-3', name: 'P3', order: 3 },
-      { id: '23-4', name: 'P4', order: 4 },
-      { id: '23-5', name: 'P5', order: 5 },
-      { id: '23-6', name: 'P6', order: 6 },
-      { id: '23-7', name: 'P7', order: 7 },
-    ],
-  },
-  {
-    id: '24',
-    name: 'ETCS',
-    order: 24,
-    processes: [
-      { id: '24-1', name: 'P1', order: 1 },
-      { id: '24-2', name: 'P2', order: 2 },
-      { id: '24-3', name: 'P3', order: 3 },
-      { id: '24-4', name: 'P4', order: 4 },
-      { id: '24-5', name: 'P5', order: 5 },
-      { id: '24-6', name: 'P6', order: 6 },
-      { id: '24-7', name: 'P7', order: 7 },
+      { id: '3-1', name: 'P1' },
+      { id: '3-2', name: 'P2' },
+      { id: '3-3', name: 'P3' },
+      { id: '3-4', name: 'P4' },
+      { id: '3-5', name: 'P5' },
+      { id: '3-6', name: 'P6' },
+      { id: '3-7', name: 'P7' },
     ],
   },
   {
     id: '25',
     name: '린지원',
-    order: 25,
     processes: [
-      { id: '25-1', name: '서열피더', order: 1 },
-      { id: '25-2', name: '조립피더', order: 2 },
-      { id: '25-3', name: '리워크', order: 3 },
-      { id: '25-4', name: '폴리싱', order: 4 },
-      { id: '25-5', name: '서열대차', order: 5 },
+      { id: '25-1', name: '서열피더' },
+      { id: '25-2', name: '조립피더' },
+      { id: '25-3', name: '리워크' },
+      { id: '25-4', name: '폴리싱' },
+      { id: '25-5', name: '서열대차' },
     ],
   },
 ]
@@ -395,87 +92,148 @@ const StatusPage = () => {
 
   return (
     <div className="flex flex-col space-y-6">
+      {/* 페이지 헤더 */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">실시간 작업 현황</h1>
+            <p className="text-gray-600 mt-2">
+              현재 시간: {currentTime.toLocaleTimeString('ko-KR')}
+            </p>
+          </div>
+          <div className="flex items-center gap-4 text-sm text-gray-600">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+              <span>작업 중</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-gray-200 rounded-full"></div>
+              <span>대기</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* 작업 현황 테이블 */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <tbody>
-              {initialLines.map((line, lineIndex) => (
-                <React.Fragment key={line.id}>
-                  {/* 라인 헤더 행 */}
-                  <tr className="bg-blue-500">
-                    <td
-                      colSpan={line.processes.length + 1}
-                      className="px-6 py-4 text-white font-semibold"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-3 h-3 bg-white rounded-full"></div>
-                        <span className="text-lg">{line.name}</span>
-                        <span className="text-sm opacity-80">({line.processes.length}개 공정)</span>
-                      </div>
-                    </td>
-                  </tr>
-
-                  {/* 공정명 헤더 행 */}
-                  <tr className="bg-gray-50">
-                    {/*<th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 min-w-[80px]">*/}
-                    {/*  공정*/}
-                    {/*</th>*/}
-                    {line.processes.map((process) => (
-                      <th
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 border-b sticky left-0 bg-gray-50 z-10 min-w-[120px]">
+                  라인 / 공정
+                </th>
+                {linesData[0].processes.map((process) => (
+                  <th
+                    key={process.id}
+                    className="px-4 py-3 text-center text-sm font-semibold text-gray-900 border-b border-l min-w-[150px]"
+                  >
+                    {process.name}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {linesData.map((line) => (
+                <tr key={line.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-4 text-sm font-medium text-gray-900 border-b sticky left-0 bg-white z-10">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                      {line.name}
+                    </div>
+                  </td>
+                  {line.processes.map((process) => {
+                    const worker = workerData[process.id as keyof typeof workerData]
+                    return (
+                      <td
                         key={process.id}
-                        className="px-4 py-3 text-center text-sm font-semibold text-gray-900 border-l min-w-[150px]"
+                        className="px-4 py-4 text-center border-b border-l relative"
                       >
-                        {process.name}
-                      </th>
-                    ))}
-                  </tr>
-
-                  {/* 작업자 데이터 행 */}
-                  <tr className="hover:bg-gray-50">
-                    {/*<td className="px-4 py-4 text-sm font-medium text-gray-600">작업자</td>*/}
-                    {line.processes.map((process) => {
-                      const worker = workerData[process.id as keyof typeof workerData]
-                      return (
-                        <td key={process.id} className="px-4 py-4 text-center border-l relative">
-                          {worker ? (
-                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                              <div className="flex flex-col items-center gap-1">
-                                <div className="flex items-center gap-2">
-                                  <User className="w-4 h-4 text-blue-600" />
-                                  <span className="text-sm font-medium text-blue-900">
-                                    {worker.name}
-                                  </span>
-                                </div>
-                                <div className="text-xs text-blue-600">
-                                  사번: {worker.employeeId}
-                                </div>
-                                <div className="flex items-center gap-1 text-xs text-blue-600">
-                                  <Clock className="w-3 h-3" />
-                                  {getWorkingTime(worker.startTime)}
-                                </div>
+                        {worker ? (
+                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                            <div className="flex flex-col items-center gap-1">
+                              <div className="flex items-center gap-2">
+                                <User className="w-4 h-4 text-blue-600" />
+                                <span className="text-sm font-medium text-blue-900">
+                                  {worker.name}
+                                </span>
+                              </div>
+                              <div className="text-xs text-blue-600">사번: {worker.employeeId}</div>
+                              <div className="flex items-center gap-1 text-xs text-blue-600">
+                                <Clock className="w-3 h-3" />
+                                {getWorkingTime(worker.startTime)}
                               </div>
                             </div>
-                          ) : (
-                            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 min-h-[80px] flex items-center justify-center">
-                              <span className="text-xs text-gray-400">대기</span>
-                            </div>
-                          )}
-                        </td>
-                      )
-                    })}
-                  </tr>
-
-                  {/* 라인 간 구분선 */}
-                  {lineIndex < initialLines.length - 1 && (
-                    <tr>
-                      <td colSpan={line.processes.length + 1} className="h-4 bg-gray-100"></td>
-                    </tr>
-                  )}
-                </React.Fragment>
+                          </div>
+                        ) : (
+                          <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 min-h-[80px] flex items-center justify-center">
+                            <span className="text-xs text-gray-400">대기</span>
+                          </div>
+                        )}
+                      </td>
+                    )
+                  })}
+                </tr>
               ))}
             </tbody>
           </table>
+        </div>
+      </div>
+
+      {/* 작업 통계 */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">총 작업자</p>
+              <p className="text-2xl font-bold text-gray-900">{Object.keys(workerData).length}명</p>
+            </div>
+            <User className="w-8 h-8 text-blue-500" />
+          </div>
+        </div>
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">가동 공정</p>
+              <p className="text-2xl font-bold text-green-600">
+                {Object.keys(workerData).length}개
+              </p>
+            </div>
+            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+              <div className="w-4 h-4 bg-green-500 rounded-full"></div>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">대기 공정</p>
+              <p className="text-2xl font-bold text-gray-600">
+                {linesData.reduce((total, line) => total + line.processes.length, 0) -
+                  Object.keys(workerData).length}
+                개
+              </p>
+            </div>
+            <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+              <div className="w-4 h-4 bg-gray-400 rounded-full"></div>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">가동률</p>
+              <p className="text-2xl font-bold text-blue-600">
+                {Math.round(
+                  (Object.keys(workerData).length /
+                    linesData.reduce((total, line) => total + line.processes.length, 0)) *
+                    100,
+                )}
+                %
+              </p>
+            </div>
+            <AlertCircle className="w-8 h-8 text-blue-500" />
+          </div>
         </div>
       </div>
     </div>
