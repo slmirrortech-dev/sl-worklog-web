@@ -5,8 +5,12 @@ import DragList from '@/app/admin/(main)/process/DragList'
 import { Button } from '@/components/ui/button'
 
 // 변환된 전체 데이터
-// 변환된 전체 데이터 (린지원 포함, depth1에도 order 추가)
-const initialLines = [
+const initialLines: {
+  id: string
+  name: string
+  order: number
+  processes: { id: string; name: string; order: number }[]
+}[] = [
   {
     id: '1',
     name: 'MV L/R',
@@ -357,11 +361,18 @@ const initialLines = [
   },
 ]
 
+type ProcessSetting = {
+  id: string
+  name: string
+  order: number
+  processes: { id: string; name: string; order: number }[]
+}
+
 /** 라인 선택 영역 */
 const ProcessSetting = () => {
-  const [lines, setLines] = useState(initialLines)
-  const [originalLines] = useState(initialLines)
-  const [selectedLineId, setSelectedLineId] = useState('1')
+  const [lines, setLines] = useState<ProcessSetting[]>(initialLines)
+  const [originalLines] = useState<ProcessSetting[]>(initialLines)
+  const [selectedLineId, setSelectedLineId] = useState(lines[0]?.id || '')
   const [hasChanges, setHasChanges] = useState(false)
 
   const selectedLine = lines.find((line) => line.id === selectedLineId)
@@ -439,9 +450,10 @@ const ProcessSetting = () => {
   // 라인 삭제 핸들러
   const handleDeleteLine = (lineId: string) => {
     if (confirm('라인을 삭제하시겠습니까? 모든 공정이 함께 삭제됩니다.')) {
-      setLines(lines.filter((line) => line.id !== lineId))
+      const newLines = lines.filter((line) => line.id !== lineId)
+      setLines(newLines)
       if (selectedLineId === lineId) {
-        setSelectedLineId(lines[0]?.id || '')
+        setSelectedLineId(newLines[0]?.id || '')
       }
     }
   }
@@ -488,11 +500,30 @@ const ProcessSetting = () => {
     )
   }
 
+  // 라인 편집 핸들러
+  const handleEditLine = (lineId: string, name: string) => {
+    setLines(lines.map((line) => (line.id === lineId ? { ...line, name } : line)))
+  }
+
+  // 공정 편집 핸들러
+  const handleEditProcess = (processId: string, name: string) => {
+    setLines(
+      lines.map((line) =>
+        line.id === selectedLineId
+          ? {
+              ...line,
+              processes: line.processes.map((p: any) => (p.id === processId ? { ...p, name } : p)),
+            }
+          : line,
+      ),
+    )
+  }
+
   return (
     <>
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         <div className="lg:col-span-2">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col h-[60vh] min-h-[400px] max-h-[700px]">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col h-[66vh]">
             <ProcessContainer title={'라인'} />
             <div className="flex-1 overflow-y-auto">
               <DragList
@@ -502,26 +533,28 @@ const ProcessSetting = () => {
                 onDrop={handleLineDrop}
                 onDelete={handleDeleteLine}
                 onAdd={handleAddLine}
+                onEdit={handleEditLine}
                 type="line"
               />
             </div>
           </div>
         </div>
         <div className="lg:col-span-3">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-            <ProcessContainer title={'공정'} selectedLine={selectedLine?.name} />
-            <div>
-              {selectedLine && (
+          {selectedLine && (
+            <div className="flex flex-col bg-white rounded-lg shadow-sm border border-gray-200 min-h-[66vh]">
+              <ProcessContainer title={'공정'} selectedLine={selectedLine?.name} />
+              <div className="flex-1 flex flex-col">
                 <DragList
                   data={selectedLine.processes || []}
                   onDrop={handleProcessDrop}
                   onDelete={handleDeleteProcess}
                   onAdd={handleAddProcess}
+                  onEdit={handleEditProcess}
                   type="process"
                 />
-              )}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 
@@ -532,7 +565,7 @@ const ProcessSetting = () => {
             <p className="flex items-center text-sm ">
               저장되지 않은 변경사항이 있습니다.
               <br />
-              편집이 완료되면 꼭 저장 버튼을 눌러주세요.
+              수정을 완료하면 꼭 저장 버튼을 눌러주세요.
             </p>
             <div className="flex items-center gap-2">
               <Button
