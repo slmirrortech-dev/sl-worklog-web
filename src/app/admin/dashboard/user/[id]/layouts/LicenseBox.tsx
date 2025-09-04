@@ -23,7 +23,8 @@ const LicenseBox = ({
       try {
         const res = await fetch(`/api/users/${id}/license-photo/url`, {
           credentials: 'include',
-          cache: 'no-store',
+          cache: 'force-cache',
+          next: { revalidate: 60 * 30 } // 30분 캐시
         })
         const { url } = await res.json()
         setLicenseUrl(url ?? null)

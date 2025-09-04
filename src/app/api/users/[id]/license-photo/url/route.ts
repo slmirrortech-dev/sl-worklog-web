@@ -21,7 +21,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   // Supabase Storage 서명 URL 생성
   const { data, error } = await supabaseServer.storage
     .from(BUCKET)
-    .createSignedUrl(user.licensePhoto, 60 * 10) // 10분 유효
+    .createSignedUrl(user.licensePhoto, 60 * 60 * 2) // 2시간 유효
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   return NextResponse.json({ url: data.signedUrl })
