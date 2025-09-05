@@ -4,10 +4,12 @@ import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ColumnDef } from '@tanstack/react-table'
 import { Button } from '@/components/ui/button'
-import { Plus, FileImage, ArrowUpDown, X, Eye, ChevronRight } from 'lucide-react'
+import { Plus, FileImage, ArrowUpDown, ChevronRight } from 'lucide-react'
 import { CustomDataTable } from '@/components/CustomDataTable'
 import { TUser } from '@/types/TUser'
 import { format } from 'date-fns'
+import useLicenseUploader from '@/app/hooks/useLicenseUploader'
+import LicenseModal from '@/components/admin/LicenseModal'
 
 /**
  * 사용자 목록 화면
@@ -27,8 +29,9 @@ const UsersTable = () => {
   const [searchInput, setSearchInput] = useState('')
 
   // 면허증 모달 상태
-  const [selectedLicensePhoto, setSelectedLicensePhoto] = useState<string | null>(null)
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
   const [selectedUserName, setSelectedUserName] = useState<string>('')
+  const [showLicenseModal, setShowLicenseModal] = useState(false)
 
   // 모바일 화면 감지
   const [isMobile, setIsMobile] = useState(false)
@@ -45,18 +48,26 @@ const UsersTable = () => {
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
+  // useLicenseUploader 훅 - 선택된 사용자용
+  const { licenseUrl, imageLoading, imageError, retryFetchUrl } = useLicenseUploader(
+    selectedUserId || undefined,
+    selectedUserId ? users.find(u => u.id === selectedUserId)?.licensePhoto : null
+  )
+
   // 면허증 이미지 클릭 핸들러
   const handleLicensePhotoClick = (user: TUser) => {
     if (user.licensePhoto) {
-      setSelectedLicensePhoto(user.licensePhoto)
+      setSelectedUserId(user.id)
       setSelectedUserName(user.name)
+      setShowLicenseModal(true)
     }
   }
 
   // 모달 닫기
   const closeModal = () => {
-    setSelectedLicensePhoto(null)
+    setSelectedUserId(null)
     setSelectedUserName('')
+    setShowLicenseModal(false)
   }
 
   const actionsColumn: ColumnDef<TUser> = {
@@ -252,12 +263,14 @@ const UsersTable = () => {
     setSearch(searchInput)
   }
 
+
   return (
     <>
       <div className="space-y-6">
         {/* 테이블 영역 */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           <CustomDataTable
+            id="users"
             data={sortedData}
             columns={columns}
             page={page}
@@ -275,38 +288,15 @@ const UsersTable = () => {
       </div>
 
       {/* 면허증 이미지 모달 */}
-      {selectedLicensePhoto && (
-        <div
-          className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
-          onClick={closeModal}
-        >
-          <div
-            className="bg-white rounded-lg shadow-xl max-w-4xl max-h-[90vh] overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* 모달 헤더 */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">
-                {selectedUserName}님의 공정면허증
-              </h3>
-              <button
-                onClick={closeModal}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-
-            {/* 모달 내용 */}
-            <div className="p-6 flex items-center justify-center">
-              <img
-                src={selectedLicensePhoto}
-                alt={`${selectedUserName}님의 공정면허증`}
-                className="max-w-full max-h-[70vh] object-contain rounded-lg shadow-sm"
-              />
-            </div>
-          </div>
-        </div>
+      {showLicenseModal && (
+        <LicenseModal 
+          licenseUrl={licenseUrl} 
+          setShowImageModal={setShowLicenseModal}
+          imageLoading={imageLoading}
+          imageError={imageError}
+          onRetry={retryFetchUrl}
+          userName={selectedUserName}
+        />
       )}
     </>
   )

@@ -198,7 +198,7 @@ const NewUsersPage = () => {
       {/*</header>*/}
 
       {/* 메인 콘텐츠 */}
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="space-y-6">
           {users.map((user, index) => (
             <div
@@ -249,6 +249,17 @@ const NewUsersPage = () => {
                           <Upload className="w-4 h-4" />
                           파일 선택
                         </label>
+                        {user.licensePhoto && (
+                          <Button
+                            variant="outline"
+                            size="lg"
+                            onClick={() => handleFileUpload(user.id, null)}
+                            className="border-red-300 text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            삭제
+                          </Button>
+                        )}
                       </div>
                       {user.licensePhoto && (
                         <span className="text-sm text-gray-600 block">
@@ -256,7 +267,7 @@ const NewUsersPage = () => {
                         </span>
                       )}
                       {user.licensePhotoPreview ? (
-                        <div className="w-full max-w-sm h-40 border border-gray-300 rounded-lg overflow-hidden bg-gray-50">
+                        <div className="w-full max-w-sm h-50 py-4 border border-gray-300 rounded-lg overflow-hidden bg-gray-50">
                           <img
                             src={user.licensePhotoPreview}
                             alt="면허증 미리보기"
@@ -264,11 +275,10 @@ const NewUsersPage = () => {
                           />
                         </div>
                       ) : (
-                        <div className="w-full max-w-sm h-40 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50">
+                        <div className="w-full max-w-sm h-50 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50">
                           <div className="text-center text-gray-400">
                             <FileImage className="w-8 h-8 mx-auto mb-2" />
                             <p className="text-sm">면허증 이미지</p>
-                            <p className="text-xs">미리보기</p>
                           </div>
                         </div>
                       )}
@@ -346,6 +356,7 @@ const NewUsersPage = () => {
           <div className="flex justify-center">
             <Button
               variant="outline"
+              size="lg"
               onClick={addUser}
               className="border-blue-300 text-blue-700 hover:bg-blue-50 text-base"
             >

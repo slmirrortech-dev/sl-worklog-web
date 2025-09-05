@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/select'
 import { getUser, updateUser } from '@/lib/api/user'
 import type { UpdateUserDto } from '@/types/dto/user.dto'
-import LicenseBox from '@/app/admin/(main)/users/[id]/layouts/LicenseBox'
+import LicenseBox from '@/app/admin/(main)/users/[id]/LicenseBox'
 import { useRouter } from 'next/navigation'
 
 /** 기본 정보 */
@@ -165,7 +165,7 @@ const UserProfile = ({ user }: { user: UserModel }) => {
                 <Input
                   value={editedName}
                   onChange={(e) => setEditedName(e.target.value)}
-                  className="text-lg h-12 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                  className="md:text-base h-12 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                   placeholder="이름을 입력하세요"
                 />
               ) : (
@@ -225,7 +225,7 @@ const UserProfile = ({ user }: { user: UserModel }) => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">등록일시</label>
-              <div className="flex items-center text-gray-900 bg-gray-50 px-4 py-2 rounded-lg">
+              <div className="flex items-center text-gray-900 text-lg bg-gray-50 px-4 py-2 rounded-lg">
                 <Calendar className="w-4 h-4 mr-2 text-gray-500 min-w-4" />
                 {freshUser.createdAt && format(freshUser.createdAt, 'yyyy년 MM월 dd일 HH:mm:ss')}
               </div>
