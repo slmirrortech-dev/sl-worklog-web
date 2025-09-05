@@ -1,6 +1,7 @@
 // prisma/seed.ts
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, Role, ShiftType } from '@prisma/client'
 import bcrypt from 'bcryptjs'
+import { addMinutes, differenceInMinutes } from 'date-fns'
 
 const prisma = new PrismaClient()
 
@@ -98,10 +99,11 @@ async function seedUsers() {
     loginId: i === 0 ? 'admin' : `admin${i + 1}`,
     password: passwordHash,
     name,
-    role: 'ADMIN' as const,
+    role: Role.ADMIN,
+    isActive: true,
   }))
 
-  // 👉 관리자 아이디를 existing 세트에 넣어줌
+  // 관리자 아이디를 existing 세트에 넣어줌
   const existing = new Set(admins.map((a) => a.loginId))
 
   // 작업자
@@ -112,7 +114,8 @@ async function seedUsers() {
       loginId: workerLoginIds[idx],
       password: passwordHash,
       name: `${family}작업`,
-      role: 'WORKER' as const,
+      role: Role.WORKER,
+      isActive: true,
     }
   })
 
@@ -120,6 +123,8 @@ async function seedUsers() {
   await prisma.user.createMany({ data: workers, skipDuplicates: true })
 
   console.log(`👑 Admins: ${admins.length}, 👷 Workers: ${workers.length}`)
+
+  return prisma.user.findMany()
 }
 
 async function seedLinesAndProcesses() {
@@ -145,22 +150,77 @@ async function seedLinesAndProcesses() {
   }
 
   console.log(`📦 Lines + Processes seeded: ${LINES.length}`)
+
+  // 모든 라인과 프로세스 다시 조회해서 반환
+  return prisma.line.findMany({
+    include: { processes: true },
+  })
 }
 
-async function seedWorkLogs() {
-  const firstWorker = await prisma.user.findFirst({ where: { role: 'WORKER' } })
-  const firstProcess = await prisma.process.findFirst()
+// 시프트 정의
+const SHIFT_RANGES = [
+  { type: ShiftType.DAY_NORMAL, start: 8, end: 17 },
+  { type: ShiftType.DAY_OVERTIME, start: 17, end: 20 },
+  { type: ShiftType.NIGHT_NORMAL, start: 20, end: 29 }, // 29시 = 다음날 05시
+  { type: ShiftType.NIGHT_OVERTIME, start: 29, end: 32 }, // 32시 = 다음날 08시
+]
 
-  if (firstWorker && firstProcess) {
+// 중간 시간을 기준으로 ShiftType 계산
+function getShiftType(start: Date, end: Date): ShiftType {
+  const duration = differenceInMinutes(end, start)
+  if (duration <= 5) return ShiftType.UNKNOWN
+
+  const mid = new Date(start.getTime() + (end.getTime() - start.getTime()) / 2)
+  const midHour = mid.getHours() + mid.getDate() * 24
+
+  for (const range of SHIFT_RANGES) {
+    if (midHour >= range.start && midHour < range.end) {
+      return range.type
+    }
+  }
+
+  return ShiftType.UNKNOWN
+}
+
+async function seedWorkLogs(users: any[], lines: any[]) {
+  const workers = users.filter((u) => u.role === 'WORKER' && u.isActive)
+
+  for (let i = 0; i < 20; i++) {
+    const worker = workers[Math.floor(Math.random() * workers.length)]
+    const line = lines[Math.floor(Math.random() * lines.length)]
+    const process = line.processes[Math.floor(Math.random() * line.processes.length)]
+
+    // 랜덤 날짜 (최근 7일)
+    const baseDate = new Date()
+    baseDate.setDate(baseDate.getDate() - Math.floor(Math.random() * 7))
+
+    // 랜덤 시작/종료 시간
+    const startHour = [7, 8, 16, 17, 19, 20, 4, 5][Math.floor(Math.random() * 8)]
+    const start = new Date(baseDate)
+    start.setHours(startHour, Math.floor(Math.random() * 60), 0, 0)
+
+    const end = addMinutes(start, 30 + Math.floor(Math.random() * 600)) // 30분 ~ 10시간
+
+    // ShiftType 판정
+    const shiftType = getShiftType(start, end)
+
     await prisma.workLog.create({
       data: {
-        userId: firstWorker.id,
-        processId: firstProcess.id,
-        startedAt: new Date(),
+        userId: worker.id,
+        processId: process.id,
+        startedAt: start,
+        endedAt: end,
+        durationMinutes: differenceInMinutes(end, start),
+        shiftType,
+        isDefective: Math.random() < 0.1, // 10% 확률로 불량 처리
+        memo: null,
+        processName: process.name,
+        lineName: line.name,
       },
     })
-    console.log(`📝 WorkLog created for ${firstWorker.name} at process ${firstProcess.name}`)
   }
+
+  console.log('📝 20 realistic WorkLogs seeded')
 }
 
 async function main() {
@@ -170,9 +230,9 @@ async function main() {
   await prisma.line.deleteMany({})
   await prisma.user.deleteMany({})
 
-  await seedUsers()
-  await seedLinesAndProcesses()
-  await seedWorkLogs()
+  const users = await seedUsers()
+  const lines = await seedLinesAndProcesses()
+  await seedWorkLogs(users, lines)
 
   console.log('✅ Seed complete')
 }
