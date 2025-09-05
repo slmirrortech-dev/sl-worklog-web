@@ -1,32 +1,7 @@
-'use client'
+import React from 'react'
+import ProcessSetting from '@/app/admin/(main)/process/(component)/ProcessSetting'
 
-import React, { useState } from 'react'
-import { Plus, Edit, Trash2, GripVertical, Factory } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import ProcessSetting from '@/app/admin/(main)/process/ProcessSetting'
-
-// 임시 데이터
-const initialLines = [
-  {
-    id: '1',
-    name: 'A 라인',
-    processes: [
-      { id: '1-1', name: '절단', order: 1 },
-      { id: '1-2', name: '가공', order: 2 },
-      { id: '1-3', name: '도장', order: 3 },
-    ],
-  },
-  {
-    id: '2',
-    name: 'B 라인',
-    processes: [
-      { id: '2-1', name: '준비', order: 1 },
-      { id: '2-2', name: '완료', order: 2 },
-    ],
-  },
-]
-
+/** 작업장 설정 */
 const ProcessPage = () => {
   return (
     <div className="flex flex-col space-y-6">

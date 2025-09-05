@@ -44,39 +44,46 @@ enum Role {
 
 // 작업 라인
 model Line {
-  id        String    @id @default(cuid())
-  name      String
-  order     Int
-  processes Process[]
-  createdAt DateTime  @default(now())
+  id            String     @id @default(cuid())
+  name          String
+  order         Int
+  processes     Process[]
+  isActive      Boolean    @default(true)        // 활성/비활성 여부
+  deactivatedAt DateTime?                        // 비활성화 시점
+  createdAt     DateTime   @default(now())
 }
+
 // 작업 공정
 model Process {
-  id        String   @id @default(cuid())
-  name      String
-  order     Int
-  lineId    String
-  line      Line     @relation(fields: [lineId], references: [id])
-
-  workLogs  WorkLog[]
-  createdAt DateTime  @default(now())
+  id            String     @id @default(cuid())
+  name          String
+  order         Int
+  lineId        String
+  line          Line       @relation(fields: [lineId], references: [id])
+  workLogs      WorkLog[]
+  isActive      Boolean    @default(true)        // 활성/비활성 여부
+  deactivatedAt DateTime?                        // 비활성화 시점
+  createdAt     DateTime   @default(now())
 }
 
 // 작업 기록
 model WorkLog {
-  id        String   @id @default(cuid())
-  userId    String // User.id 를 참조
-  processId String
-  startedAt DateTime @default(now())
-  endedAt   DateTime?
-  durationMinutes  Int   // 작업 시간
+  id              String   @id @default(cuid())
+  userId          String   // User.id 를 참조
+  processId       String?  // 삭제된 경우 SetNull 허용
+  startedAt       DateTime @default(now())
+  endedAt         DateTime?
+  durationMinutes Int      // 작업 시간
   shiftType       ShiftType
   isDefective     Boolean  @default(false) // 불량 여부
-  memo String // 메모
+  memo            String?  // 메모 (옵션)
 
+  // 스냅샷 필드 (삭제/변경 대비)
+  processName     String
+  lineName        String
 
   user    User    @relation(fields: [userId], references: [id])
-  process Process @relation(fields: [processId], references: [id])
+  process Process? @relation(fields: [processId], references: [id], onDelete: Restrict)
 
   histories WorkLogHistory[]
 
@@ -86,21 +93,21 @@ model WorkLog {
 }
 
 enum ShiftType {
-  DAY_NORMAL // 주간-정상
-  DAY_OVERTIME // 주간-잔업
-  NIGHT_NORMAL // 야간-정상
+  DAY_NORMAL     // 주간-정상
+  DAY_OVERTIME   // 주간-잔업
+  NIGHT_NORMAL   // 야간-정상
   NIGHT_OVERTIME // 야간-잔업
-  UNKNOWN   // 알수없음
+  UNKNOWN        // 알수없음
 }
 
 model WorkLogHistory {
-  id          String   @id @default(cuid())
-  workLogId   String
-  field       String         // 예: "endedAt", "isDefective", "memo"
-  oldValue    String?
-  newValue    String?
-  changedBy   String         // User.id (관리자)
-  changedAt   DateTime @default(now())
+  id        String   @id @default(cuid())
+  workLogId String
+  field     String   // 예: "endedAt", "isDefective", "memo"
+  oldValue  String?
+  newValue  String?
+  changedBy String   // User.id (관리자)
+  changedAt DateTime @default(now())
 
   workLog WorkLog @relation(fields: [workLogId], references: [id])
   admin   User    @relation("AdminHistory", fields: [changedBy], references: [id])
