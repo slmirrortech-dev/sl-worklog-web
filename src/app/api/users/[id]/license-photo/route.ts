@@ -34,7 +34,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (!ALLOWED.includes(file.type || '')) {
     console.error('허용되지 않은 파일 타입:', file.type)
     return NextResponse.json(
-      { error: `이미지는 JPEG만 허용됩니다. 현재 파일 타입: ${file.type}. PNG/HEIC는 JPEG로 변환 후 업로드하세요.` },
+      {
+        error: `이미지는 JPEG만 허용됩니다. 현재 파일 타입: ${file.type}. PNG/HEIC는 JPEG로 변환 후 업로드하세요.`,
+      },
       { status: 400 },
     )
   }
@@ -61,12 +63,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     upsert: true, // 덮어쓰기
     cacheControl: '0',
   })
-  
+
   if (error) {
     console.error('Supabase 업로드 에러:', error)
     return NextResponse.json({ error: `업로드 실패: ${error.message}` }, { status: 500 })
   }
-  
+
   console.log('Supabase 업로드 성공:', data)
 
   // DB에 파일 경로 저장
@@ -79,7 +81,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   console.log('DB 업데이트 결과:', updated)
 
   // 프리뷰용 서명 URL(1시간)
-  const { data: signed, error: signError } = await supabaseServer.storage.from(BUCKET).createSignedUrl(key, 60 * 60)
+  const { data: signed, error: signError } = await supabaseServer.storage
+    .from(BUCKET)
+    .createSignedUrl(key, 60 * 60)
   if (signError) {
     console.error('서명 URL 생성 실패:', signError)
   } else {

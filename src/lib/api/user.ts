@@ -1,12 +1,7 @@
 import type { UserDto, UpdateUserDto } from '@/types/dto/user.dto'
 import { UserModel } from '@/types/models/user.model'
 import { toUserModel } from '@/types/adapter/user.adapter'
-
-interface ApiResponse<T> {
-  success: boolean
-  message: string
-  data: T
-}
+import { ApiResponse } from '@/types'
 
 /**
  * 특정 사용자 조회하기

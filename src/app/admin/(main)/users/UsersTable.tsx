@@ -51,7 +51,7 @@ const UsersTable = () => {
   // useLicenseUploader 훅 - 선택된 사용자용
   const { licenseUrl, imageLoading, imageError, retryFetchUrl } = useLicenseUploader(
     selectedUserId || undefined,
-    selectedUserId ? users.find(u => u.id === selectedUserId)?.licensePhoto : null
+    selectedUserId ? users.find((u) => u.id === selectedUserId)?.licensePhoto : null,
   )
 
   // 면허증 이미지 클릭 핸들러
@@ -263,7 +263,6 @@ const UsersTable = () => {
     setSearch(searchInput)
   }
 
-
   return (
     <>
       <div className="space-y-6">
@@ -289,8 +288,8 @@ const UsersTable = () => {
 
       {/* 면허증 이미지 모달 */}
       {showLicenseModal && (
-        <LicenseModal 
-          licenseUrl={licenseUrl} 
+        <LicenseModal
+          licenseUrl={licenseUrl}
           setShowImageModal={setShowLicenseModal}
           imageLoading={imageLoading}
           imageError={imageError}

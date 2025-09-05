@@ -286,10 +286,129 @@ export const swaggerSpec = {
         },
       },
     },
+    '/api/lineProcess': {
+      get: {
+        summary: '작업장 정보 조회 (라인, 공정 통합)',
+        tags: ['LineProcess'],
+        parameters: [
+          {
+            in: 'query',
+            name: 'isActive',
+            schema: {
+              type: 'boolean',
+              default: true,
+              required: false,
+              description: '활성 상태 필터 (true=활성, false=비활성)',
+            },
+          },
+        ],
+        responses: {
+          '200': {
+            description: '성공',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: {
+                      type: 'boolean',
+                      example: true,
+                    },
+                    message: {
+                      type: 'string',
+                      example: '작업장 정보 조회 성공',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          '403': {
+            description: '권한 없음',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ErrorResponse',
+                },
+              },
+            },
+          },
+          '404': {
+            description: '없음',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ErrorResponse',
+                },
+              },
+            },
+          },
+        },
+      },
+      put: {
+        summary: '작업장 정보 수정 (라인, 공정 통합)',
+        tags: ['LineProcess'],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                description: '라인+프로세스 전체 구조 (자세한 필드는 생략)',
+              },
+            },
+          },
+        },
+        responses: {
+          '200': {
+            description: '성공',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: {
+                      type: 'boolean',
+                      example: true,
+                    },
+                    message: {
+                      type: 'string',
+                      example: '작업장 정보 수정 성공',
+                    },
+                    data: {
+                      $ref: '#/components/schemas/SaveLineDto',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          '403': {
+            description: '권한 없음',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ErrorResponse',
+                },
+              },
+            },
+          },
+          '404': {
+            description: '없음',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ErrorResponse',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
     '/api/users/{id}': {
       get: {
         summary: '특정 사용자 조회',
-        description: '경로 파라미터 id로 사용자를 조회합니다.',
         tags: ['User'],
         parameters: [
           {
@@ -314,13 +433,20 @@ export const swaggerSpec = {
                       type: 'boolean',
                       example: true,
                     },
+                    message: {
+                      type: 'string',
+                      example: '사용자 조회 성공',
+                    },
+                    data: {
+                      $ref: '#/components/schemas/User',
+                    },
                   },
                 },
               },
             },
           },
-          '400': {
-            description: '잘못된 요청',
+          '403': {
+            description: '권한 없음',
             content: {
               'application/json': {
                 schema: {
@@ -329,8 +455,8 @@ export const swaggerSpec = {
               },
             },
           },
-          '500': {
-            description: '서버 오류',
+          '404': {
+            description: '없음',
             content: {
               'application/json': {
                 schema: {
@@ -359,22 +485,7 @@ export const swaggerSpec = {
           content: {
             'application/json': {
               schema: {
-                type: 'object',
-                properties: {
-                  name: {
-                    type: 'string',
-                  },
-                  role: {
-                    type: 'string',
-                    enum: ['ADMIN', 'WORKER'],
-                    default: 'WORKER',
-                  },
-                  licensePhoto: {
-                    type: 'string',
-                    nullable: true,
-                    description: '파일 업로드는 POST /api/users/{id}/license-photo 로 처리하세요.',
-                  },
-                },
+                $ref: '#/components/schemas/User',
               },
             },
           },
@@ -382,15 +493,56 @@ export const swaggerSpec = {
         responses: {
           '200': {
             description: '성공',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: {
+                      type: 'boolean',
+                      example: true,
+                    },
+                    message: {
+                      type: 'string',
+                      example: '사용자 수정 성공',
+                    },
+                    data: {
+                      $ref: '#/components/schemas/User',
+                    },
+                  },
+                },
+              },
+            },
           },
           '400': {
             description: '잘못된 입력',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ErrorResponse',
+                },
+              },
+            },
           },
           '403': {
             description: '권한 없음',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ErrorResponse',
+                },
+              },
+            },
           },
           '404': {
             description: '없음',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ErrorResponse',
+                },
+              },
+            },
           },
         },
       },
@@ -409,10 +561,53 @@ export const swaggerSpec = {
         ],
         responses: {
           '200': {
-            description: '삭제됨',
+            description: '성공',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: {
+                      type: 'boolean',
+                      example: true,
+                    },
+                    message: {
+                      type: 'string',
+                      example: '사용자 삭제 성공',
+                    },
+                    data: {
+                      type: 'object',
+                      properties: {
+                        id: {
+                          type: 'string',
+                          example: 'clx123abc',
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
           },
           '403': {
             description: '권한 없음',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ErrorResponse',
+                },
+              },
+            },
+          },
+          '404': {
+            description: '없음',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ErrorResponse',
+                },
+              },
+            },
           },
         },
       },

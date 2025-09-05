@@ -9,7 +9,7 @@ const MAX_SERVER_LIMIT_MB = 5
 export default function useLicenseUploader(
   userId?: string,
   licensePhoto?: string | null,
-  onUploadComplete?: () => void
+  onUploadComplete?: () => void,
 ) {
   const inputRef = useRef<HTMLInputElement | null>(null)
   const [loading, setLoading] = useState(false)
@@ -17,7 +17,7 @@ export default function useLicenseUploader(
   const [updatedLicense, setUpdatedLicense] = useState<{ id: string; licensePhoto: string } | null>(
     null,
   )
-  
+
   // 이미지 URL 관련 상태들
   const [licenseUrl, setLicenseUrl] = useState<string | null>(null)
   const [imageLoading, setImageLoading] = useState<boolean>(false)
@@ -27,26 +27,26 @@ export default function useLicenseUploader(
   // 이미지 URL 가져오기 함수
   const fetchLicenseUrl = async (targetUserId: string) => {
     if (!targetUserId) return
-    
+
     setImageLoading(true)
     setImageError(false)
-    
+
     try {
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 10000) // 10초 타임아웃
-      
+
       const res = await fetch(`/api/users/${targetUserId}/license-photo/url`, {
         credentials: 'include',
         cache: 'no-store',
         signal: controller.signal,
       })
-      
+
       clearTimeout(timeoutId)
-      
+
       if (!res.ok) {
         throw new Error(`HTTP ${res.status}`)
       }
-      
+
       const { url } = await res.json()
       if (url) {
         // 이미지 프리로드로 실제 로딩 시간 단축
@@ -86,7 +86,7 @@ export default function useLicenseUploader(
 
   // 재시도 함수
   const retryFetchUrl = () => {
-    setRetryCount(prev => prev + 1)
+    setRetryCount((prev) => prev + 1)
     setImageError(false)
   }
 
@@ -102,14 +102,14 @@ export default function useLicenseUploader(
     }
 
     setLoading(true)
-    
+
     // 타임아웃 설정 (30초)
     const timeoutId = setTimeout(() => {
       setLoading(false)
       setLoadingStep('')
       alert('업로드 시간이 초과되었습니다. 네트워크 상태를 확인하고 다시 시도해주세요.')
     }, 30000)
-    
+
     try {
       setLoadingStep('이미지 압축 중...')
       const { file: compressed, beforeMB, afterMB } = await compressToTargetMB(file, 3, 2400)
@@ -121,16 +121,15 @@ export default function useLicenseUploader(
 
       setLoadingStep('서버에 업로드 중...')
       const result = await uploadLicenseCompressed(actualUserId, compressed)
-      
+
       setLoadingStep('업로드 완료!')
       setUpdatedLicense(result.data)
       onUploadComplete?.()
-      
+
       // 성공 시 잠시 상태 유지 후 리셋
       setTimeout(() => {
         setLoadingStep('')
       }, 1000)
-      
     } catch (err: any) {
       console.error('Upload error:', err)
       const errorMessage = err?.message || '업로드 실패'
@@ -142,17 +141,17 @@ export default function useLicenseUploader(
     }
   }
 
-  return { 
-    inputRef, 
-    loading, 
-    loadingStep, 
-    onChange, 
+  return {
+    inputRef,
+    loading,
+    loadingStep,
+    onChange,
     updatedLicense,
     // 이미지 URL 관련
     licenseUrl,
     imageLoading,
     imageError,
     retryFetchUrl,
-    fetchLicenseUrl // 수동으로 URL 가져오기용
+    fetchLicenseUrl, // 수동으로 URL 가져오기용
   }
 }

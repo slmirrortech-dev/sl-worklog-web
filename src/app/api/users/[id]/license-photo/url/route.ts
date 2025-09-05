@@ -18,7 +18,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     select: { id: true, name: true, loginId: true, licensePhoto: true },
   })
   console.log('URL 조회 - 사용자 정보:', user)
-  
+
   if (!user?.licensePhoto) {
     console.log('licensePhoto가 null/undefined:', user?.licensePhoto)
     return NextResponse.json({ url: null })
@@ -29,7 +29,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   const { data, error } = await supabaseServer.storage
     .from(BUCKET)
     .createSignedUrl(user.licensePhoto, 60 * 30) // 30분 유효 (성능 향상)
-    
+
   if (error) {
     console.error('서명 URL 생성 실패:', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
