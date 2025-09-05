@@ -34,7 +34,7 @@ interface WorkLogDetail {
   startedAt: Date
   endedAt: Date | null
   durationMinutes: number
-  shiftType: 'DAY' | 'NIGHT' | 'OVERTIME' | 'UNKNOWN'
+  shiftType: 'DAY_NORMAL' | 'DAY_OVERTIME' | 'NIGHT_NORMAL' | 'NIGHT_OVERTIME' | 'UNKNOWN'
   isDefective: boolean
   memo: string
   user: {
@@ -69,12 +69,14 @@ interface WorkLogHistory {
 // 근무형태 표시
 const getShiftTypeInfo = (shiftType: string) => {
   switch (shiftType) {
-    case 'DAY':
-      return { label: '주간', color: 'bg-blue-100 text-blue-800' }
-    case 'NIGHT':
-      return { label: '야간', color: 'bg-purple-100 text-purple-800' }
-    case 'OVERTIME':
-      return { label: '잔업', color: 'bg-orange-100 text-orange-800' }
+    case 'DAY_NORMAL':
+      return { label: '주간정상', color: 'bg-blue-100 text-blue-800' }
+    case 'DAY_OVERTIME':
+      return { label: '주간잔업', color: 'bg-blue-200 text-blue-900' }
+    case 'NIGHT_NORMAL':
+      return { label: '야간정상', color: 'bg-purple-100 text-purple-800' }
+    case 'NIGHT_OVERTIME':
+      return { label: '야간잔업', color: 'bg-purple-200 text-purple-900' }
     case 'UNKNOWN':
       return { label: '미분류', color: 'bg-gray-100 text-gray-800' }
     default:
@@ -156,19 +158,85 @@ const linesData = [
   },
 ]
 
-// 모의 데이터
-const mockWorkLog: WorkLogDetail = {
-  id: '1',
-  userId: 'user1',
-  processId: 'process1',
-  startedAt: new Date('2024-01-15T09:00:00'),
-  endedAt: new Date('2024-01-15T17:00:00'),
-  durationMinutes: 480,
-  shiftType: 'DAY',
-  isDefective: false,
-  memo: '정상 작업 완료',
-  user: { id: 'user1', name: '김철수', loginId: '2024001' },
-  process: { id: 'process1', name: 'P1', line: { id: 'line1', name: 'MV L/R' } },
+// 모의 데이터 - 다양한 케이스
+const mockWorkLogs: WorkLogDetail[] = [
+  // 주간 정상 근무 (기본)
+  {
+    id: '1',
+    userId: 'user1',
+    processId: '1-1',
+    startedAt: new Date('2024-01-15T09:00:00'),
+    endedAt: new Date('2024-01-15T17:00:00'),
+    durationMinutes: 480,
+    shiftType: 'DAY_NORMAL',
+    isDefective: false,
+    memo: '정상 작업 완료. 품질 이상 없음.',
+    user: { id: 'user1', name: '김철수', loginId: '2024001' },
+    process: { id: '1-1', name: 'P1', line: { id: '1', name: 'MV L/R' } },
+  },
+  // 주간 잔업
+  {
+    id: '2',
+    userId: 'user2',
+    processId: '2-3',
+    startedAt: new Date('2024-01-16T08:30:00'),
+    endedAt: new Date('2024-01-16T19:30:00'),
+    durationMinutes: 660,
+    shiftType: 'DAY_OVERTIME',
+    isDefective: false,
+    memo: '긴급 주문으로 인한 연장 근무. 총 11시간 작업.',
+    user: { id: 'user2', name: '이영희', loginId: '2024002' },
+    process: { id: '2-3', name: 'P3', line: { id: '2', name: 'MX5 LH' } },
+  },
+  // 야간 정상 근무
+  {
+    id: '3',
+    userId: 'user3',
+    processId: '25-2',
+    startedAt: new Date('2024-01-17T22:00:00'),
+    endedAt: new Date('2024-01-18T06:00:00'),
+    durationMinutes: 480,
+    shiftType: 'NIGHT_NORMAL',
+    isDefective: true,
+    memo: '야간 근무 중 불량품 3건 발생. 원인 분석 필요.',
+    user: { id: 'user3', name: '박민수', loginId: '2024003' },
+    process: { id: '25-2', name: '조립피더', line: { id: '25', name: '린지원' } },
+  },
+  // 야간 잔업
+  {
+    id: '4',
+    userId: 'user4',
+    processId: '1-5',
+    startedAt: new Date('2024-01-18T21:30:00'),
+    endedAt: new Date('2024-01-19T08:30:00'),
+    durationMinutes: 660,
+    shiftType: 'NIGHT_OVERTIME',
+    isDefective: false,
+    memo: '설비 점검 후 야간 연장 근무. 예방 정비 완료.',
+    user: { id: 'user4', name: '정현우', loginId: '2024004' },
+    process: { id: '1-5', name: 'P5', line: { id: '1', name: 'MV L/R' } },
+  },
+  // 진행 중인 작업 (종료시간 없음)
+  {
+    id: '5',
+    userId: 'user5',
+    processId: '2-1',
+    startedAt: new Date('2024-01-19T14:00:00'),
+    endedAt: null,
+    durationMinutes: 0,
+    shiftType: 'UNKNOWN',
+    isDefective: false,
+    memo: '현재 진행 중인 작업',
+    user: { id: 'user5', name: '최지은', loginId: '2024005' },
+    process: { id: '2-1', name: 'P1', line: { id: '2', name: 'MX5 LH' } },
+  },
+]
+
+// URL ID에 따라 다른 목업 데이터 선택하는 함수
+const getMockWorkLogById = (id: string): WorkLogDetail => {
+  const idNum = parseInt(id) || 1
+  const index = (idNum - 1) % mockWorkLogs.length
+  return mockWorkLogs[index]
 }
 
 const mockHistory: WorkLogHistory[] = [
@@ -176,7 +244,7 @@ const mockHistory: WorkLogHistory[] = [
     id: '1',
     field: 'memo',
     oldValue: '작업 중',
-    newValue: '정상 작업 완료',
+    newValue: '정상 작업 완료. 품질 이상 없음.',
     changedBy: 'admin1',
     changedAt: new Date('2024-01-15T17:30:00'),
     admin: { id: 'admin1', name: '최승혁', loginId: '104880' },
@@ -190,6 +258,33 @@ const mockHistory: WorkLogHistory[] = [
     changedAt: new Date('2024-01-15T17:00:30'),
     admin: { id: 'admin1', name: '최승혁', loginId: '104880' },
   },
+  {
+    id: '3',
+    field: 'shiftType',
+    oldValue: 'UNKNOWN',
+    newValue: 'DAY_NORMAL',
+    changedBy: 'admin2',
+    changedAt: new Date('2024-01-15T16:45:00'),
+    admin: { id: 'admin2', name: '김관리', loginId: '105001' },
+  },
+  {
+    id: '4',
+    field: 'isDefective',
+    oldValue: 'true',
+    newValue: 'false',
+    changedBy: 'admin1',
+    changedAt: new Date('2024-01-15T16:30:00'),
+    admin: { id: 'admin1', name: '최승혁', loginId: '104880' },
+  },
+  {
+    id: '5',
+    field: 'durationMinutes',
+    oldValue: '475',
+    newValue: '480',
+    changedBy: 'admin2',
+    changedAt: new Date('2024-01-15T17:00:45'),
+    admin: { id: 'admin2', name: '김관리', loginId: '105001' },
+  },
 ]
 
 const WorkLogDetailPage = () => {
@@ -197,7 +292,7 @@ const WorkLogDetailPage = () => {
   const params = useParams()
   const workLogId = params.id as string
 
-  const [workLog, setWorkLog] = useState<WorkLogDetail>(mockWorkLog)
+  const [workLog, setWorkLog] = useState<WorkLogDetail>(getMockWorkLogById(workLogId))
   const [history] = useState<WorkLogHistory[]>(mockHistory)
   const [isEditing, setIsEditing] = useState(false)
   const [isMemoEditing, setIsMemoEditing] = useState(false)
@@ -360,7 +455,7 @@ const WorkLogDetailPage = () => {
   const { label: shiftLabel, color: shiftColor } = getShiftTypeInfo(workLog.shiftType)
 
   return (
-    <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="space-y-6">
         {/* 작업 기록 정보 */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
@@ -397,23 +492,25 @@ const WorkLogDetailPage = () => {
           <div className="p-6">
             <div className="space-y-6">
               {/* 공정면허증, 직원 정보 */}
-              <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* 공정면허증 */}
-                <div className="lg:col-span-2">
+                <div className="lg:col-span-1">
                   <label className="block text-sm font-medium text-gray-700 mb-3">
                     <FileText className="w-4 h-4 inline mr-1" />
                     공정면허증
                   </label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center bg-gray-50">
-                    <div className="w-24 h-24 mx-auto mb-4 bg-gray-200 rounded-lg flex items-center justify-center">
-                      <User className="w-12 h-12 text-gray-400" />
+                  <div className="flex items-center justify-center border-2 border-dashed border-gray-300 rounded-lg text-center bg-gray-50 h-50">
+                    <div>
+                      <div className="w-18 h-12 mx-auto mb-4 bg-gray-200 rounded-lg flex items-center justify-center">
+                        <User className="w-8 h-8 text-gray-400" />
+                      </div>
+                      <p className="text-gray-500 text-sm">면허증 이미지가 없습니다.</p>
                     </div>
-                    <p className="text-gray-500 text-sm">면허증 이미지</p>
                   </div>
                 </div>
 
                 {/* 직원 정보 */}
-                <div className="lg:col-span-3 space-y-6">
+                <div className="lg:col-span-1 space-y-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">사번</label>
                     <div className="text-lg font-mono text-gray-900 bg-gray-50 px-4 py-2 rounded-lg">
@@ -437,8 +534,8 @@ const WorkLogDetailPage = () => {
               </div>
 
               {/* 라인, 공정 */}
-              <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-                <div className="lg:col-span-2">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div className="lg:col-span-1">
                   <label className="block text-sm font-medium text-gray-700 mb-2">라인</label>
                   {isEditing ? (
                     <Select
@@ -451,8 +548,11 @@ const WorkLogDetailPage = () => {
                         }))
                       }}
                     >
-                      <SelectTrigger className="h-12 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500">
-                        <SelectValue placeholder="라인 선택" />
+                      <SelectTrigger
+                        className="w-full h-11 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-base"
+                        style={{ height: '44px', minHeight: '44px' }}
+                      >
+                        <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
                         {linesData.map((line) => (
@@ -469,7 +569,7 @@ const WorkLogDetailPage = () => {
                   )}
                 </div>
 
-                <div className="lg:col-span-2">
+                <div className="lg:col-span-1">
                   <label className="block text-sm font-medium text-gray-700 mb-2">공정</label>
                   {isEditing ? (
                     <Select
@@ -479,8 +579,11 @@ const WorkLogDetailPage = () => {
                       }
                       disabled={!editForm.lineId}
                     >
-                      <SelectTrigger className="h-12 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500">
-                        <SelectValue placeholder="공정 선택" />
+                      <SelectTrigger
+                        className="w-full h-11 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-base"
+                        style={{ height: '44px', minHeight: '44px' }}
+                      >
+                        <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
                         {editForm.lineId &&
@@ -500,7 +603,7 @@ const WorkLogDetailPage = () => {
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="lg:col-span-1 grid grid-cols-1 lg:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">근무형태</label>
                     {isEditing ? (
@@ -510,13 +613,17 @@ const WorkLogDetailPage = () => {
                           setEditForm((prev) => ({ ...prev, shiftType: value as any }))
                         }
                       >
-                        <SelectTrigger className="h-12 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                        <SelectTrigger
+                          className="w-full h-11 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-base"
+                          style={{ height: '44px', minHeight: '44px' }}
+                        >
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="DAY">주간</SelectItem>
-                          <SelectItem value="NIGHT">야간</SelectItem>
-                          <SelectItem value="OVERTIME">잔업</SelectItem>
+                          <SelectItem value="DAY_NORMAL">주간정상</SelectItem>
+                          <SelectItem value="DAY_OVERTIME">주간잔업</SelectItem>
+                          <SelectItem value="NIGHT_NORMAL">야간정상</SelectItem>
+                          <SelectItem value="NIGHT_OVERTIME">야간잔업</SelectItem>
                           <SelectItem value="UNKNOWN">미분류</SelectItem>
                         </SelectContent>
                       </Select>
@@ -539,7 +646,10 @@ const WorkLogDetailPage = () => {
                           setEditForm((prev) => ({ ...prev, isDefective: value }))
                         }
                       >
-                        <SelectTrigger className="h-12 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                        <SelectTrigger
+                          className="w-full h-11 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-base"
+                          style={{ height: '44px', minHeight: '44px' }}
+                        >
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -565,9 +675,9 @@ const WorkLogDetailPage = () => {
                 </div>
               </div>
 
-              {/* 세번째 줄: 시작시간, 종료시간, 작업시간 */}
-              <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-                <div className="lg:col-span-2">
+              {/* 시작시간, 종료시간, 작업시간 */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div className="lg:col-span-1">
                   <label className="block text-sm font-medium text-gray-700 mb-2">시작 시간</label>
                   {isEditing ? (
                     <Input
@@ -576,7 +686,8 @@ const WorkLogDetailPage = () => {
                       onChange={(e) =>
                         setEditForm((prev) => ({ ...prev, startedAt: e.target.value }))
                       }
-                      className="h-12 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      className="h-11 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-lg"
+                      style={{ fontSize: '16px' }}
                     />
                   ) : (
                     <div className="text-lg text-gray-900 bg-gray-50 px-4 py-2 rounded-lg">
@@ -585,7 +696,7 @@ const WorkLogDetailPage = () => {
                   )}
                 </div>
 
-                <div className="lg:col-span-2">
+                <div className="lg:col-span-1">
                   <label className="block text-sm font-medium text-gray-700 mb-2">종료 시간</label>
                   {isEditing ? (
                     <Input
@@ -594,7 +705,8 @@ const WorkLogDetailPage = () => {
                       onChange={(e) =>
                         setEditForm((prev) => ({ ...prev, endedAt: e.target.value }))
                       }
-                      className="h-12 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      className="h-11 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-lg"
+                      style={{ fontSize: '16px' }}
                     />
                   ) : (
                     <div className="text-lg text-gray-900 bg-gray-50 px-4 py-2 rounded-lg">
@@ -657,7 +769,7 @@ const WorkLogDetailPage = () => {
             <div className="flex items-center justify-between flex-wrap gap-2.5">
               <h2 className="text-lg font-medium text-gray-900 flex items-center">
                 <FileText className="w-5 h-5 mr-2 text-gray-600" />
-                메모
+                작업 메모
               </h2>
               <div className="flex items-center gap-2">
                 <Button
@@ -680,7 +792,7 @@ const WorkLogDetailPage = () => {
                 onChange={(e) => setMemoForm((prev) => ({ ...prev, memo: e.target.value }))}
                 placeholder="메모를 입력하세요"
                 rows={6}
-                className="bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                className="bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500 md:text-base text-base min-h-42"
               />
             ) : (
               <div className="text-gray-900 bg-gray-50 px-4 py-3 rounded-lg min-h-[150px] whitespace-pre-wrap">

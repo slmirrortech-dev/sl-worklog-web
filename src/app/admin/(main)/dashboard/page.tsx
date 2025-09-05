@@ -27,6 +27,7 @@ interface WorkLog {
   startedAt: Date
   endedAt: Date | null
   durationMinutes: number
+  shiftType: 'DAY_NORMAL' | 'DAY_OVERTIME' | 'NIGHT_NORMAL' | 'NIGHT_OVERTIME' | 'UNKNOWN'
   isDefective: boolean
   user: {
     id: string
@@ -47,7 +48,7 @@ interface WorkLog {
 interface SearchFilters {
   startDate: Date | null
   endDate: Date | null
-  workType: 'all' | 'day' | 'night' | 'overtime' | 'unclassified'
+  workType: 'all' | 'DAY_NORMAL' | 'DAY_OVERTIME' | 'NIGHT_NORMAL' | 'NIGHT_OVERTIME' | 'UNKNOWN'
   isDefective: 'all' | 'true' | 'false'
   employeeSearch: string
   lineId: string
@@ -55,77 +56,102 @@ interface SearchFilters {
   dateRange: '1day' | '1week' | '1month' | 'custom'
 }
 
-// 근무형태 계산 함수
-const getWorkType = (startedAt: Date, endedAt: Date | null, durationMinutes: number) => {
-  if (durationMinutes < 5) return 'unclassified'
-
-  if (!endedAt) return 'unclassified'
-
-  const middleTime = new Date(startedAt.getTime() + (endedAt.getTime() - startedAt.getTime()) / 2)
-  const hour = middleTime.getHours()
-
-  if (hour >= 8 && hour < 17) return 'day' // 주간: 8시-17시
-  if (hour >= 20 || hour < 5) return 'night' // 야간: 20시-5시
-  if (hour >= 18 && hour < 20) return 'overtime' // 잔업: 18시-20시
-
-  return 'unclassified'
+// 근무형태 표시 함수 (상세페이지와 동일)
+const getShiftTypeInfo = (shiftType: string) => {
+  switch (shiftType) {
+    case 'DAY_NORMAL':
+      return { label: '주간정상', color: 'bg-orange-200 text-orange-700' }
+    case 'DAY_OVERTIME':
+      return {
+        label: '주간잔업',
+        color: 'bg-orange-50 text-orange-500 border-1 border-orange-400',
+      }
+    case 'NIGHT_NORMAL':
+      return { label: '야간정상', color: 'bg-purple-200 text-purple-700' }
+    case 'NIGHT_OVERTIME':
+      return {
+        label: '야간잔업',
+        color: 'bg-purple-50 text-purple-500 border-1 border-purple-400',
+      }
+    case 'UNKNOWN':
+      return { label: '미분류', color: 'bg-gray-100 text-gray-800' }
+    default:
+      return { label: '알 수 없음', color: 'bg-gray-100 text-gray-800' }
+  }
 }
 
 // 근무형태 표시 컴포넌트
-const WorkTypeBadge = ({ workType }: { workType: string }) => {
-  const getWorkTypeInfo = (type: string) => {
-    switch (type) {
-      case 'day':
-        return { label: '주간', color: 'bg-blue-100 text-blue-800' }
-      case 'night':
-        return { label: '야간', color: 'bg-purple-100 text-purple-800' }
-      case 'overtime':
-        return { label: '잔업', color: 'bg-orange-100 text-orange-800' }
-      case 'unclassified':
-        return { label: '미분류', color: 'bg-gray-100 text-gray-800' }
-      default:
-        return { label: '알 수 없음', color: 'bg-gray-100 text-gray-800' }
-    }
-  }
-
-  const { label, color } = getWorkTypeInfo(workType)
+const WorkTypeBadge = ({ shiftType }: { shiftType: string }) => {
+  const { label, color } = getShiftTypeInfo(shiftType)
   return <span className={`px-2 py-1 text-xs rounded-full font-medium ${color}`}>{label}</span>
 }
 
 // 모의 데이터
 const mockWorkLogs: WorkLog[] = [
+  // 주간 정상 근무
   {
     id: '1',
     userId: 'user1',
-    processId: 'process1',
+    processId: '1-1',
     startedAt: new Date('2024-01-15T09:00:00'),
     endedAt: new Date('2024-01-15T17:00:00'),
     durationMinutes: 480,
+    shiftType: 'DAY_NORMAL',
     isDefective: false,
     user: { id: 'user1', name: '김철수', employeeId: '2024001' },
-    process: { id: 'process1', name: 'P1', line: { id: 'line1', name: 'MV L/R' } },
+    process: { id: '1-1', name: 'P1', line: { id: '1', name: 'MV L/R' } },
   },
+  // 야간 정상 근무 (불량품 있음)
   {
     id: '2',
     userId: 'user2',
-    processId: 'process2',
-    startedAt: new Date('2024-01-15T20:00:00'),
-    endedAt: new Date('2024-01-16T04:00:00'),
+    processId: '25-2',
+    startedAt: new Date('2024-01-15T22:00:00'),
+    endedAt: new Date('2024-01-16T06:00:00'),
     durationMinutes: 480,
+    shiftType: 'NIGHT_NORMAL',
     isDefective: true,
-    user: { id: 'user2', name: '이영희', employeeId: '2024002' },
-    process: { id: 'process2', name: 'P2', line: { id: 'line1', name: 'MV L/R' } },
+    user: { id: 'user2', name: '박민수', employeeId: '2024003' },
+    process: { id: '25-2', name: '조립피더', line: { id: '25', name: '린지원' } },
   },
+  // 주간 잔업
   {
     id: '3',
     userId: 'user3',
-    processId: 'process3',
-    startedAt: new Date('2024-01-15T18:30:00'),
-    endedAt: new Date('2024-01-15T19:30:00'),
-    durationMinutes: 60,
+    processId: '2-3',
+    startedAt: new Date('2024-01-16T08:30:00'),
+    endedAt: new Date('2024-01-16T19:30:00'),
+    durationMinutes: 660,
+    shiftType: 'DAY_OVERTIME',
     isDefective: false,
-    user: { id: 'user3', name: '박민수', employeeId: '2024003' },
-    process: { id: 'process3', name: '서열피더', line: { id: 'line2', name: '린지원' } },
+    user: { id: 'user3', name: '이영희', employeeId: '2024002' },
+    process: { id: '2-3', name: 'P3', line: { id: '2', name: 'MX5 LH' } },
+  },
+  // 야간 잔업
+  {
+    id: '4',
+    userId: 'user4',
+    processId: '1-5',
+    startedAt: new Date('2024-01-18T21:30:00'),
+    endedAt: new Date('2024-01-19T08:30:00'),
+    durationMinutes: 660,
+    shiftType: 'NIGHT_OVERTIME',
+    isDefective: false,
+    user: { id: 'user4', name: '정현우', employeeId: '2024004' },
+    process: { id: '1-5', name: 'P5', line: { id: '1', name: 'MV L/R' } },
+  },
+  // 진행 중인 작업
+  {
+    id: '5',
+    userId: 'user5',
+    processId: '2-1',
+    startedAt: new Date('2024-01-19T14:00:00'),
+    endedAt: null,
+    durationMinutes: 0,
+    shiftType: 'UNKNOWN',
+    isDefective: false,
+    user: { id: 'user5', name: '최지은', employeeId: '2024005' },
+    process: { id: '2-1', name: 'P1', line: { id: '2', name: 'MX5 LH' } },
   },
 ]
 
@@ -182,8 +208,16 @@ const DashboardPage = () => {
   const [filters, setFilters] = useState<SearchFilters>(() => {
     const today = new Date()
     const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate())
-    const endOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999)
-    
+    const endOfToday = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate(),
+      23,
+      59,
+      59,
+      999,
+    )
+
     return {
       startDate: startOfToday,
       endDate: endOfToday,
@@ -199,14 +233,22 @@ const DashboardPage = () => {
   // 날짜가 오늘인지 확인하는 함수
   const isToday = (date1: Date | null, date2: Date | null) => {
     if (!date1 || !date2) return false
-    
+
     const today = new Date()
     const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate())
-    const endOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999)
-    
+    const endOfToday = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate(),
+      23,
+      59,
+      59,
+      999,
+    )
+
     const isSameStart = date1.getTime() === startOfToday.getTime()
     const isSameEnd = Math.abs(date2.getTime() - endOfToday.getTime()) < 1000 // 1초 오차 허용
-    
+
     return isSameStart && isSameEnd
   }
 
@@ -253,8 +295,16 @@ const DashboardPage = () => {
   const resetFilters = () => {
     const today = new Date()
     const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate())
-    const endOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999)
-    
+    const endOfToday = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate(),
+      23,
+      59,
+      59,
+      999,
+    )
+
     setFilters({
       startDate: startOfToday,
       endDate: endOfToday,
@@ -334,15 +384,10 @@ const DashboardPage = () => {
       },
     },
     {
-      id: 'workType',
+      id: 'shiftType',
       header: '근무형태',
       cell: ({ row }) => {
-        const workType = getWorkType(
-          row.original.startedAt,
-          row.original.endedAt,
-          row.original.durationMinutes,
-        )
-        return <WorkTypeBadge workType={workType} />
+        return <WorkTypeBadge shiftType={row.original.shiftType} />
       },
     },
     {
@@ -480,10 +525,11 @@ const DashboardPage = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">전체</SelectItem>
-                  <SelectItem value="day">주간 (08:00-17:00)</SelectItem>
-                  <SelectItem value="night">야간 (20:00-05:00)</SelectItem>
-                  <SelectItem value="overtime">잔업 (18:00-20:00)</SelectItem>
-                  <SelectItem value="unclassified">미분류 (5분 미만)</SelectItem>
+                  <SelectItem value="DAY_NORMAL">주간정상</SelectItem>
+                  <SelectItem value="DAY_OVERTIME">주간잔업</SelectItem>
+                  <SelectItem value="NIGHT_NORMAL">야간정상</SelectItem>
+                  <SelectItem value="NIGHT_OVERTIME">야간잔업</SelectItem>
+                  <SelectItem value="UNKNOWN">미분류</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -686,10 +732,11 @@ const DashboardPage = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">전체</SelectItem>
-                    <SelectItem value="day">주간 (08:00-17:00)</SelectItem>
-                    <SelectItem value="night">야간 (20:00-05:00)</SelectItem>
-                    <SelectItem value="overtime">잔업 (18:00-20:00)</SelectItem>
-                    <SelectItem value="unclassified">미분류 (5분 미만)</SelectItem>
+                    <SelectItem value="DAY_NORMAL">주간정상</SelectItem>
+                    <SelectItem value="DAY_OVERTIME">주간잔업</SelectItem>
+                    <SelectItem value="NIGHT_NORMAL">야간정상</SelectItem>
+                    <SelectItem value="NIGHT_OVERTIME">야간잔업</SelectItem>
+                    <SelectItem value="UNKNOWN">미분류</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

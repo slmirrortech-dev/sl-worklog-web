@@ -86,9 +86,10 @@ model WorkLog {
 }
 
 enum ShiftType {
-  DAY       // 주간
-  NIGHT     // 야간
-  OVERTIME  // 잔업
+  DAY_NORMAL // 주간-정상
+  DAY_OVERTIME // 주간-잔업
+  NIGHT_NORMAL // 야간-정상
+  NIGHT_OVERTIME // 야간-잔업
   UNKNOWN   // 알수없음
 }
 
