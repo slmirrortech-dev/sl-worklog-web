@@ -7,7 +7,7 @@ import { LineResponseDto, SaveLineDto } from '@/types/dto/lineProcess.dto'
  * 라인+공정 통합 조회하기
  */
 export async function getLineProcess(): Promise<LineModel[]> {
-  const res = await fetch('/api/lineProcess?isActive=true', {
+  const res = await fetch('/api/line-process?isActive=true', {
     method: 'GET',
     credentials: 'include',
   })
@@ -25,7 +25,7 @@ export async function getLineProcess(): Promise<LineModel[]> {
  * 라인+공정 통합 업데이트
  */
 export async function updateLineProcess(updateData: SaveLineDto): Promise<LineResponseDto[]> {
-  const res = await fetch(`/api/lineProcess`, {
+  const res = await fetch(`/api/line-process`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',

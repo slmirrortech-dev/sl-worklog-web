@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic'
 
 /**
  * @swagger
- * /api/lineProcess:
+ * /api/line-process:
  *   get:
  *     summary: 작업장 정보 조회 (라인, 공정 통합)
  *     tags: [LineProcess]
@@ -73,7 +73,7 @@ export const GET = withErrorHandler(getLineProcess)
 
 /**
  * @swagger
- * /api/lineProcess:
+ * /api/line-process:
  *   put:
  *     summary: 작업장 정보 수정 (라인, 공정 통합)
  *     tags: [LineProcess]
