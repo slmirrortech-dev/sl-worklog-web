@@ -410,7 +410,7 @@ const DashboardPage = () => {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => router.push(`/admin/dashboard/${row.original.id}`)}
+          onClick={() => router.push(`/admin/work-log/${row.original.id}`)}
           className="flex items-center gap-1"
         >
           <Eye className="w-3 h-3" />

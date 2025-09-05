@@ -371,7 +371,7 @@ const WorkLogDetailPage = () => {
         // })
         // if (response.ok) {
         alert('삭제 완료되었습니다.')
-        router.push('/admin/dashboard')
+        router.push('/admin/work-log')
         // } else {
         //   throw new Error('삭제 실패')
         // }
@@ -523,7 +523,7 @@ const WorkLogDetailPage = () => {
                       <div className="font-medium">{workLog.user.name}</div>
                       <Button
                         variant={'default'}
-                        // onClick={() => router.push(`/admin/users/${workLog.user.id}`)}
+                        // onClick={() => router.push(`/admin/users/${work-log.user.id}`)}
                         onClick={() => router.push(`/admin/users/cmf5dacsc0000hazh0n6jkrdq`)}
                       >
                         관리

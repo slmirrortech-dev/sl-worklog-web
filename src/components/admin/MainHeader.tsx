@@ -17,7 +17,7 @@ const MainHeader = () => {
   const navItems = [
     {
       name: '작업 기록',
-      href: '/admin/dashboard',
+      href: '/admin/work-log',
       icon: BarChart3,
       description: '작업 기록 조회',
     },
@@ -47,7 +47,7 @@ const MainHeader = () => {
         <div className="flex justify-between items-center h-16">
           {/* 로고 및 타이틀 섹션 */}
           <div className="flex items-center gap-4">
-            <Link href="/admin/dashboard" className="flex items-center gap-3">
+            <Link href="/admin/work-log" className="flex items-center gap-3">
               <div>
                 <Image
                   src="/logo.png"

@@ -32,7 +32,7 @@ const AdminLoginPage = () => {
         localStorage.setItem('admin-token', 'admin-logged-in')
         // 인증 컨텍스트에 사용자 정보 저장
         localStorage.setItem('user', JSON.stringify(data.user))
-        router.push('/admin/dashboard')
+        router.push('/admin/work-log')
       } else {
         const errorData = await response.json()
         setError(errorData.error || '아이디 또는 비밀번호가 올바르지 않습니다.')
