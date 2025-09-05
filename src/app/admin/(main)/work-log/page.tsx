@@ -267,7 +267,7 @@ const DashboardPage = () => {
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
 
     let startDate: Date
-    let endDate: Date = new Date(today.getTime() + 24 * 60 * 60 * 1000 - 1) // 오늘 23:59:59
+    const endDate: Date = new Date(today.getTime() + 24 * 60 * 60 * 1000 - 1) // 오늘 23:59:59
 
     switch (range) {
       case '1day':

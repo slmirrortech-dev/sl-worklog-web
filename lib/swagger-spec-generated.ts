@@ -286,7 +286,7 @@ export const swaggerSpec = {
         },
       },
     },
-    '/api/lineProcess': {
+    '/api/line-process': {
       get: {
         summary: '작업장 정보 조회 (라인, 공정 통합)',
         tags: ['LineProcess'],
