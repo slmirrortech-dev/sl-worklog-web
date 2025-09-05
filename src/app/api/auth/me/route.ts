@@ -53,7 +53,6 @@ export async function GET(request: NextRequest) {
         loginId: true,
         name: true,
         role: true,
-        isSuperAdmin: true,
       },
     })
 

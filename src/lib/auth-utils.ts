@@ -6,7 +6,6 @@ interface User {
   loginId: string
   name: string
   role: 'ADMIN' | 'WORKER'
-  isSuperAdmin: boolean
 }
 
 export function useAuthCheck(requiredRoles?: Array<'ADMIN' | 'WORKER'>) {
