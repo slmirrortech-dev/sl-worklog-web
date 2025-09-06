@@ -10,7 +10,7 @@ import { useAuthCheck } from '@/lib/auth-utils'
 
 const WorklogPage = () => {
   // 세션 기반 인증 확인 (작업자와 관리자 모두 접근 가능)
-  const { user, isLoading } = useAuthCheck(['WORKER', 'ADMIN'])
+  // const { user, isLoading } = useAuthCheck(['WORKER', 'ADMIN'])
 
   const [todayWorkHistory, _setTodayWorkHistory] = useState([
     {
@@ -26,6 +26,7 @@ const WorklogPage = () => {
       work: '공정 1',
     },
   ])
+  const user = null
   const [startInfo, setStartInfo] = useState<null | {
     line: string
     work: string
@@ -49,25 +50,29 @@ const WorklogPage = () => {
       setStartTime(startTime)
     }
 
-    // 워커 정보는 세션에서 우선 가져오고, 없으면 localStorage에서 가져오기
-    if (user) {
-      setWorkerInfo({
-        employeeId: user.loginId,
-        name: user.name,
-      })
-    } else if (workerInfo) {
-      setWorkerInfo(JSON.parse(workerInfo))
-    }
-  }, [user])
+    // // 워커 정보는 세션에서 우선 가져오고, 없으면 localStorage에서 가져오기
+    // if (user) {
+    //   setWorkerInfo({
+    //     employeeId: user.loginId,
+    //     name: user.name,
+    //   })
+    // } else if (workerInfo) {
+    //   setWorkerInfo(JSON.parse(workerInfo))
+    // }
+    setWorkerInfo({
+      employeeId: '1111',
+      name: '최승혁',
+    })
+  }, [])
 
-  // 로딩 중이거나 인증되지 않았다면 빈 페이지 표시
-  if (isLoading || !user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">로딩 중...</div>
-      </div>
-    )
-  }
+  // // 로딩 중이거나 인증되지 않았다면 빈 페이지 표시
+  // if (isLoading || !user) {
+  //   return (
+  //     <div className="min-h-screen flex items-center justify-center">
+  //       <div className="text-lg">로딩 중...</div>
+  //     </div>
+  //   )
+  // }
 
   const endWork = () => {
     localStorage.removeItem('start-info')
@@ -133,7 +138,7 @@ const WorklogPage = () => {
               </div>
             </>
           ) : (
-            <Link href="/start">
+            <Link href="/worker/start">
               <button
                 type="button"
                 className="w-full bg-primary-900 text-white py-4 px-6 text-2xl font-medium rounded-xl focus:outline-none transition-colors"

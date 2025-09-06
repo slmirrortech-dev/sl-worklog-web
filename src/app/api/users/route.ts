@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getSessionUser } from '@/lib/session' // 싱글톤
+import { getSessionUser, requireAdmin } from '@/lib/session'
 import bcrypt from 'bcryptjs'
 export const runtime = 'nodejs'
 
@@ -57,11 +57,7 @@ export const runtime = 'nodejs'
  */
 export async function GET(request: NextRequest) {
   /** 관리자 권한 확인 */
-  const sessionUser = await getSessionUser(request)
-  // 관리자 및 최고관리자만 허용
-  if (sessionUser?.role !== 'ADMIN') {
-    return NextResponse.json({ error: '관리자만 조회 가능합니다' }, { status: 403 })
-  }
+  await requireAdmin(request)
 
   /** 쿼리 파라미터 확인 */
   const { searchParams } = new URL(request.url)

@@ -36,7 +36,7 @@ export default function WorkerLoginPage() {
         )
         // 인증 컨텍스트에도 저장
         localStorage.setItem('user', JSON.stringify(data.user))
-        router.push('/worklog')
+        router.push('/worker/worklog')
       } else {
         const errorData = await response.json()
         alert(errorData.error || '사번 또는 비밀번호가 올바르지 않습니다.')

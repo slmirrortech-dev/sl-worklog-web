@@ -43,21 +43,21 @@ const works = [
 
 export default function StartPage() {
   // 세션 기반 인증 확인 (작업자와 관리자 모두 접근 가능)
-  const { user, isLoading } = useAuthCheck(['WORKER', 'ADMIN'])
+  // const { user, isLoading } = useAuthCheck(['WORKER', 'ADMIN'])
 
   const router = useRouter()
   const [selectedLine, setSelectedLine] = useState('')
   const [selectedWork, setSelectedWork] = useState('')
   const [showModal, setShowModal] = useState(false)
 
-  // 로딩 중이거나 인증되지 않았다면 빈 페이지 표시
-  if (isLoading || !user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">로딩 중...</div>
-      </div>
-    )
-  }
+  // // 로딩 중이거나 인증되지 않았다면 빈 페이지 표시
+  // if (isLoading || !user) {
+  //   return (
+  //     <div className="min-h-screen flex items-center justify-center">
+  //       <div className="text-lg">로딩 중...</div>
+  //     </div>
+  //   )
+  // }
 
   const handleComplete = () => {
     setShowModal(true)
