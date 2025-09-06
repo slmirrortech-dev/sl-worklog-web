@@ -1,114 +1,134 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
-// 사용자 정보
+// ================================
+// User (사용자)
+// ================================
 model User {
-  id           String  @id @default(cuid())
-  loginId      String  @unique // 로그인용 ID (사번)
-  password     String
-  name         String
-  role         Role    @default(WORKER)
+  id                       String   @id @default(cuid())     // UUID (PK)
+  userId                   String   @unique                 // 사번 (로그인 ID)
+  password                 String                           // 비밀번호 (해시 저장)
+  name                     String                           // 사용자 이름
+  birthday                 String                           // 생년월일 (6자리)
+  isInitialPasswordChanged Boolean  @default(false)          // 초기 비밀번호 변경 여부
+  licensePhotoUrl          String?                          // 면허증 이미지 경로
+  isActive                 Boolean  @default(true)          // 활성 여부
+  deactivatedAt            DateTime?                        // 비활성화 시점
+  createdAt                DateTime @default(now())         // 생성 시각
 
-  // 역할별 전용 컬럼
-  licensePhoto String?
-
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  workLogs   WorkLog[]
+  // Relations
+  workLogs        WorkLog[]
   changeHistories WorkLogHistory[] @relation("AdminHistory")
+  waitingProcesses Process[]       @relation("WaitingWorker")
 
-  @@index([role])
   @@map("users")
 }
 
+// ================================
+// Role (사용자 권한)
+// ================================
 enum Role {
-  ADMIN
-  WORKER
+  ADMIN // 관리자
+  MANAGER // 작업반장
+  WORKER // 작업자
 }
 
-
-// 작업 라인
+// ================================
+// Line (작업 라인)
+// ================================
 model Line {
-  id            String     @id @default(cuid())
-  name          String
-  order         Int
-  processes     Process[]
-  isActive      Boolean    @default(true)        // 활성/비활성 여부
-  deactivatedAt DateTime?                        // 비활성화 시점
-  createdAt     DateTime   @default(now())
+  id        String    @id @default(cuid())   // UUID (PK)
+  name      String    @unique                // 라인 이름 (전역 유일)
+  order     Int                               // 라인 순서
+
+  // Relations
+  processes Process[]
 }
 
-// 작업 공정
+// ================================
+// Process (작업 공정)
+// ================================
 model Process {
-  id            String     @id @default(cuid())
-  name          String
-  order         Int
-  lineId        String
-  line          Line       @relation(fields: [lineId], references: [id])
-  workLogs      WorkLog[]
-  isActive      Boolean    @default(true)        // 활성/비활성 여부
-  deactivatedAt DateTime?                        // 비활성화 시점
-  createdAt     DateTime   @default(now())
+  id        String   @id @default(cuid())    // UUID (PK)
+  name      String                           // 프로세스 이름
+  order     Int                               // 표시 순서
+  shiftType ShiftType                        // 주간/야간
+  status    WorkStatus                       // 정상/잔업/연장
+  lineId    String
+  line      Line     @relation(fields: [lineId], references: [id])
+
+  // Relations
+  waitingWorkerId String?                     // 대기자 (User.id)
+  waitingWorker   User? @relation("WaitingWorker", fields: [waitingWorkerId], references: [id], onDelete: SetNull)
+
+  workLogs WorkLog[]
+
+  @@unique([lineId, name, shiftType]) // 같은 라인+공정+주/야 조합은 중복 불가
 }
 
-// 작업 기록
+// ================================
+// WorkLog (작업 기록)
+// ================================
 model WorkLog {
-  id              String   @id @default(cuid())
-  userId          String   // User.id 를 참조
-  processId       String?  // 삭제된 경우 SetNull 허용
-  startedAt       DateTime @default(now())
-  endedAt         DateTime?
-  durationMinutes Int      // 작업 시간
-  shiftType       ShiftType
-  isDefective     Boolean  @default(false) // 불량 여부
-  memo            String?  // 메모 (옵션)
+  id              String   @id @default(cuid())   // UUID (PK)
 
-  // 스냅샷 필드 (삭제/변경 대비)
-  processName     String
-  lineName        String
+  // User 정보 (FK + 스냅샷)
+  userId          String?                         // FK (User.id), User 삭제 시 NULL
+  userUserId      String                          // 사번 (스냅샷)
+  userName        String                          // 이름 (스냅샷)
+  userBirthday    String                          // 생년월일 (스냅샷)
 
-  user    User    @relation(fields: [userId], references: [id])
-  process Process? @relation(fields: [processId], references: [id], onDelete: Restrict)
+  // 작업 시간
+  startedAt       DateTime @default(now())        // 작업 시작 시각
+  endedAt         DateTime?                       // 종료 시각
+  durationMinutes Int                             // 작업 시간(분)
 
-  histories WorkLogHistory[]
+  // Relations
+  user    User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  process Process? @relation(fields: [processId], references: [id], onDelete: SetNull)
+  processId String?
+
+  histories  WorkLogHistory[]
 
   @@index([userId])
   @@index([processId])
   @@index([startedAt])
 }
 
-enum ShiftType {
-  DAY_NORMAL     // 주간-정상
-  DAY_OVERTIME   // 주간-잔업
-  NIGHT_NORMAL   // 야간-정상
-  NIGHT_OVERTIME // 야간-잔업
-  UNKNOWN        // 알수없음
-}
-
+// ================================
+// WorkLogHistory (작업 기록 변경 이력)
+// ================================
 model WorkLogHistory {
-  id        String   @id @default(cuid())
-  workLogId String
-  field     String   // 예: "endedAt", "isDefective", "memo"
-  oldValue  String?
-  newValue  String?
-  changedBy String   // User.id (관리자)
-  changedAt DateTime @default(now())
+  id              String   @id @default(cuid())   // UUID (PK)
+  workLogId       String
+  field           String
+  oldValue        String?
+  newValue        String?
+  changedBy       String                           // 변경자 User.id
+  changedByName   String                           // 변경자 이름 (스냅샷)
+  changedByUserId String                           // 변경자 사번 (스냅샷)
+  changedAt       DateTime @default(now())
 
   workLog WorkLog @relation(fields: [workLogId], references: [id])
   admin   User    @relation("AdminHistory", fields: [changedBy], references: [id])
+}
+
+// ================================
+// Enums
+// ================================
+enum ShiftType {
+  DAY
+  NIGHT
+}
+
+enum WorkStatus {
+  NORMAL    // 정상
+  OVERTIME  // 잔업
+  EXTENDED  // 연장
 }
