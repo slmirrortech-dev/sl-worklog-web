@@ -12,9 +12,9 @@
 //
 // /** POST: 업로드(덮어쓰기) */
 // export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-//   const me = await getSessionUser(req)
-//   console.log('업로드 요청한 관리자:', me?.name, me?.loginId, me?.role)
-//   if (!me || me.role !== 'ADMIN') return NextResponse.json({ error: '권한 없음' }, { status: 403 })
+//   const current-user = await getSessionUser(req)
+//   console.log('업로드 요청한 관리자:', current-user?.name, current-user?.loginId, current-user?.role)
+//   if (!current-user || current-user.role !== 'ADMIN') return NextResponse.json({ error: '권한 없음' }, { status: 403 })
 //
 //   const { id } = await params
 //   console.log('업로드 대상 사용자 ID:', id)
@@ -97,8 +97,8 @@
 //
 // /** DELETE: 삭제 */
 // export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-//   const me = await getSessionUser(req)
-//   if (!me || me.role !== 'ADMIN') return NextResponse.json({ error: '권한 없음' }, { status: 403 })
+//   const current-user = await getSessionUser(req)
+//   if (!current-user || current-user.role !== 'ADMIN') return NextResponse.json({ error: '권한 없음' }, { status: 403 })
 //
 //   const { id } = await params
 //

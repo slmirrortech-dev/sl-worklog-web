@@ -1,4 +1,4 @@
-import { ApiResponse } from './response'
+import { ApiResponseFactory } from './api-response-factory'
 
 /**
  * API 에러 핸들러
@@ -9,7 +9,7 @@ export function withErrorHandler<T extends (...args: any[]) => Promise<Response>
     try {
       return await handler(...args)
     } catch (err) {
-      return ApiResponse.error(err)
+      return ApiResponseFactory.error(err)
     }
   }
 }

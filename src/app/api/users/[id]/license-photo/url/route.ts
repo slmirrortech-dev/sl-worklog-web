@@ -6,8 +6,8 @@
 // const BUCKET = 'licensePhoto'
 //
 // export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-//   const me = await getSessionUser(_req)
-//   if (!me || me.role !== 'ADMIN') {
+//   const current-user = await getSessionUser(_req)
+//   if (!current-user || current-user.role !== 'ADMIN') {
 //     return NextResponse.json({ error: '권한 없음' }, { status: 403 })
 //   }
 //

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { ApiError } from './errors'
 
-export class ApiResponse {
+export class ApiResponseFactory {
   static success<T>(data: T, message = 'OK', status = 200) {
     return NextResponse.json({ success: true, message, data }, { status })
   }

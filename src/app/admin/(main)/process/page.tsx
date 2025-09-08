@@ -1,5 +1,5 @@
 import React from 'react'
-import ProcessSetting from '@/app/admin/(main)/process/(component)/ProcessSetting'
+import ProcessSetting from '@/app/admin/(main)/process/_component/ProcessSetting'
 
 /** 작업장 설정 */
 const ProcessPage = () => {
