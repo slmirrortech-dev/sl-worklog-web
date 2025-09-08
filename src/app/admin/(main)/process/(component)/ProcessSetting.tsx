@@ -4,7 +4,7 @@ import ProcessContainer from '@/app/admin/(main)/process/(component)/ProcessCont
 import DragList from '@/app/admin/(main)/process/(component)/DragList'
 import { Button } from '@/components/ui/button'
 import { LineModel } from '@/types/models/lineProcess.model'
-import { getLineProcess, updateLineProcess } from '@/lib/api/line-precess'
+import { getLineProcess, updateLineProcess } from '@/lib/api/line-process-api'
 import { SaveLineDto } from '@/types/dto/lineProcess.dto'
 
 /** 라인 선택 영역 */

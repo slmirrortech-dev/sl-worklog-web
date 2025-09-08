@@ -1,7 +1,7 @@
 import type { UserDto, UpdateUserDto } from '@/types/dto/user.dto'
 import { UserModel } from '@/types/models/user.model'
 import { toUserModel } from '@/types/adapter/user.adapter'
-import { ApiResponse } from '@/types'
+import { ApiResponse } from '@/types/common'
 
 /**
  * 특정 사용자 조회하기

@@ -1,0 +1,39 @@
+import { getIronSession } from 'iron-session'
+import { NextRequest, NextResponse } from 'next/server'
+import { sessionOptions, SessionUser } from '@/lib/core/session'
+import { ApiError } from '@/lib/core/errors'
+
+/** 세션 읽기 */
+async function getSessionUser(req: NextRequest) {
+  const res = new NextResponse()
+  return await getIronSession<SessionUser>(req, res, sessionOptions)
+}
+
+/** 로그인만 돼 있으면 허용 */
+export async function requireUser(req: NextRequest) {
+  const session = await getSessionUser(req)
+  if (!session?.userId) {
+    throw new ApiError('로그인이 필요합니다.', 401, 'UNAUTHORIZED')
+  }
+  return session
+}
+
+/** 관리자(ADMIN) 전용 */
+export async function requireAdmin(req: NextRequest) {
+  const session = await getSessionUser(req)
+
+  if (!session || session.role !== 'ADMIN') {
+    throw new ApiError('관리자 권한이 필요합니다.', 403, 'FORBIDDEN')
+  }
+  return session
+}
+
+/** 관리자 또는 반장(ADMIN, MANAGER) 전용 */
+export async function requireManagerOrAdmin(req: NextRequest) {
+  const session = await getSessionUser(req)
+
+  if (!session || (session.role !== 'ADMIN' && session.role !== 'MANAGER')) {
+    throw new ApiError('관리자 또는 반장 권한이 필요합니다.', 403, 'FORBIDDEN')
+  }
+  return session
+}

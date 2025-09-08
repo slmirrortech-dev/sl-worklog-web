@@ -4,24 +4,24 @@
   "private": true,
   "scripts": {
     "dev:local": "next dev --turbopack",
-    "dev:test": "dotenv -e .env.test -- next dev --turbopack",
+    "dev:dev": "dotenv -e .env.development -- next dev --turbopack",
     "dev:prod": "dotenv -e .env.production -- next dev --turbopack",
     "swagger:generate": "node scripts/generate-swagger.js",
     "prebuild": "npm run swagger:generate",
     "build": "prisma generate && next build --turbopack",
     "build:local": "dotenv -e .env.local -- prisma generate && dotenv -e .env.local -- next build --turbopack",
-    "build:test": "dotenv -e .env.test -- prisma generate && dotenv -e .env.test -- next build --turbopack",
+    "build:dev": "dotenv -e .env.development -- prisma generate && dotenv -e .env.development -- next build --turbopack",
     "build:prod": "dotenv -e .env.production -- prisma generate && dotenv -e .env.production -- next build --turbopack",
     "start": "next start",
     "postinstall": "prisma generate",
     "db": "dotenv -e .env.local -- prisma studio",
-    "db:test": "dotenv -e .env.test -- prisma studio",
+    "db:dev": "dotenv -e .env.development -- prisma studio",
     "db:prod": "dotenv -e .env.production -- prisma studio",
     "db:sync": "dotenv -e .env.local -- prisma db push && prisma generate",
-    "db:sync:test": "dotenv -e .env.test -- prisma migrate deploy && prisma generate",
+    "db:sync:dev": "dotenv -e .env.development -- prisma migrate deploy && prisma generate",
     "db:sync:prod": "dotenv -e .env.production -- prisma migrate deploy && prisma generate",
     "db:seed": "dotenv -e .env.local -- prisma db seed",
-    "db:seed:test": "dotenv -e .env.test -- prisma db seed",
+    "db:seed:dev": "dotenv -e .env.development -- prisma db seed",
     "db:seed:prod": "dotenv -e .env.production -- prisma db seed",
     "db:reset": "prisma migrate reset",
     "lint": "eslint",
@@ -30,7 +30,7 @@
     "format:check": "prettier --check ."
   },
   "prisma": {
-    "seed": "npx tsx prisma/seed.ts"
+    "seed": "npx tsx prisma/seed/index.ts"
   },
   "dependencies": {
     "@next-auth/prisma-adapter": "^1.0.7",
@@ -49,6 +49,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
+    "iron-session": "^8.0.4",
     "lucide-react": "^0.542.0",
     "next": "15.5.2",
     "next-auth": "^4.24.11",

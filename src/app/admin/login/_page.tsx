@@ -4,34 +4,45 @@ import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { AlertCircle } from 'lucide-react'
-import { loginAdminApi } from '@/lib/api/auth-api'
-import { ROUTES } from '@/lib/constants/routes'
 
-/**
- * 관리자 > 로그인 페이지
- **/
 const AdminLoginPage = () => {
-  const [userId, setUserId] = useState<string>('')
-  const [password, setPassword] = useState<string>('')
-  const [error, setError] = useState<string>('')
-  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
   const router = useRouter()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
+    setLoading(true)
     setError('')
+
     try {
-      await loginAdminApi({
-        userId: userId.trim(),
-        password: password,
+      const response = await fetch('/api/auth/login/admin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ id: username, password }),
       })
-      router.push(ROUTES.ADMIN.STATUS)
+
+      if (response.ok) {
+        const data = await response.json()
+        localStorage.setItem('admin-token', 'admin-logged-in')
+        // 인증 컨텍스트에 사용자 정보 저장
+        localStorage.setItem('user', JSON.stringify(data.user))
+        router.push('/admin/work-log')
+      } else {
+        const errorData = await response.json()
+        setError(errorData.error || '아이디 또는 비밀번호가 올바르지 않습니다.')
+      }
     } catch (error) {
-      setError((error as Error).message)
-    } finally {
-      setIsLoading(false)
+      console.error('Login error:', error)
+      setError('로그인 중 오류가 발생했습니다.')
     }
+
+    setLoading(false)
   }
 
   return (
@@ -53,15 +64,15 @@ const AdminLoginPage = () => {
           <form onSubmit={handleLogin} className="space-y-6">
             <div>
               <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
-                사번
+                아이디
               </label>
               <input
                 id="username"
                 type="text"
-                value={userId}
-                onChange={(e) => setUserId(e.target.value)}
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                placeholder="관리자 사번을 입력하세요"
+                placeholder="마스터 아이디를 입력하세요"
                 required
               />
             </div>
@@ -90,10 +101,10 @@ const AdminLoginPage = () => {
 
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={loading}
               className="w-full bg-primary-900 text-white py-3 px-4 rounded-lg font-medium hover:bg-primary-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? '로그인 중...' : '로그인'}
+              {loading ? '로그인 중...' : '로그인'}
             </button>
           </form>
         </div>

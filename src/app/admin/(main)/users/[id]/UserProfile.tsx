@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { getUser, updateUser } from '@/lib/api/user'
+import { getUser, updateUser } from '@/lib/api/user-api'
 import type { UpdateUserDto } from '@/types/dto/user.dto'
 import LicenseBox from '@/app/admin/(main)/users/[id]/LicenseBox'
 import { useRouter } from 'next/navigation'

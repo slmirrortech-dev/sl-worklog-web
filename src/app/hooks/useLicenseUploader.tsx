@@ -1,7 +1,7 @@
 'use client'
 import { useState, useRef, useEffect } from 'react'
-import { compressToTargetMB } from '@/utils/imageCompression'
-import { uploadLicenseCompressed } from '@/utils/uploadLicense'
+import { compressToTargetMB } from '@/lib/utils/imageCompression'
+import { uploadLicenseCompressed } from '@/lib/utils/uploadLicense'
 
 const ALLOWED = ['image/jpeg', 'image/png', 'image/heic', 'image/heif']
 const MAX_SERVER_LIMIT_MB = 5

@@ -1,5 +1,5 @@
 import { LineModel } from '@/types/models/lineProcess.model'
-import { ApiResponse } from '@/types'
+import { ApiResponse } from '@/types/common'
 import { toLineProcessModel } from '@/types/adapter/lineProcess.adapter'
 import { LineResponseDto, SaveLineDto } from '@/types/dto/lineProcess.dto'
 

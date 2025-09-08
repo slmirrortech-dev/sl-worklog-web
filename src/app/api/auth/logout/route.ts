@@ -1,36 +1,21 @@
-import { NextResponse } from 'next/server'
-import { clearSessionCookie } from '@/lib/session'
-export const runtime = 'nodejs'
+import { NextRequest, NextResponse } from 'next/server'
+import { getIronSession } from 'iron-session'
+import { sessionOptions, SessionUser } from '@/lib/core/session'
+import { withErrorHandler } from '@/lib/core/api-handler'
 
 /**
- * @swagger
- * /api/auth/logout:
- *   post:
- *     summary: 로그아웃
- *     description: 세션 쿠키를 삭제하여 로그아웃
- *     tags:
- *       - Auth
- *     responses:
- *       200:
- *         description: 로그아웃 성공
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/SuccessResponse'
- *       500:
- *         description: 서버 오류
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
+ * 로그아웃 API
+ **/
+async function logout(req: NextRequest) {
+  // 응답 객체 미리 생성
+  const res = NextResponse.json({ success: true })
 
-export async function POST() {
-  try {
-    const res = NextResponse.json({ success: true, message: '로그아웃되었습니다' })
-    return clearSessionCookie(res) // session 쿠키 삭제
-  } catch (error) {
-    console.error('Logout error:', error)
-    return NextResponse.json({ error: '서버 오류가 발생했습니다' }, { status: 500 })
-  }
+  // 세션 가져오기
+  const session = await getIronSession<SessionUser>(req, res, sessionOptions)
+
+  // 세션 파기
+  session.destroy()
+  return res
 }
+
+export const POST = withErrorHandler(logout)
