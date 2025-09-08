@@ -2,6 +2,17 @@ import type { UserDto, UpdateUserDto } from '@/types/dto/user.dto'
 import { UserModel } from '@/types/models/user.model'
 import { toUserModel } from '@/types/adapter/user.adapter'
 import { ApiResponse } from '@/types/common'
+import { CurrentUserModel } from '@/types/user'
+import { apiFetch } from '@/lib/api/api-fetch'
+
+/**
+ * 로그인한 사용자 조회하기
+ */
+export async function getCurrentUserApi() {
+  return await apiFetch<ApiResponse<CurrentUserModel>>('/api/users/current-user', {
+    method: 'GET',
+  })
+}
 
 /**
  * 특정 사용자 조회하기
