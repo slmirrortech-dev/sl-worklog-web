@@ -53,17 +53,17 @@ export function CustomDataTable({
   data: any[]
   columns: ColumnDef<any>[]
   showCheckboxes?: boolean
-  onRowClick?: (row: any) => void
+  onRowClick?: any
   page: number
   pageSize: number
   totalCount: number
   totalPages: number
   loading?: boolean
   searchInput?: string
-  setPage: (page: number) => void
-  setPageSize: (pageSize: number) => void
-  setSearchInput?: (searchInput: string) => void
-  onSearch?: () => void
+  setPage: any
+  setPageSize: any
+  setSearchInput?: any
+  onSearch?: any
 }) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
