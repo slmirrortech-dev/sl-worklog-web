@@ -1,8 +1,8 @@
 import React from 'react'
 import UsersSummary from '@/app/admin/(main)/users/_component/UsersSummary'
-import UsersDataTable from '@/app/admin/(main)/users/_component/UsersDataTable'
 import { UserResponseDto } from '@/types/user'
 import prisma from '@/lib/core/prisma'
+import UsersDataTable from '@/app/admin/(main)/users/_component/UsersDataTable'
 
 const INITIAL_SKIP = 0
 const INITIAL_TAKE = 10

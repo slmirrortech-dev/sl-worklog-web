@@ -1,6 +1,5 @@
 import { findUserOrThrow } from '@/lib/service/user.servie'
 import UserProfile from '@/app/admin/(main)/users/[id]/UserProfile'
-import { toUserModel } from '@/types/adapter/user.adapter'
 
 interface UserDetailPageProps {
   params: Promise<{ id: string }>
@@ -13,9 +12,7 @@ const UserDetailPage = async ({ params }: UserDetailPageProps) => {
 
   return (
     <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="space-y-6">
-        <UserProfile user={toUserModel(user)} />
-      </div>
+      <div className="space-y-6">{/*<UserProfile user={toUserModel(user)} />*/}</div>
     </main>
   )
 }
