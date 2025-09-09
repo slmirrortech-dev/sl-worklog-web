@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/core/prisma'
 import { withErrorHandler } from '@/lib/core/api-handler'
-import { UserLoginRequestDto } from '@/types/user'
+import { UserRequestDto } from '@/types/user'
 import { ApiError } from '@/lib/core/errors'
 import bcrypt from 'bcryptjs'
 import { getIronSession } from 'iron-session'
@@ -13,7 +13,7 @@ import { sessionOptions, SessionUser } from '@/lib/core/session'
 export async function login(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const role = (searchParams.get('role') || 'WORKER').toUpperCase()
-  const { userId, password }: UserLoginRequestDto = await req.json()
+  const { userId, password }: UserRequestDto = await req.json()
 
   const user = await prisma.user.findUnique({
     where: {

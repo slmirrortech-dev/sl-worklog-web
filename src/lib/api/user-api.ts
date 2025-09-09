@@ -2,7 +2,7 @@ import type { UserDto, UpdateUserDto } from '@/types/dto/user.dto'
 import { UserModel } from '@/types/models/user.model'
 import { toUserModel } from '@/types/adapter/user.adapter'
 import { ApiResponse } from '@/types/common'
-import { CurrentUserModel } from '@/types/user'
+import { CurrentUserModel, UserResponseDto } from '@/types/user'
 import { apiFetch } from '@/lib/api/api-fetch'
 
 /**
@@ -12,6 +12,18 @@ export async function getCurrentUserApi() {
   return await apiFetch<ApiResponse<CurrentUserModel>>('/api/users/current-user', {
     method: 'GET',
   })
+}
+
+/**
+ * 전체 사용자 조회하기
+ */
+export async function getUsersApi(page: number, pageSize: number, search: string, role: string) {
+  return await apiFetch<ApiResponse<UserResponseDto[]>>(
+    `/api/users?page=${page}&pageSize=${pageSize}&search=${search}&role=${role}`,
+    {
+      method: 'GET',
+    },
+  )
 }
 
 /**

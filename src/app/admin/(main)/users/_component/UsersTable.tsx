@@ -6,7 +6,6 @@ import { ColumnDef } from '@tanstack/react-table'
 import { Button } from '@/components/ui/button'
 import { Plus, FileImage, ArrowUpDown, ChevronRight } from 'lucide-react'
 import { CustomDataTable } from '@/components/CustomDataTable'
-import { TUser } from '@/types/user'
 import { format } from 'date-fns'
 import useLicenseUploader from '@/app/hooks/useLicenseUploader'
 import LicenseModal from '@/components/admin/LicenseModal'
@@ -48,7 +47,7 @@ const UsersTable = () => {
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
-  // useLicenseUploader 훅 - 선택된 사용자용
+  // 선택된 사용자용
   const { licenseUrl, imageLoading, imageError, retryFetchUrl } = useLicenseUploader(
     selectedUserId || undefined,
     selectedUserId ? users.find((u) => u.id === selectedUserId)?.licensePhoto : null,

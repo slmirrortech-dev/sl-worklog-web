@@ -1,141 +1,105 @@
-// import { NextRequest, NextResponse } from 'next/server'
-// import { prisma } from '@/lib/prisma'
-// import { getSessionUser, requireAdmin } from '@/lib/bak_session'
-// import bcrypt from 'bcryptjs'
-// export const runtime = 'nodejs'
-//
-// /**
-//  * @swagger
-//  * /api/users:
-//  *   get:
-//  *     summary: 모든 직원 목록
-//  *     description: 모든 직원 목록을 조회한다
-//  *     tags: [User]
-//  *     parameters:
-//  *       - in: query
-//  *         name: role
-//  *         schema:
-//  *           type: string
-//  *           enum: [ADMIN, WORKER]
-//  *         description: 필터할 역할 (미지정 시 전체)
-//  *       - in: query
-//  *         name: search
-//  *         schema:
-//  *           type: string
-//  *         description: 사번 또는 이름으로 검색
-//  *       - in: query
-//  *         name: page
-//  *         schema: { type: number, default: 1 }
-//  *         description: 페이지
-//  *       - in: query
-//  *         name: pageSize
-//  *         schema: {type: number, default: 10}
-//  *         description: 페이지 사이즈
-//  *     responses:
-//  *       200:
-//  *         description: 성공
-//  *         content:
-//  *           application/json:
-//  *             schema:
-//  *               type: object
-//  *               properties:
-//  *                 success:
-//  *                   type: boolean
-//  *                   example: true
-//  *       400:
-//  *         description: 잘못된 요청
-//  *         content:
-//  *           application/json:
-//  *             schema:
-//  *               $ref: '#/components/schemas/ErrorResponse'
-//  *       500:
-//  *         description: 서버 오류
-//  *         content:
-//  *           application/json:
-//  *             schema:
-//  *               $ref: '#/components/schemas/ErrorResponse'
-//  */
-// export async function GET(request: NextRequest) {
-//   /** 관리자 권한 확인 */
-//   await requireAdmin(request)
-//
-//   /** 쿼리 파라미터 확인 */
-//   const { searchParams } = new URL(request.url)
-//   // 역할
-//   const roleParam = searchParams.get('role')?.toUpperCase() as 'ADMIN' | 'WORKER'
-//   const pageParam = parseInt(searchParams.get('page') || '1', 10)
-//   const pageSizeParam = parseInt(searchParams.get('pageSize') || '10', 10)
-//   const searchParam = searchParams.get('search') || ''
-//
-//   /** 유효성 검사 */
-//   if (roleParam && roleParam !== 'ADMIN' && roleParam !== 'WORKER') {
-//     return NextResponse.json(
-//       { error: 'role 값은 ADMIN 또는 WORKER 이어야 합니다' },
-//       { status: 400 },
-//     )
-//   }
-//   if (isNaN(pageParam) || pageParam < 1 || isNaN(pageSizeParam) || pageSizeParam < 1) {
-//     return NextResponse.json(
-//       { error: 'page와 pageSize는 1 이상의 유효한 숫자여야 합니다' },
-//       { status: 400 },
-//     )
-//   }
-//
-//   const skip = (pageParam - 1) * pageSizeParam
-//   const take = pageSizeParam
-//
-//   // WHERE 절 구성
-//   const whereClause: Record<string, unknown> = {}
-//
-//   if (roleParam) {
-//     whereClause.role = roleParam
-//   }
-//
-//   if (searchParam) {
-//     whereClause.OR = [
-//       { loginId: { contains: searchParam, mode: 'insensitive' } },
-//       { name: { contains: searchParam, mode: 'insensitive' } },
-//     ]
-//   }
-//
-//   try {
-//     // 총 데이터 수
-//     const totalCount = await prisma.user.count({ where: whereClause })
-//
-//     const users = await prisma.user.findMany({
-//       where: whereClause,
-//       select: {
-//         id: true,
-//         loginId: true,
-//         name: true,
-//         role: true,
-//         isActive: true,
-//         licensePhoto: true,
-//         createdAt: true,
-//       },
-//       skip: skip,
-//       take: take,
-//       orderBy: [{ role: 'desc' }, { createdAt: 'desc' }],
-//     })
-//
-//     // 총 페이지 수 계산
-//     const totalPages = Math.ceil(totalCount / pageSizeParam)
-//
-//     return NextResponse.json({
-//       success: true,
-//
-//       data: users,
-//       totalCount,
-//       totalPages,
-//       currentPage: pageParam,
-//       pageSize: pageSizeParam,
-//     })
-//   } catch (error) {
-//     console.error(' error:', error)
-//     return NextResponse.json({ error: '서버 오류가 발생했습니다.' }, { status: 500 })
-//   }
-// }
-//
+import { NextRequest, NextResponse } from 'next/server'
+import { requireAdmin } from '@/lib/utils/auth-guards'
+import { withErrorHandler } from '@/lib/core/api-handler'
+import prisma from '@/lib/core/prisma'
+import { UserResponseDto } from '@/types/user'
+export const runtime = 'nodejs'
+
+/**
+ * 전체 직원 조회
+ **/
+export async function getUsers(request: NextRequest) {
+  // 관리자 권한 확인
+  await requireAdmin(request)
+
+  // 쿼리 파라미터 확인
+  const { searchParams } = new URL(request.url)
+  // 역할 (다중 role 지원)
+  const roleParam = searchParams.get('role')
+  const pageParam = parseInt(searchParams.get('page') || '1', 10)
+  const pageSizeParam = parseInt(searchParams.get('pageSize') || '10', 10)
+  const searchParam = decodeURIComponent(searchParams.get('search') || '')
+
+  /** 유효성 검사 */
+  if (roleParam) {
+    const roles = roleParam.split(';')
+    const validRoles = ['ADMIN', 'MANAGER', 'WORKER']
+    const invalidRoles = roles.filter((role) => !validRoles.includes(role.toUpperCase()))
+    if (invalidRoles.length > 0) {
+      return NextResponse.json(
+        { error: `잘못된 role 값: ${invalidRoles.join(', ')}` },
+        { status: 400 },
+      )
+    }
+  }
+  if (isNaN(pageParam) || pageParam < 1 || isNaN(pageSizeParam) || pageSizeParam < 1) {
+    return NextResponse.json(
+      { error: 'page와 pageSize는 1 이상의 유효한 숫자여야 합니다' },
+      { status: 400 },
+    )
+  }
+
+  const skip = (pageParam - 1) * pageSizeParam
+  const take = pageSizeParam
+
+  // WHERE 절 구성
+  const whereClause: Record<string, unknown> = {
+    isActive: true,
+  }
+
+  if (roleParam) {
+    const roles = roleParam.split(';').map((r) => r.toUpperCase())
+    if (roles.length === 1) {
+      whereClause.role = roles[0]
+    } else {
+      whereClause.role = { in: roles }
+    }
+  }
+
+  if (searchParam) {
+    whereClause.OR = [
+      { userId: { contains: searchParam, mode: 'insensitive' } },
+      { name: { contains: searchParam, mode: 'insensitive' } },
+    ]
+  }
+
+  // 총 데이터 수
+  const totalCount = await prisma.user.count({ where: whereClause })
+
+  const users = (await prisma.user.findMany({
+    where: whereClause,
+    select: {
+      id: true,
+      userId: true,
+      name: true,
+      birthday: true,
+      role: true,
+      isInitialPasswordChanged: true,
+      licensePhotoUrl: true,
+      isActive: true,
+      deactivatedAt: true,
+      createdAt: true,
+    },
+    skip: skip,
+    take: take,
+    orderBy: [{ role: 'desc' }, { createdAt: 'desc' }],
+  })) as UserResponseDto[]
+
+  // 총 페이지 수 계산
+  const totalPages = Math.ceil(totalCount / pageSizeParam)
+
+  return NextResponse.json({
+    success: true,
+    data: users,
+    totalCount,
+    totalPages,
+    currentPage: pageParam,
+    pageSize: pageSizeParam,
+  })
+}
+
+export const GET = withErrorHandler(getUsers)
+
 // /**
 //  * @swagger
 //  * /api/users:

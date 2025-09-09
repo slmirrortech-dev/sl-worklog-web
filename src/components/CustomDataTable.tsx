@@ -42,7 +42,7 @@ export function CustomDataTable({
   pageSize,
   totalCount,
   totalPages,
-  loading,
+  loading = false,
   searchInput,
   setPage,
   setPageSize,

@@ -5,7 +5,17 @@ import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
 import { Plus } from 'lucide-react'
 
-const UsersSummary = () => {
+const UsersSummary = ({
+  totalCount,
+  adminTotalCount,
+  managerTotalCount,
+  workerTotalCount,
+}: {
+  totalCount: number
+  adminTotalCount: number
+  managerTotalCount: number
+  workerTotalCount: number
+}) => {
   const router = useRouter()
 
   return (
@@ -14,7 +24,10 @@ const UsersSummary = () => {
         <div className="flex-1">
           <h2 className="text-xl md:text-2xl font-bold text-gray-900">전체 직원 목록</h2>
           <div className="flex items-center gap-4 mt-2 text-base text-gray-500">
-            <span className="whitespace-nowrap">총 100명</span>
+            <span className="whitespace-nowrap">총 {totalCount}명</span>|
+            <span className="whitespace-nowrap">관리자 {adminTotalCount}명</span>|
+            <span className="whitespace-nowrap">작업반장 {managerTotalCount}명</span>|
+            <span className="whitespace-nowrap">작업자 {workerTotalCount}명</span>
           </div>
         </div>
         <div className="flex items-center justify-end gap-3">
