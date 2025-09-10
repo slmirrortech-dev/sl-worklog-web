@@ -3,6 +3,9 @@ import { requireAdmin } from '@/lib/utils/auth-guards'
 import { withErrorHandler } from '@/lib/core/api-handler'
 import prisma from '@/lib/core/prisma'
 import { UserResponseDto } from '@/types/user'
+import { Role } from '@prisma/client'
+import { ApiError } from '@/lib/core/errors'
+import { ApiResponseFactory } from '@/lib/core/api-response-factory'
 export const runtime = 'nodejs'
 
 /**
@@ -100,155 +103,107 @@ export async function getUsers(request: NextRequest) {
 
 export const GET = withErrorHandler(getUsers)
 
-// /**
-//  * @swagger
-//  * /api/users:
-//  *   post:
-//  *     summary: 신규 사용자 등록(단일 또는 다건)
-//  *     tags: [User]
-//  *     requestBody:
-//  *       required: true
-//  *       content:
-//  *         application/json:
-//  *           schema:
-//  *             oneOf:
-//  *               - type: object
-//  *                 required: [loginId, name]
-//  *                 properties:
-//  *                   loginId: { type: string, description: 사번/로그인ID }
-//  *                   name: { type: string }
-//  *                   role: { type: string, enum: [ADMIN, WORKER], default: WORKER }
-//  *                   licensePhoto: { type: string, nullable: true }
-//  *                   adminMemo: { type: string, nullable: true }
-//  *                   isActive: { type: boolean, default: true }
-//  *               - type: array
-//  *                 items:
-//  *                   type: object
-//  *                   required: [loginId, name]
-//  *                   properties:
-//  *                     loginId: { type: string }
-//  *                     name: { type: string }
-//  *                     role: { type: string, enum: [ADMIN, WORKER], default: WORKER }
-//  *                     licensePhoto: { type: string, nullable: true }
-//  *                     adminMemo: { type: string, nullable: true }
-//  *                     isActive: { type: boolean, default: true }
-//  *           examples:
-//  *             single:
-//  *               value: { loginId: "W00123", name: "홍길동", role: "WORKER" }
-//  *             multiple:
-//  *               value:
-//  *                 - { loginId: "W00123", name: "홍길동", role: "WORKER" }
-//  *                 - { loginId: "A00001", name: "관리자", role: "ADMIN" }
-//  *     responses:
-//  *       201: { description: 생성됨 }
-//  *       400: { description: 잘못된 요청 }
-//  *       403: { description: 권한 없음 }
-//  *       409: { description: 일부/전부 중복 }
-//  */
-// export async function POST(request: NextRequest) {
-//   const sessionUser = await getSessionUser(request)
-//   if (!sessionUser || sessionUser.role !== 'ADMIN') {
-//     return NextResponse.json({ error: '관리자만 등록 가능합니다' }, { status: 403 })
-//   }
-//
-//   const body = await request.json()
-//   const items: Array<{
-//     loginId: string
-//     name: string
-//     role?: 'ADMIN' | 'WORKER'
-//     licensePhoto?: string | null
-//     adminMemo?: string | null
-//     isActive?: boolean
-//   }> = Array.isArray(body) ? body : [body]
-//
-//   // 최소 검증
-//   const invalid = items.filter((i) => !i?.loginId || !i?.name)
-//   if (invalid.length) {
-//     return NextResponse.json(
-//       { error: `loginId와 name은 필수입니다. invalid count=${invalid.length}` },
-//       { status: 400 },
-//     )
-//   }
-//
-//   // payload 내 중복 제거
-//   const seen = new Set<string>()
-//   const dupInPayload: string[] = []
-//   const uniqueItems = items.filter((i) => {
-//     const key = i.loginId
-//     if (seen.has(key)) {
-//       dupInPayload.push(key)
-//       return false
-//     }
-//     seen.add(key)
-//     return true
-//   })
-//
-//   // 이미 존재하는 loginId 조회
-//   const loginIds = uniqueItems.map((i) => i.loginId)
-//   const existing = await prisma.user.findMany({
-//     where: { loginId: { in: loginIds } },
-//     select: { loginId: true },
-//   })
-//   const existsSet = new Set(existing.map((e) => e.loginId))
-//
-//   // 실제 생성할 목록
-//   const toCreate = uniqueItems.filter((i) => !existsSet.has(i.loginId))
-//
-//   if (toCreate.length === 0) {
-//     return NextResponse.json(
-//       {
-//         success: true,
-//         createdCount: 0,
-//         skipped: {
-//           existing: Array.from(existsSet),
-//           duplicatedInPayload: dupInPayload,
-//         },
-//         data: [],
-//       },
-//       { status: 409 },
-//     )
-//   }
-//
-//   // 초기 비밀번호 동일 → 해시 1번만
-//   const passwordHash = await bcrypt.hash('0000', 10)
-//
-//   await prisma.user.createMany({
-//     data: toCreate.map((i) => ({
-//       loginId: i.loginId,
-//       name: i.name,
-//       role: (i.role ?? 'WORKER') as 'ADMIN' | 'WORKER',
-//       password: passwordHash,
-//       licensePhoto: i.licensePhoto ?? null,
-//       adminMemo: i.adminMemo ?? null,
-//       isActive: i.isActive ?? true,
-//     })),
-//     skipDuplicates: true, // 혹시 경합이 있어도 무시
-//   })
-//
-//   // 방금 만든 사용자 조회해서 id 반환
-//   const createdUsers = await prisma.user.findMany({
-//     where: { loginId: { in: toCreate.map((i) => i.loginId) } },
-//     select: {
-//       id: true,
-//       loginId: true,
-//       name: true,
-//       role: true,
-//       isActive: true,
-//       createdAt: true,
-//     },
-//     orderBy: { createdAt: 'desc' },
-//   })
-//
-//   return NextResponse.json(
-//     {
-//       success: true,
-//       createdCount: createdUsers.length,
-//       skipped: {
-//         existing: existing.map((e) => e.loginId),
-//         duplicatedInPayload: dupInPayload,
-//       },
-//       data: createdUsers,
-//     },
-//     { status: 201 },
-//   )
-// }
+/**
+ * 신규 사용자 등록 (단일 또는 다건)
+ */
+async function createUsers(req: NextRequest) {
+  // 관리자 권한 확인
+  await requireAdmin(req)
+
+  const body = await req.json()
+  const items: Array<{
+    userId: string
+    name: string
+    birthday: string
+    role: Role
+  }> = Array.isArray(body) ? body : [body]
+
+  // 최소 검증
+  const invalid = items.filter((i) => !i?.userId || !i?.name || !i?.birthday)
+  if (invalid.length) {
+    throw new ApiError(
+      `userId, name, birthday는 필수입니다. invalid count=${invalid.length}`,
+      400,
+      'INVALID_PAYLOAD',
+    )
+  }
+
+  // payload 내 중복 제거
+  const seen = new Set<string>()
+  const dupInPayload: string[] = []
+  const uniqueItems = items.filter((i) => {
+    if (seen.has(i.userId)) {
+      dupInPayload.push(i.userId)
+      return false
+    }
+    seen.add(i.userId)
+    return true
+  })
+
+  // userId 기준으로 DB 조회
+  const userIds = uniqueItems.map((i) => i.userId)
+  const existingUsers = await prisma.user.findMany({
+    where: { userId: { in: userIds } },
+  })
+
+  const createdUsers = []
+  const reactivatedUsers = []
+  const skippedActive: string[] = []
+
+  for (const item of uniqueItems) {
+    const existing = existingUsers.find((u) => u.userId === item.userId)
+    const password = item.birthday.slice(2) // 초기 비밀번호
+
+    // 이미 있고 활성화 상태 : skip
+    if (existing && existing.isActive) {
+      skippedActive.push(item.userId)
+      continue
+    }
+
+    // 이미 있고 비활성 상태 : 복구 + 덮어쓰기
+    if (existing && !existing.isActive) {
+      const updated = await prisma.user.update({
+        where: { id: existing.id },
+        data: {
+          name: item.name,
+          birthday: item.birthday,
+          role: item.role ?? 'WORKER',
+          password,
+          isActive: true,
+          deactivatedAt: null,
+        },
+      })
+      reactivatedUsers.push(updated)
+      continue
+    }
+
+    // 존재하지 않음 : 새로 생성
+    const newUser = await prisma.user.create({
+      data: {
+        userId: item.userId,
+        name: item.name,
+        birthday: item.birthday,
+        role: item.role ?? 'WORKER',
+        password,
+        isActive: true,
+      },
+    })
+    createdUsers.push(newUser)
+  }
+
+  return ApiResponseFactory.success(
+    {
+      createdCount: createdUsers.length,
+      reactivatedCount: reactivatedUsers.length,
+      skipped: {
+        duplicatedInPayload: dupInPayload,
+        alreadyActive: skippedActive,
+      },
+      data: [...createdUsers, ...reactivatedUsers],
+    },
+    '사용자 생성/복구 완료',
+    201,
+  )
+}
+
+export const POST = withErrorHandler(createUsers)

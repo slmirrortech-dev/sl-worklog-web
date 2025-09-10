@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Plus, Trash2, Upload, User, Shield, IdCard, FileImage } from 'lucide-react'
+import { Trash2, Upload, User, FileImage } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -12,115 +12,99 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Role } from '@prisma/client'
+import { ROUTES } from '@/lib/constants/routes'
+import { isValidBirthday } from '@/lib/utils/isValid'
+import { uploadLicenseApi } from '@/lib/api/user-api'
 
-interface NewUser {
-  id: string
-  loginId: string
+interface NewEmployee {
+  userId: string
   name: string
+  birthday: string
   role: 'ADMIN' | 'WORKER'
-  licensePhoto: File | null
-  licensePhotoPreview: string | null
+  licensePhotoFile: File | null
+  licensePreviewUrl: string | null
 }
 
 /** 신규 직원 등록 */
 const NewUsersPage = () => {
   const router = useRouter()
-  const [users, setUsers] = useState<NewUser[]>([
-    {
-      id: '1',
-      loginId: '',
-      name: '',
-      role: 'WORKER',
-      licensePhoto: null,
-      licensePhotoPreview: null,
-    },
-  ])
+  const [employee, setEmployee] = useState<NewEmployee>({
+    userId: '',
+    name: '',
+    birthday: '',
+    role: 'WORKER',
+    licensePhotoFile: null,
+    licensePreviewUrl: null,
+  })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const addUser = () => {
-    const newUser: NewUser = {
-      id: Date.now().toString(),
-      loginId: '',
-      name: '',
-      role: 'WORKER',
-      licensePhoto: null,
-      licensePhotoPreview: null,
-    }
-    setUsers([...users, newUser])
-  }
-
-  const removeUser = (id: string) => {
-    if (users.length > 1) {
-      setUsers(users.filter((user) => user.id !== id))
-    }
-  }
-
-  const updateUser = (
-    id: string,
-    field: keyof Omit<NewUser, 'id' | 'licensePhoto' | 'licensePhotoPreview'>,
+  const updateEmployee = (
+    field: keyof Omit<NewEmployee, 'licensePhotoFile' | 'licensePreviewUrl'>,
     value: string,
   ) => {
-    setUsers(users.map((user) => (user.id === id ? { ...user, [field]: value } : user)))
+    setEmployee({ ...employee, [field]: value })
   }
 
-  const handleFileUpload = (id: string, file: File | null) => {
+  const handleFileUpload = (file: File | null) => {
     if (file) {
       const reader = new FileReader()
       reader.onload = (e) => {
-        setUsers(
-          users.map((user) =>
-            user.id === id
-              ? { ...user, licensePhoto: file, licensePhotoPreview: e.target?.result as string }
-              : user,
-          ),
-        )
+        setEmployee({
+          ...employee,
+          licensePhotoFile: file,
+          licensePreviewUrl: e.target?.result as string,
+        })
       }
       reader.readAsDataURL(file)
     } else {
-      setUsers(
-        users.map((user) =>
-          user.id === id ? { ...user, licensePhoto: null, licensePhotoPreview: null } : user,
-        ),
-      )
+      setEmployee({
+        ...employee,
+        licensePhotoFile: null,
+        licensePreviewUrl: null,
+      })
     }
   }
 
-  const validateUsers = () => {
-    for (const user of users) {
-      if (!user.loginId.trim()) {
-        alert('사번은 필수입니다.')
-        return false
-      }
-      if (!user.name.trim()) {
-        alert('이름은 필수입니다.')
-        return false
-      }
+  const validateEmployee = () => {
+    if (!employee.userId.trim()) {
+      alert('사번은 필수입니다.')
+      return false
     }
-
-    // 사번 중복 체크 (입력한 사용자들 간)
-    const loginIds = users.map((user) => user.loginId.trim())
-    const duplicates = loginIds.filter((id, index) => loginIds.indexOf(id) !== index)
-    if (duplicates.length > 0) {
-      alert(`중복된 사번이 있습니다: ${duplicates.join(', ')}`)
+    if (!employee.name.trim()) {
+      alert('이름은 필수입니다.')
+      return false
+    }
+    if (!employee.birthday.trim()) {
+      alert('생년월일은 필수입니다.')
+      return false
+    }
+    // 생년월일 유효성 검사
+    if (!isValidBirthday(employee.birthday)) {
+      alert('유효한 생년월일을 입력해주세요')
       return false
     }
 
     return true
   }
 
+  // TODO: 리팩토링 필요
   const handleSubmit = async () => {
-    if (!validateUsers()) {
+    if (!validateEmployee()) {
       return
     }
 
     setIsSubmitting(true)
     try {
-      // 1단계: 기본 정보로 사용자들 생성
-      const usersData = users.map((user) => ({
-        loginId: user.loginId.trim(),
-        name: user.name.trim(),
-        role: user.role,
-      }))
+      // 1단계: 기본 정보로 사용자 생성 (API는 여러건 처리 가능하도록 배열로 전송)
+      const usersData = [
+        {
+          userId: employee.userId.trim(),
+          name: employee.name.trim(),
+          birthday: employee.birthday.trim(),
+          role: employee.role,
+        },
+      ]
 
       const createResponse = await fetch('/api/users', {
         method: 'POST',
@@ -135,37 +119,35 @@ const NewUsersPage = () => {
         return
       }
 
+      // 존재하는 사번 + 활성화된 상태 : 등록 불가
+      if (createResult.data.skipped.alreadyActive.length > 0) {
+        const alreadyActiveUserIds = createResult.data.skipped.alreadyActive.join(', ')
+        alert(`${alreadyActiveUserIds}는 이미 존재하는 사번입니다.`)
+        return
+      }
+
       // 2단계: 생성된 사용자 ID로 면허증 업로드
-      const createdUsers = createResult.data || []
-      const uploadPromises = []
+      if (employee.licensePhotoFile && createResult.data && createResult.data.data.length > 0) {
+        const createdUser = createResult.data.data[0]
+        const formData = new FormData()
+        formData.append('file', employee.licensePhotoFile)
 
-      for (const user of users) {
-        if (user.licensePhoto) {
-          // loginId로 생성된 사용자 찾기
-          const createdUser = createdUsers.find((cu: any) => cu.loginId === user.loginId.trim())
-
-          if (createdUser) {
-            const formData = new FormData()
-            formData.append('file', user.licensePhoto)
-
-            const uploadPromise = fetch(`/api/users/${createdUser.id}/license-photo`, {
-              method: 'POST',
-              credentials: 'include',
-              body: formData,
-            })
-
-            uploadPromises.push(uploadPromise)
-          }
+        try {
+          await uploadLicenseApi(createdUser.id, formData)
+        } catch (e) {
+          console.error('면허증 등록 실패', e)
         }
       }
 
-      // 모든 이미지 업로드 완료 대기
-      if (uploadPromises.length > 0) {
-        await Promise.all(uploadPromises)
+      // 존재하는 사번 + 비활성화된 상태 : 등록 가능
+      if (createResult.data.reactivatedCount > 0) {
+        alert(
+          `${employee.userId} 사번은 비활성화 된 사용자입니다.\n복구 후 최신 정보로 갱신되었습니다.`,
+        )
+      } else {
+        alert('신규 직원 등록 완료했습니다.')
       }
-
-      alert(`${createResult.createdCount}명의 직원이 등록되었습니다.`)
-      router.push('/admin/users')
+      router.replace(ROUTES.ADMIN.USERS)
     } catch (error) {
       console.error('직원 등록 실패:', error)
       alert('직원 등록에 실패했습니다.')
@@ -176,193 +158,140 @@ const NewUsersPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/*/!* 헤더 *!/*/}
-      {/*<header className="bg-white shadow-sm border-b">*/}
-      {/*  <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">*/}
-      {/*    <div className="flex items-center justify-between h-16">*/}
-      {/*      <div className="flex items-center gap-4">*/}
-      {/*        <Button*/}
-      {/*          variant="ghost"*/}
-      {/*          size="sm"*/}
-      {/*          onClick={() => router.push('/admin/users')}*/}
-      {/*          className="text-gray-600 hover:text-gray-900"*/}
-      {/*        >*/}
-      {/*          <ArrowLeft className="w-4 h-4 mr-1" />*/}
-      {/*          목록*/}
-      {/*        </Button>*/}
-      {/*        <div className="h-6 border-l border-gray-300" />*/}
-      {/*        <h1 className="text-xl font-semibold text-gray-900">신규 직원 등록</h1>*/}
-      {/*      </div>*/}
-      {/*    </div>*/}
-      {/*  </div>*/}
-      {/*</header>*/}
-
       {/* 메인 콘텐츠 */}
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="space-y-6">
-          {users.map((user, index) => (
-            <div
-              key={user.id}
-              className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
-            >
-              <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-medium text-gray-900 flex items-center">
-                    <User className="w-5 h-5 mr-2 text-gray-600" />
-                    직원 {index + 1}
-                  </h2>
-                  {users.length > 1 && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => removeUser(user.id)}
-                      className="border-red-300 text-red-700 hover:bg-red-50"
-                    >
-                      <Trash2 className="w-4 h-4 mr-1" />
-                      삭제
-                    </Button>
-                  )}
-                </div>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+              <div className="flex items-center">
+                <h2 className="text-lg font-medium text-gray-900 flex items-center">
+                  <User className="w-5 h-5 mr-2 text-gray-600" />
+                  신규 직원 등록
+                </h2>
               </div>
+            </div>
 
-              <div className="p-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  {/* 왼쪽: 공정면허증 */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
-                      <FileImage className="w-4 h-4 inline mr-1" />
-                      공정면허증
-                    </label>
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-3">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handleFileUpload(user.id, e.target.files?.[0] || null)}
-                          className="hidden"
-                          id={`file-${user.id}`}
-                        />
-                        <label
-                          htmlFor={`file-${user.id}`}
-                          className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 text-sm"
+            <div className="p-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* 공정면허증 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">공정면허증</label>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleFileUpload(e.target.files?.[0] || null)}
+                        className="hidden"
+                        id="license-file"
+                      />
+                      <label
+                        htmlFor="license-file"
+                        className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 text-sm"
+                      >
+                        <Upload className="w-4 h-4" />
+                        파일 선택
+                      </label>
+                      {employee.licensePhotoFile && (
+                        <Button
+                          variant="outline"
+                          size="lg"
+                          onClick={() => handleFileUpload(null)}
+                          className="border-red-300 text-red-700 hover:bg-red-50"
                         >
-                          <Upload className="w-4 h-4" />
-                          파일 선택
-                        </label>
-                        {user.licensePhoto && (
-                          <Button
-                            variant="outline"
-                            size="lg"
-                            onClick={() => handleFileUpload(user.id, null)}
-                            className="border-red-300 text-red-700 hover:bg-red-50"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                            삭제
-                          </Button>
-                        )}
-                      </div>
-                      {user.licensePhoto && (
-                        <span className="text-sm text-gray-600 block">
-                          {user.licensePhoto.name}
-                        </span>
-                      )}
-                      {user.licensePhotoPreview ? (
-                        <div className="w-full max-w-sm h-50 py-4 border border-gray-300 rounded-lg overflow-hidden bg-gray-50">
-                          <img
-                            src={user.licensePhotoPreview}
-                            alt="면허증 미리보기"
-                            className="w-full h-full object-contain"
-                          />
-                        </div>
-                      ) : (
-                        <div className="w-full max-w-sm h-50 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50">
-                          <div className="text-center text-gray-400">
-                            <FileImage className="w-8 h-8 mx-auto mb-2" />
-                            <p className="text-sm">면허증 이미지</p>
-                          </div>
-                        </div>
+                          <Trash2 className="w-4 h-4" />
+                          삭제
+                        </Button>
                       )}
                     </div>
+                    {employee.licensePhotoFile && (
+                      <span className="text-sm text-gray-600 block">
+                        {employee.licensePhotoFile.name}
+                      </span>
+                    )}
+                    {employee.licensePreviewUrl ? (
+                      <div className="w-full max-w-sm h-50 py-4 border border-gray-300 rounded-lg overflow-hidden bg-gray-50">
+                        <img
+                          src={employee.licensePreviewUrl}
+                          alt="면허증 미리보기"
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-full max-w-sm h-50 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50">
+                        <div className="text-center text-gray-400">
+                          <FileImage className="w-8 h-8 mx-auto mb-2" />
+                          <p className="text-sm">면허증 이미지</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* 오른쪽: 기본 정보 */}
+                <div className="space-y-6">
+                  {/* 사번 */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">사번 *</label>
+                    <Input
+                      value={employee.userId}
+                      onChange={(e) => updateEmployee('userId', e.target.value)}
+                      placeholder="사번을 입력하세요"
+                      className="h-12 md:text-lg bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                    />
                   </div>
 
-                  {/* 오른쪽: 기본 정보 */}
-                  <div className="space-y-6">
-                    {/* 사번 */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        <IdCard className="w-4 h-4 inline mr-1" />
-                        사번 *
-                      </label>
-                      <Input
-                        value={user.loginId}
-                        onChange={(e) => updateUser(user.id, 'loginId', e.target.value)}
-                        placeholder="사번을 입력하세요"
-                        className="h-12 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                      />
-                    </div>
+                  {/* 이름 */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">이름 *</label>
+                    <Input
+                      value={employee.name}
+                      onChange={(e) => updateEmployee('name', e.target.value)}
+                      placeholder="이름을 입력하세요"
+                      className="h-12 md:text-lg bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                    />
+                  </div>
 
-                    {/* 이름 */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        <User className="w-4 h-4 inline mr-1" />
-                        이름 *
-                      </label>
-                      <Input
-                        value={user.name}
-                        onChange={(e) => updateUser(user.id, 'name', e.target.value)}
-                        placeholder="이름을 입력하세요"
-                        className="h-12 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                      />
-                    </div>
+                  {/* 생년월일 */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      생년월일 *
+                    </label>
+                    <Input
+                      type="text"
+                      value={employee.birthday}
+                      onChange={(e) => updateEmployee('birthday', e.target.value)}
+                      placeholder="생년월일 8자리를 입력하세요"
+                      className="block w-full py-6 md:text-lg bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                    />
+                  </div>
 
-                    {/* 역할 */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        <Shield className="w-4 h-4 inline mr-1" />
-                        역할
-                      </label>
-                      <Select
-                        value={user.role}
-                        onValueChange={(value: 'ADMIN' | 'WORKER') =>
-                          updateUser(user.id, 'role', value)
-                        }
-                      >
-                        <SelectTrigger className="h-12 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="WORKER">
-                            <div className="flex items-center">
-                              <Shield className="w-4 h-4 mr-2" />
-                              작업자
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="ADMIN">
-                            <div className="flex items-center">
-                              <Shield className="w-4 h-4 mr-2" />
-                              관리자
-                            </div>
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                  {/* 역할 */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">역할 *</label>
+                    <Select
+                      value={employee.role}
+                      onValueChange={(value: Role) => updateEmployee('role', value)}
+                    >
+                      <SelectTrigger className="w-full py-6 text-lg bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="WORKER">
+                          <div className="flex items-center text-lg ">작업자</div>
+                        </SelectItem>
+                        <SelectItem value="MANAGER">
+                          <div className="flex items-center text-lg ">작업반장</div>
+                        </SelectItem>
+                        <SelectItem value="ADMIN">
+                          <div className="flex items-center text-lg ">관리자</div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               </div>
             </div>
-          ))}
-
-          {/* 직원 추가 버튼 */}
-          <div className="flex justify-center">
-            <Button
-              variant="outline"
-              size="lg"
-              onClick={addUser}
-              className="border-blue-300 text-blue-700 hover:bg-blue-50 text-base"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              추가
-            </Button>
           </div>
 
           {/* 등록 버튼 */}
@@ -381,7 +310,7 @@ const NewUsersPage = () => {
               disabled={isSubmitting}
               className="bg-blue-600 text-white hover:bg-blue-700 px-8  text-base"
             >
-              {isSubmitting ? '등록 중...' : `${users.length}명 등록`}
+              {isSubmitting ? '등록 중...' : '등록'}
             </Button>
           </div>
         </div>

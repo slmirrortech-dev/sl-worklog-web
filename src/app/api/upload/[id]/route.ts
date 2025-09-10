@@ -11,12 +11,9 @@ export const runtime = 'nodejs'
 export const BUCKET_NAME = 'licensePhoto'
 
 /** 사용자별 면허증 이미지 업로드 */
-export async function uploadLicense(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function uploadLicense(req: NextRequest, { params }: { params: { id: string } }) {
   await requireAdmin(req)
-  const { id } = await params
+  const { id } = params
   await findUserOrThrow(id)
 
   const formData = await req.formData()
