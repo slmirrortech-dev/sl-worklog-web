@@ -54,7 +54,7 @@ const AdminUsersPage = async () => {
     },
     skip: INITIAL_SKIP,
     take: INITIAL_TAKE,
-    orderBy: [{ createdAt: 'desc' }],
+    orderBy: [{ createdAt: 'desc' }, { userId: 'desc' }, { name: 'asc' }],
   })) as UserResponseDto[]
 
   return (

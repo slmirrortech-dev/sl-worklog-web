@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/core/prisma'
+import prisma from '@/lib/core/prisma'
 import { ApiError } from '@/lib/core/errors'
 
 /**

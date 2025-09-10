@@ -10,6 +10,8 @@ import { ArrowUpDown, ChevronRight, FileImage, Plus } from 'lucide-react'
 import { format } from 'date-fns'
 import { useRouter } from 'next/navigation'
 import RoleLabel from '@/components/admin/RoleLabel'
+import ImageUploadButton from '@/components/admin/ButtonLicense'
+import UploadForm from '@/components/admin/ButtonLicense'
 
 /** 사용자 테이블 */
 const UsersDataTable = ({
@@ -33,10 +35,6 @@ const UsersDataTable = ({
   const [page, setPage] = useState(skip + 1)
   const [pageSize, setPageSize] = useState(take)
   const [search, setSearch] = useState('')
-
-  // 모달 상태
-  const [selectedUser, setSelectedUser] = useState<UserResponseDto | null>(null)
-  const [showLicenseModal, setShowLicenseModal] = useState(false)
 
   // 사용자 목록 조회
   const fetchData = async () => {
@@ -98,37 +96,10 @@ const UsersDataTable = ({
       ),
       cell: ({ row }: { row: any }) => {
         const user = row.original as UserResponseDto
-        const isLicensePhoto = row.getValue('licensePhotoUrl')
 
         return (
           <div className="text-center">
-            {isLicensePhoto ? (
-              <Button
-                variant="default"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation()
-
-                  if (user.licensePhotoUrl) {
-                    setSelectedUser(user)
-                    setShowLicenseModal(true)
-                  }
-                }}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-sm"
-              >
-                <FileImage className="w-3 h-3 mr-1" />
-                확인
-              </Button>
-            ) : (
-              // <LicenseUploadButton
-              //   userId={user.id}
-              //   onUploadComplete={() => {
-              //     // 데이터 새로고침
-              //     fetchData()
-              //   }}
-              // />
-              <></>
-            )}
+            <UploadForm targetUser={user} />
           </div>
         )
       },
