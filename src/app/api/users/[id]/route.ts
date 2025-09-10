@@ -28,7 +28,7 @@ async function updateUser(req: NextRequest, { params }: { params: Promise<{ id: 
     throw new ApiError('수정할 값이 없습니다', 400, 'NO_UPDATE')
   }
 
-  if (currentUser.id === id && body.role !== 'ADMIN') {
+  if (currentUser.id === id && (body.role === 'WORKER' || body.role === 'MANAGER')) {
     throw new ApiError('자기 자신의 권한을 변경할 수 없습니다.', 400, 'SELF_DOWNGRADE')
   }
 

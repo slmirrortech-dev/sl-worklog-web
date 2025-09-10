@@ -10,7 +10,13 @@ import { UserResponseDto } from '@/types/user'
  * 이미지 업로드/모달 보기 컴포넌트
  * 그리드 전용
  */
-export default function ButtonLicense({ targetUser }: { targetUser: UserResponseDto }) {
+export default function ButtonLicense({
+  targetUser,
+  canEdit,
+}: {
+  targetUser: UserResponseDto
+  canEdit: boolean
+}) {
   const [file, setFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -61,21 +67,27 @@ export default function ButtonLicense({ targetUser }: { targetUser: UserResponse
         </>
       ) : (
         <>
-          <label
-            htmlFor="inputFile"
-            className="inline-flex justify-center items-center border rounded-md  px-2 py-1.5 text-sm hover:bg-gray-100 transition-all cursor-pointer"
-          >
-            <Plus className="w-3 h-3 mr-1" />
-            업로드
-          </label>
-          <input
-            id="inputFile"
-            type="file"
-            onChange={handleFileChange}
-            style={{
-              display: 'none',
-            }}
-          />
+          {canEdit ? (
+            <>
+              <label
+                htmlFor="inputFile"
+                className="inline-flex justify-center items-center border rounded-md  px-2 py-1.5 text-sm hover:bg-gray-100 transition-all cursor-pointer"
+              >
+                <Plus className="w-3 h-3 mr-1" />
+                업로드
+              </label>
+              <input
+                id="inputFile"
+                type="file"
+                onChange={handleFileChange}
+                style={{
+                  display: 'none',
+                }}
+              />
+            </>
+          ) : (
+            <>-</>
+          )}
         </>
       )}
       {isModalOpen && (

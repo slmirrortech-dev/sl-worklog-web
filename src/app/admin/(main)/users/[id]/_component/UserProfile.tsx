@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import { UserResponseDto } from '@/types/user'
 import { Edit, Trash2, User, Calendar } from 'lucide-react'
@@ -21,9 +21,14 @@ import { Role } from '@prisma/client'
 import { useRouter } from 'next/navigation'
 
 /** 기본 정보 */
-const UserProfile = ({ user }: { user: UserResponseDto }) => {
+const UserProfile = ({
+  user,
+  currentUser,
+}: {
+  user: UserResponseDto
+  currentUser: UserResponseDto
+}) => {
   const router = useRouter()
-  const currentUserId = 'admin'
   const [freshUser, setFreshUser] = useState<UserResponseDto>(user)
   const [isEditing, setIsEditing] = useState<boolean>(false)
   const [editName, setEditName] = useState<string>(freshUser.name)
@@ -38,28 +43,36 @@ const UserProfile = ({ user }: { user: UserResponseDto }) => {
             <User className="w-5 h-5 mr-2 text-gray-600" />
             기본 정보
           </h2>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsEditing(true)}
-              disabled={isEditing}
-              className="border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-            >
-              <Edit className="w-4 h-4 mr-1" />
-              수정
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {}}
-              disabled={isEditing}
-              className="border-red-300 text-red-700 hover:bg-red-50 disabled:opacity-50"
-            >
-              <Trash2 className="w-4 h-4 mr-1" />
-              삭제
-            </Button>
-          </div>
+          {currentUser && currentUser.role === 'ADMIN' && (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsEditing(true)}
+                disabled={isEditing}
+                className="border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              >
+                <Edit className="w-4 h-4 mr-1" />
+                수정
+              </Button>
+              {currentUser.id !== freshUser.id && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    alert(
+                      `사용자를 삭제하시겠습니까?\n삭제 후에도 1년 이내 동일 사번으로 재등록하면 기존 데이터가 복구됩니다.`,
+                    )
+                  }}
+                  disabled={isEditing}
+                  className="border-red-300 text-red-700 hover:bg-red-50 disabled:opacity-50"
+                >
+                  <Trash2 className="w-4 h-4 mr-1" />
+                  삭제
+                </Button>
+              )}
+            </div>
+          )}
         </div>
       </div>
       <div className="p-6">
@@ -67,7 +80,7 @@ const UserProfile = ({ user }: { user: UserResponseDto }) => {
           {/* 공정면허증 */}
           <div className="lg:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-3">공정면허증</label>
-            <BoxLicense targetUser={freshUser} />
+            <BoxLicense targetUser={freshUser} canEdit={currentUser?.role === 'ADMIN'} />
           </div>
 
           {/* 기본 정보 */}
@@ -96,8 +109,16 @@ const UserProfile = ({ user }: { user: UserResponseDto }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">역할</label>
-              {isEditing ? (
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                역할
+                {isEditing && currentUser.id === freshUser.id && (
+                  <span className="ml-1 text-gray-400 text-sm">
+                    (본인의 역할은 직접 수정할 수 없습니다.)
+                  </span>
+                )}
+              </label>
+
+              {currentUser.id !== freshUser.id && isEditing ? (
                 <Select
                   value={editRole}
                   onValueChange={(value: 'ADMIN' | 'WORKER') => setEditRole(value)}
@@ -127,7 +148,7 @@ const UserProfile = ({ user }: { user: UserResponseDto }) => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">생년월일</label>
               <div className="text-lg font-mono text-gray-900 bg-gray-50 px-4 py-2 rounded-lg">
-                {format(19970317, 'yyyy.MM.dd')}
+                {freshUser.birthday}
               </div>
             </div>
 
@@ -169,9 +190,11 @@ const UserProfile = ({ user }: { user: UserResponseDto }) => {
                   })
                   setFreshUser(data)
                   router.refresh()
-                } catch (e) {
-                  alert('수정 실패했습니다.')
+                } catch (error: any) {
+                  alert(`${error ? error : '수정 실패했습니다.'}`)
                 } finally {
+                  setEditName(freshUser.name)
+                  setEditRole(freshUser.role)
                   setIsSaving(false)
                   setIsEditing(false)
                 }

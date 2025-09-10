@@ -2,26 +2,28 @@
 
 import React, { useEffect, useState } from 'react'
 import { UserResponseDto } from '@/types/user'
-import { getUsersApi } from '@/lib/api/user-api'
+import { getCurrentUserApi, getUsersApi } from '@/lib/api/user-api'
 import { CustomDataTable } from '@/components/CustomDataTable'
 import { ColumnDef } from '@tanstack/react-table'
 import { Button } from '@/components/ui/button'
-import { ArrowUpDown, ChevronRight, FileImage, Plus } from 'lucide-react'
+import { ArrowUpDown, ChevronRight } from 'lucide-react'
 import { format } from 'date-fns'
 import { useRouter } from 'next/navigation'
 import RoleLabel from '@/components/admin/RoleLabel'
-import ImageUploadButton from '@/components/admin/ButtonLicense'
 import UploadForm from '@/components/admin/ButtonLicense'
+import { ApiResponse } from '@/types/common'
 
 /** 사용자 테이블 */
 const UsersDataTable = ({
   id,
+  currentUser,
   initialData,
   skip,
   take,
   totalCount,
 }: {
   id: 'admins' | 'workers'
+  currentUser: UserResponseDto
   initialData: UserResponseDto[]
   skip: number
   take: number
@@ -99,7 +101,7 @@ const UsersDataTable = ({
 
         return (
           <div className="text-center">
-            <UploadForm targetUser={user} />
+            <UploadForm targetUser={user} canEdit={currentUser?.role === 'ADMIN'} />
           </div>
         )
       },

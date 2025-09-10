@@ -6,7 +6,7 @@ import { apiFetch } from '@/lib/api/api-fetch'
  * 로그인한 사용자 조회하기
  */
 export async function getCurrentUserApi() {
-  return await apiFetch<ApiResponse<CurrentUserModel>>('/api/users/current-user', {
+  return await apiFetch<ApiResponse<UserResponseDto>>('/api/users/current-user', {
     method: 'GET',
   })
 }
