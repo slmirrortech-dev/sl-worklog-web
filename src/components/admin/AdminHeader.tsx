@@ -4,11 +4,11 @@ import React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { BarChart3, Users, Settings, Activity, LogOut, User } from 'lucide-react'
+import { BarChart3, Users, Settings, Activity, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ROUTES } from '@/lib/constants/routes'
 
-const AdminHeader = () => {
+const AdminHeader = ({ name, userId }: { name: string; userId: string }) => {
   const pathname = usePathname()
 
   const navItems = [
@@ -89,7 +89,7 @@ const AdminHeader = () => {
               <User className="w-4 h-4 text-gray-600 transition-colors" />
               <div className="text-right">
                 <p className="text-sm font-medium text-gray-900 transition-colors">
-                  최승혁 <span className="text-gray-500">(104880)</span>
+                  <span>{name}</span>{' '}<span className="text-gray-500">({userId})</span>
                 </p>
               </div>
             </Link>
@@ -98,11 +98,10 @@ const AdminHeader = () => {
             <Link
               href={ROUTES.ADMIN.MY_PAGE}
               className="flex sm:hidden items-center gap-1 px-2 py-2 bg-gray-50 rounded-lg cursor-pointer transition-colors group"
-              title="최승혁 (104880) - 클릭하여 로그아웃"
             >
               <User className="w-4 h-4 text-gray-600 transition-colors" />
               <span className="text-xs font-medium text-gray-900 transition-colors">
-                최승혁 <span className="text-gray-500">(104880)</span>
+                <span>{name}</span>{' '}<span className="text-gray-500">({userId})</span>
               </span>
             </Link>
           </div>
