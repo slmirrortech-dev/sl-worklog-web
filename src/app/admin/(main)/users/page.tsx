@@ -74,7 +74,7 @@ const AdminUsersPage = async () => {
           initialData={admins}
           skip={INITIAL_SKIP}
           take={INITIAL_TAKE}
-          totalCount={adminTotalCount}
+          totalCount={adminTotalCount + managerTotalCount}
         />
       </div>
 
