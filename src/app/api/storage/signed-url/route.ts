@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseServer } from '@/lib/supabase/server'
 import { BUCKET_NAME } from '@/app/api/upload/[id]/route'
+import { withErrorHandler } from '@/lib/core/api-handler'
+import { ApiResponseFactory } from '@/lib/core/api-response-factory'
 
 /** private 버킷에 저장된 이미지 조회 */
-export async function GET(req: NextRequest) {
+export async function getSignedUrl(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const key = searchParams.get('key')
   if (!key) {
@@ -18,5 +20,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  return NextResponse.json({ url: data?.signedUrl })
+  return ApiResponseFactory.success({ url: data?.signedUrl }, 'private 이미지 가져오기 성공')
 }
+
+export const GET = withErrorHandler(getSignedUrl)

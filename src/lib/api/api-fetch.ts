@@ -1,8 +1,10 @@
 export async function apiFetch<T>(url: string, options: RequestInit = {}): Promise<T> {
+  const isFormData = options.body instanceof FormData
+
   const res = await fetch(url, {
     method: options.method || 'GET',
     headers: {
-      'Content-Type': 'application/json',
+      ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
       ...(options.headers || {}),
     },
     credentials: 'include',

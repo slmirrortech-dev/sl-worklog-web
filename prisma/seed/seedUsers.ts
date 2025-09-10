@@ -5,7 +5,7 @@ const prisma = new PrismaClient()
 
 const TOTAL_WORKERS = 100
 const ADMIN_NAMES = ['김관리', '이관리']
-const MANAGER_DATA = { name: '김영애', userId: 'manager', birthday: '970317' }
+const MANAGER_DATA = { name: '김영애', userId: 'manager', birthday: '19970317' }
 
 // 작업자 이름 생성용 성(姓) 목록
 const FAMILY_NAMES = [
@@ -47,13 +47,13 @@ function randomLoginId(): string {
   return String(n)
 }
 
-// 랜덤한 6자리 생년월일 생성
+// 랜덤한 8자리 생년월일 생성
 function randomBirthday(): string {
-  const year = Math.floor(Math.random() * 40) + 60 // 60~99 (1960~1999년생)
+  const year = Math.floor(Math.random() * 40) + 1960 // 1960~1999년생
   const month = Math.floor(Math.random() * 12) + 1 // 1~12월
   const day = Math.floor(Math.random() * 28) + 1 // 1~28일
 
-  const yearStr = year.toString().padStart(2, '0')
+  const yearStr = year.toString() // 4자리
   const monthStr = month.toString().padStart(2, '0')
   const dayStr = day.toString().padStart(2, '0')
 
@@ -75,7 +75,7 @@ function generateUniqueUserIds(count: number, existing = new Set<string>()) {
  **/
 export async function seedUsers() {
   // 관리자는 고정된 생년월일과 비밀번호 사용
-  const adminBirthday = '970426'
+  const adminBirthday = '19970426'
   const adminPasswordHash = await bcrypt.hash(adminBirthday, 10)
 
   // 관리자

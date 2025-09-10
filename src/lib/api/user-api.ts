@@ -30,3 +30,23 @@ export async function getUsersApi(page: number, pageSize: number, search: string
 /**
  * 특정 사용자 수정하기
  */
+
+/**
+ * 이미지 업로드
+ */
+export async function uploadLicenseApi(id: string, formData: FormData) {
+  return await apiFetch<ApiResponse<{ url: string }>>(`/api/upload/${id}`, {
+    method: 'POST',
+    body: formData,
+  })
+}
+
+/**
+ * 이미지 불러오기
+ */
+export async function getLicenseApi(imgUrl: string) {
+  return await apiFetch<ApiResponse<{ url: string }>>(`/api/storage/signed-url?key=${imgUrl}`, {
+    method: 'GET',
+    // cache: 'force-cache',
+  })
+}

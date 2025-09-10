@@ -6,7 +6,7 @@ import { colorRole, displayRole } from '@/lib/utils/role'
 const RoleLabel = ({ role, size }: { role: Role; size: 'sm' | 'lg' }) => {
   return (
     <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-full ${size === 'sm' ? 'text-sm' : 'text-lg'} font-medium ${colorRole(
+      className={`inline-flex items-center rounded-full ${size === 'sm' ? 'text-sm px-2.5 py-0.5' : 'text-lg px-3 py-0.5'} font-medium ${colorRole(
         role,
       )}`}
     >
