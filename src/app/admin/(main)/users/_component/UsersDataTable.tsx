@@ -89,7 +89,7 @@ const UsersDataTable = ({
         )
       },
     },
-    id === 'workers' && {
+    {
       accessorKey: 'licensePhotoUrl',
       header: () => (
         <div className="text-center font-semibold text-gray-700 text-base">공정면허증</div>

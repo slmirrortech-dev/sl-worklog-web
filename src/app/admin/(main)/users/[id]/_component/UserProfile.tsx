@@ -16,14 +16,18 @@ import {
 import { format } from 'date-fns'
 import RoleLabel from '@/components/admin/RoleLabel'
 import BoxLicense from '@/components/admin/BoxLicense'
+import { updateUserApi } from '@/lib/api/user-api'
+import { Role } from '@prisma/client'
+import { useRouter } from 'next/navigation'
 
 /** 기본 정보 */
 const UserProfile = ({ user }: { user: UserResponseDto }) => {
+  const router = useRouter()
   const currentUserId = 'admin'
   const [freshUser, setFreshUser] = useState<UserResponseDto>(user)
   const [isEditing, setIsEditing] = useState<boolean>(false)
   const [editName, setEditName] = useState<string>(freshUser.name)
-  const [editRole, setEditRole] = useState<string>(freshUser.role)
+  const [editRole, setEditRole] = useState<Role>(freshUser.role)
   const [isSaving, setIsSaving] = useState<boolean>(false)
 
   return (
@@ -156,7 +160,22 @@ const UserProfile = ({ user }: { user: UserResponseDto }) => {
               취소
             </Button>
             <Button
-              onClick={() => {}}
+              onClick={async () => {
+                setIsSaving(true)
+                try {
+                  const { data } = await updateUserApi(user.id, {
+                    name: editName !== user.name ? editName : undefined,
+                    role: editRole !== user.role ? editRole : undefined,
+                  })
+                  setFreshUser(data)
+                  router.refresh()
+                } catch (e) {
+                  alert('수정 실패했습니다.')
+                } finally {
+                  setIsSaving(false)
+                  setIsEditing(false)
+                }
+              }}
               disabled={isSaving}
               className="bg-blue-600 text-white hover:bg-blue-700"
             >

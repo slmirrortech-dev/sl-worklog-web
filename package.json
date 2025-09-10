@@ -23,7 +23,7 @@
     "db:seed": "dotenv -e .env.local -- prisma db seed",
     "db:seed:dev": "dotenv -e .env.development -- prisma db seed",
     "db:seed:prod": "dotenv -e .env.production -- prisma db seed",
-    "db:reset": "prisma migrate reset",
+    "db:reset": "dotenv -e .env.local -- npx prisma migrate reset",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "format": "prettier --write .",

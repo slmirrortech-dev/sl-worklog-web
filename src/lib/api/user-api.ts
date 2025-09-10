@@ -1,5 +1,5 @@
 import { ApiResponse } from '@/types/common'
-import { CurrentUserModel, UserResponseDto } from '@/types/user'
+import { CurrentUserModel, updateUserRequestModel, UserResponseDto } from '@/types/user'
 import { apiFetch } from '@/lib/api/api-fetch'
 
 /**
@@ -30,6 +30,12 @@ export async function getUsersApi(page: number, pageSize: number, search: string
 /**
  * 특정 사용자 수정하기
  */
+export async function updateUserApi(id: string, newData: Partial<updateUserRequestModel>) {
+  return await apiFetch<ApiResponse<UserResponseDto>>(`/api/users/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(newData),
+  })
+}
 
 /**
  * 이미지 업로드
@@ -47,6 +53,6 @@ export async function uploadLicenseApi(id: string, formData: FormData) {
 export async function getLicenseApi(imgUrl: string) {
   return await apiFetch<ApiResponse<{ url: string }>>(`/api/storage/signed-url?key=${imgUrl}`, {
     method: 'GET',
-    // cache: 'force-cache',
+    cache: 'force-cache',
   })
 }

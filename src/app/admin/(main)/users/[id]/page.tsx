@@ -1,5 +1,5 @@
 import { findUserOrThrow } from '@/lib/service/user.servie'
-import UserProfile from '@/app/admin/(main)/users/[id]/UserProfile'
+import UserProfile from '@/app/admin/(main)/users/[id]/_component/UserProfile'
 
 interface UserDetailPageProps {
   params: Promise<{ id: string }>

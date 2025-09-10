@@ -70,13 +70,20 @@ function generateUniqueUserIds(count: number, existing = new Set<string>()) {
   return Array.from(ids)
 }
 
+function randomDateWithinYear(): Date {
+  const now = Date.now()
+  const pastYear = now - 365 * 24 * 60 * 60 * 1000
+  const timestamp = Math.floor(Math.random() * (now - pastYear)) + pastYear
+  return new Date(timestamp)
+}
+
 /**
  * 사용자 계정 시드
  **/
 export async function seedUsers() {
   // 관리자는 고정된 생년월일과 비밀번호 사용
   const adminBirthday = '19970426'
-  const adminPasswordHash = await bcrypt.hash(adminBirthday, 10)
+  const adminPasswordHash = await bcrypt.hash(adminBirthday.slice(2), 10)
 
   // 관리자
   const admins = ADMIN_NAMES.map((name, i) => ({
@@ -86,10 +93,11 @@ export async function seedUsers() {
     birthday: adminBirthday,
     role: Role.ADMIN,
     isActive: true,
+    createdAt: randomDateWithinYear(),
   }))
 
   // 매니저
-  const managerPasswordHash = await bcrypt.hash(MANAGER_DATA.birthday, 10)
+  const managerPasswordHash = await bcrypt.hash(MANAGER_DATA.birthday.slice(2), 10)
   const manager = {
     userId: MANAGER_DATA.userId,
     password: managerPasswordHash,
@@ -97,6 +105,7 @@ export async function seedUsers() {
     birthday: MANAGER_DATA.birthday,
     role: Role.MANAGER,
     isActive: true,
+    createdAt: randomDateWithinYear(),
   }
 
   // 관리자와 매니저 아이디를 existing 세트에 넣어줌
@@ -108,7 +117,7 @@ export async function seedUsers() {
     Array.from({ length: TOTAL_WORKERS }, async (_, idx) => {
       const family = FAMILY_NAMES[idx % FAMILY_NAMES.length]
       const birthday = randomBirthday()
-      const passwordHash = await bcrypt.hash(birthday, 10)
+      const passwordHash = await bcrypt.hash(birthday.slice(2), 10)
       return {
         userId: workerLoginIds[idx],
         password: passwordHash,
@@ -116,6 +125,7 @@ export async function seedUsers() {
         birthday,
         role: Role.WORKER,
         isActive: true,
+        createdAt: randomDateWithinYear(),
       }
     }),
   )

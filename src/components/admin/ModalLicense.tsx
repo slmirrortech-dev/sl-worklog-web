@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from 'react'
 import { X } from 'lucide-react'
 import { apiFetch } from '@/lib/api/api-fetch'
+import { getLicenseApi } from '@/lib/api/user-api'
+import { ApiResponse } from '@/types/common'
 
 /** 면허증 이미지 모달 */
 const ModalLicense = ({
@@ -22,10 +24,8 @@ const ModalLicense = ({
   useEffect(() => {
     const fetchSignedUrl = async () => {
       if (licensePhotoUrl) {
-        const { url }: any = await apiFetch(`/api/storage/signed-url?key=${licensePhotoUrl}`, {
-          cache: 'force-cache',
-        })
-        if (url) setSignedUrl(url)
+        const { data }: ApiResponse<{ url: string }> = await getLicenseApi(licensePhotoUrl)
+        if (data.url) setSignedUrl(data.url)
       }
     }
     fetchSignedUrl().then()
@@ -56,7 +56,7 @@ const ModalLicense = ({
           ) : signedUrl ? (
             <img src={signedUrl} alt="uploaded" />
           ) : (
-            <p className="text-gray-400">이미지가 없습니다</p>
+            <p className="text-gray-400 mt-40">이미지가 없습니다</p>
           )}
         </div>
       </div>

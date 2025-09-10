@@ -18,3 +18,5 @@ export type CurrentUserModel = Pick<
   | 'licensePhotoUrl'
   | 'createdAt'
 >
+
+export type updateUserRequestModel = Pick<User, 'name' | 'role' | 'isActive' | 'licensePhotoUrl'>
