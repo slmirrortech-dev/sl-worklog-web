@@ -22,6 +22,10 @@ export async function requireUser(req: NextRequest) {
 export async function requireAdmin(req: NextRequest) {
   const session = await getSessionUser(req)
 
+  if (!session) {
+    throw new ApiError('로그인이 필요합니다', 401)
+  }
+
   if (!session || session.role !== 'ADMIN') {
     throw new ApiError('관리자 권한이 필요합니다.', 403, 'FORBIDDEN')
   }
