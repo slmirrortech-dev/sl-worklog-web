@@ -16,9 +16,10 @@ import {
 import { format } from 'date-fns'
 import RoleLabel from '@/components/admin/RoleLabel'
 import BoxLicense from '@/components/admin/BoxLicense'
-import { updateUserApi } from '@/lib/api/user-api'
+import { deleteUserApi, updateUserApi } from '@/lib/api/user-api'
 import { Role } from '@prisma/client'
 import { useRouter } from 'next/navigation'
+import { ROUTES } from '@/lib/constants/routes'
 
 /** 기본 정보 */
 const UserProfile = ({
@@ -59,10 +60,13 @@ const UserProfile = ({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => {
+                  onClick={async () => {
                     alert(
                       `사용자를 삭제하시겠습니까?\n삭제 후에도 1년 이내 동일 사번으로 재등록하면 기존 데이터가 복구됩니다.`,
                     )
+                    const res = await deleteUserApi(freshUser.id)
+                    alert(res.message)
+                    router.replace(ROUTES.ADMIN.USERS)
                   }}
                   disabled={isEditing}
                   className="border-red-300 text-red-700 hover:bg-red-50 disabled:opacity-50"

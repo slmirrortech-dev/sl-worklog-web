@@ -1,5 +1,5 @@
 import { ApiResponse } from '@/types/common'
-import { CurrentUserModel, updateUserRequestModel, UserResponseDto } from '@/types/user'
+import { updateUserRequestModel, UserResponseDto } from '@/types/user'
 import { apiFetch } from '@/lib/api/api-fetch'
 
 /**
@@ -24,8 +24,11 @@ export async function getUsersApi(page: number, pageSize: number, search: string
 }
 
 /**
- * 특정 사용자 조회하기
+ * 사용자 삭제
  */
+export async function deleteUserApi(id: string) {
+  return await apiFetch<ApiResponse<UserResponseDto>>(`/api/users/${id}`, { method: 'DELETE' })
+}
 
 /**
  * 특정 사용자 수정하기

@@ -50,3 +50,28 @@ async function updateUser(req: NextRequest, { params }: { params: Promise<{ id: 
   return ApiResponseFactory.success(updatedUser, '사용자 수정 성공')
 }
 export const PATCH = withErrorHandler(updateUser)
+
+/**
+ * 사용자 삭제
+ * (소프트 삭제)
+ **/
+async function deleteUser(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const currentUser = await requireAdmin(req)
+  const { id } = await params
+  await findUserOrThrow(id)
+
+  if (currentUser.id === id) {
+    throw new ApiError('자기 자신은 탈퇴할 수 없습니다.', 400, 'SELF')
+  }
+
+  const deleteUser = await prisma.user.update({
+    where: { id },
+    data: {
+      isActive: false,
+      deactivatedAt: new Date(),
+    },
+  })
+
+  return ApiResponseFactory.success(deleteUser, '사용자가 비활성화되었습니다.')
+}
+export const DELETE = withErrorHandler(deleteUser)
