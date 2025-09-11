@@ -12,7 +12,7 @@ export const leftTableShiftHead = `min-w-[160px] min-h-[100px]`
 const SettingProcess = ({ initialData }: { initialData: LineResponseDto[] }) => {
   const [lineWithProcess, setLineWithProcess] = useState<LineResponseDto[]>(initialData)
   
-  const { handleDragStart, handleDragOver, handleDrop } = useDragAndDrop(
+  const { dragState, handleDragStart, handleDragOver, handleDrop, isDragging } = useDragAndDrop(
     lineWithProcess,
     setLineWithProcess
   )
@@ -22,7 +22,9 @@ const SettingProcess = ({ initialData }: { initialData: LineResponseDto[] }) => 
   }, [lineWithProcess])
 
   return (
-    <div className="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-300">
+    <div className={`bg-white rounded-lg shadow-lg overflow-hidden border border-gray-300 transition-all duration-200 ${
+      isDragging ? 'ring-2 ring-blue-200 shadow-xl' : ''
+    }`}>
       <div className="overflow-auto max-h-screen">
         {/* 테이블 */}
         <table className="w-full border-collapse">
@@ -48,7 +50,13 @@ const SettingProcess = ({ initialData }: { initialData: LineResponseDto[] }) => 
                   <tr>
                     <td className="sticky left-0 z-10">
                       <div
-                        className={`flex items-center justify-between ${leftTableHead} px-2 bg-green-100 text-green-900 cursor-move`}
+                        className={`flex items-center justify-between ${leftTableHead} px-2 cursor-move transition-all duration-200 ${
+                          isDragging && dragState.draggedType === 'line' && dragState.draggedItem?.id === line.id
+                            ? 'bg-blue-100 border-2 border-blue-400 opacity-50 scale-95'
+                            : isDragging && dragState.draggedType === 'line'
+                            ? 'bg-green-50 border-2 border-green-300 text-green-900'
+                            : 'bg-green-100 text-green-900 hover:bg-green-200'
+                        }`}
                         draggable
                         onDragStart={(e) => handleDragStart(e, line, 'line')}
                         onDrop={(e) => handleDrop(e, line, 'line')}
@@ -70,7 +78,13 @@ const SettingProcess = ({ initialData }: { initialData: LineResponseDto[] }) => 
                             onDrop={(e) => handleDrop(e, process, 'process', line.id)}
                             onDragOver={handleDragOver}
                           >
-                            <div className="bg-green-200 px-2 border rounded-sm flex h-full items-center justify-center gap-1 cursor-move">
+                            <div className={`px-2 border rounded-sm flex h-full items-center justify-center gap-1 cursor-move transition-all duration-200 ${
+                              isDragging && dragState.draggedType === 'process' && dragState.draggedItem?.id === process.id
+                                ? 'bg-blue-100 border-blue-400 opacity-50 scale-95'
+                                : isDragging && dragState.draggedType === 'process' && dragState.draggedLineId === line.id
+                                ? 'bg-green-50 border-green-300'
+                                : 'bg-green-200 hover:bg-green-300'
+                            }`}>
                               <GripVertical className="w-6 h-6 text-gray-400" />
                               <span className="block w-full text-green-800 font-bold">
                                 {process.name}
@@ -114,6 +128,8 @@ const SettingProcess = ({ initialData }: { initialData: LineResponseDto[] }) => 
                             onDragStart={(e, processId, shiftType) => handleDragStart(e, { processId, shiftType }, 'worker', line.id, processId)}
                             onDrop={(e, processId, shiftType) => handleDrop(e, { processId, shiftType }, 'worker', line.id, processId)}
                             onDragOver={handleDragOver}
+                            isDragging={isDragging}
+                            dragState={dragState}
                           />
                         )
                       })}
@@ -143,6 +159,8 @@ const SettingProcess = ({ initialData }: { initialData: LineResponseDto[] }) => 
                             onDragStart={(e, processId, shiftType) => handleDragStart(e, { processId, shiftType }, 'worker', line.id, processId)}
                             onDrop={(e, processId, shiftType) => handleDrop(e, { processId, shiftType }, 'worker', line.id, processId)}
                             onDragOver={handleDragOver}
+                            isDragging={isDragging}
+                            dragState={dragState}
                           />
                         )
                       })}

@@ -283,6 +283,7 @@ export const useDragAndDrop = (
     handleDragStart,
     handleDragOver,
     handleDrop,
-    resetDragState
+    resetDragState,
+    isDragging: dragState.draggedType !== null
   }
 }
