@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { withErrorHandler } from '@/lib/core/api-handler'
 import { findUserOrThrow } from '@/lib/service/user.servie'
 import { ApiResponseFactory } from '@/lib/core/api-response-factory'
