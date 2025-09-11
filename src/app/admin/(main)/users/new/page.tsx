@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/select'
 import { Role } from '@prisma/client'
 import { ROUTES } from '@/lib/constants/routes'
-import { isValidBirthday } from '@/lib/utils/isValid'
+import { isValidBirthday } from '@/lib/utils/is-valid'
 import { uploadLicenseApi } from '@/lib/api/user-api'
 
 interface NewEmployee {
