@@ -2,13 +2,14 @@ import React from 'react'
 import prisma from '@/lib/core/prisma'
 import { LineResponseDto } from '@/types/line-with-process'
 import SettingProcess from '@/app/admin/(main)/new_process/_component/SettingProcess'
+import { getShiftStatus } from '@/lib/utils/line-status'
 
 /** 작업장 현황판 */
 const ProcessPage = async () => {
   let responseData: LineResponseDto[] = []
 
   try {
-    responseData = await prisma.line.findMany({
+    const lines = await prisma.line.findMany({
       include: {
         processes: {
           include: {
@@ -23,10 +24,16 @@ const ProcessPage = async () => {
         },
       },
     })
-  } catch (error) {
-    alert(error)
-  }
 
+    // 확장
+    responseData = lines.map((line) => ({
+      ...line,
+      dayStatus: getShiftStatus(line.processes, 'DAY'),
+      nightStatus: getShiftStatus(line.processes, 'NIGHT'),
+    }))
+  } catch (error) {
+    console.error(error)
+  }
   return (
     <div className="flex flex-col space-y-6">
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">

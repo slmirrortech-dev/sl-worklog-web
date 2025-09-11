@@ -1,4 +1,4 @@
-import { User, Line, Process, ProcessShift } from '@prisma/client'
+import { User, Line, Process, ProcessShift, WorkStatus } from '@prisma/client'
 
 export type waitingWorkerModel = Pick<User, 'id' | 'userId' | 'name' | 'licensePhotoUrl'>
 
@@ -14,5 +14,7 @@ export type ProcessResponseDto = Process & {
 
 // 라인 DTO (DB 기본 필드 + 하위 공정 포함)
 export type LineResponseDto = Line & {
+  dayStatus: WorkStatus
+  nightStatus: WorkStatus
   processes: ProcessResponseDto[]
 }

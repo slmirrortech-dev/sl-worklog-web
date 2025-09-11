@@ -5,16 +5,17 @@ import { LineResponseDto } from '@/types/line-with-process'
 import { GripVertical, Plus, X } from 'lucide-react'
 import ContainerWaitingWorker from '@/app/admin/(main)/new_process/_component/ContainerWaitingWorker'
 import { useDragAndDrop } from '@/hooks/useDragAndDrop'
+import ShiftStatusLabel from '@/components/admin/ShiftStatusLabel'
 
 export const leftTableHead = `min-w-[160px] min-h-[58px]`
 export const leftTableShiftHead = `min-w-[160px] min-h-[100px]`
 
 const SettingProcess = ({ initialData }: { initialData: LineResponseDto[] }) => {
   const [lineWithProcess, setLineWithProcess] = useState<LineResponseDto[]>(initialData)
-  
+
   const { dragState, handleDragStart, handleDragOver, handleDrop, isDragging } = useDragAndDrop(
     lineWithProcess,
-    setLineWithProcess
+    setLineWithProcess,
   )
 
   useEffect(() => {
@@ -22,22 +23,21 @@ const SettingProcess = ({ initialData }: { initialData: LineResponseDto[] }) => 
   }, [lineWithProcess])
 
   return (
-    <div className={`bg-white rounded-lg shadow-lg overflow-hidden border border-gray-300 transition-all duration-200 ${
-      isDragging ? 'ring-2 ring-blue-200 shadow-xl' : ''
-    }`}>
+    <div
+      className={`bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden transition-all duration-300 ${
+        isDragging ? 'ring-2 ring-gray-300 shadow-md' : 'hover:shadow-md'
+      }`}
+    >
       <div className="overflow-auto max-h-screen">
         {/* 테이블 */}
         <table className="w-full border-collapse">
           {/* 테이블 해더 */}
           <thead>
             <tr>
-              <th
-                // colSpan={2}
-                className="w-40 border-b border-gray-300 p-2 bg-gray-200 text-sm font-semibold text-gray-700 sticky left-0 top-0 z-20"
-              >
+              <th className="w-40 border-b border-gray-200 px-6 py-4 bg-gray-50 text-sm font-semibold text-gray-700 sticky left-0 top-0 z-20">
                 라인
               </th>
-              <th className="border-b border-gray-300 p-2 bg-gray-200 text-sm font-semibold text-gray-700 sticky top-0 z-10">
+              <th className="border-b border-gray-200 px-6 py-4 bg-gray-50 text-sm font-semibold text-gray-700 sticky top-0 z-10">
                 공정
               </th>
             </tr>
@@ -50,12 +50,14 @@ const SettingProcess = ({ initialData }: { initialData: LineResponseDto[] }) => 
                   <tr>
                     <td className="sticky left-0 z-10">
                       <div
-                        className={`flex items-center justify-between ${leftTableHead} px-2 cursor-move transition-all duration-200 ${
-                          isDragging && dragState.draggedType === 'line' && dragState.draggedItem?.id === line.id
-                            ? 'bg-blue-100 border-2 border-blue-400 opacity-50 scale-95'
+                        className={`flex items-center gap-3 ${leftTableHead} px-4 cursor-move transition-all duration-300 ${
+                          isDragging &&
+                          dragState.draggedType === 'line' &&
+                          dragState.draggedItem?.id === line.id
+                            ? 'bg-blue-50 border-l-4 border-blue-400 opacity-70 scale-98'
                             : isDragging && dragState.draggedType === 'line'
-                            ? 'bg-green-50 border-2 border-green-300 text-green-900'
-                            : 'bg-green-100 text-green-900 hover:bg-green-200'
+                              ? 'bg-blue-50 border-l-4 border-blue-300 hover:bg-blue-100'
+                              : 'bg-white border-l-4 border-blue-500 hover:bg-blue-50'
                         }`}
                         draggable
                         onDragStart={(e) => handleDragStart(e, line, 'line')}
@@ -63,70 +65,85 @@ const SettingProcess = ({ initialData }: { initialData: LineResponseDto[] }) => 
                         onDragOver={handleDragOver}
                       >
                         <GripVertical className="w-4 h-4 text-gray-400" />
-                        <span className="text-lg font-bold">{line.name} </span>
+                        <span className="text-lg font-semibold text-gray-800">{line.name}</span>
                       </div>
                     </td>
-                    <td className="flex">
+                    <td className="flex bg-white border-b border-gray-200">
                       {/* 라인의 하위 공정 목록 */}
                       {line.processes.map((process) => {
                         return (
-                          <div 
-                            key={process.id} 
+                          <div
+                            key={process.id}
                             className={`${leftTableHead} px-2 py-1`}
                             draggable
                             onDragStart={(e) => handleDragStart(e, process, 'process', line.id)}
                             onDrop={(e) => handleDrop(e, process, 'process', line.id)}
                             onDragOver={handleDragOver}
                           >
-                            <div className={`px-2 border rounded-sm flex h-full items-center justify-center gap-1 cursor-move transition-all duration-200 ${
-                              isDragging && dragState.draggedType === 'process' && dragState.draggedItem?.id === process.id
-                                ? 'bg-blue-100 border-blue-400 opacity-50 scale-95'
-                                : isDragging && dragState.draggedType === 'process' && dragState.draggedLineId === line.id
-                                ? 'bg-green-50 border-green-300'
-                                : 'bg-green-200 hover:bg-green-300'
-                            }`}>
-                              <GripVertical className="w-6 h-6 text-gray-400" />
-                              <span className="block w-full text-green-800 font-bold">
+                            <div
+                              className={`px-3 py-2 rounded-lg border shadow-sm flex h-full items-center justify-center gap-2 cursor-move transition-all duration-300 ${
+                                isDragging &&
+                                dragState.draggedType === 'process' &&
+                                dragState.draggedItem?.id === process.id
+                                  ? 'bg-gray-100 border-gray-400 opacity-70 scale-95'
+                                  : isDragging &&
+                                      dragState.draggedType === 'process' &&
+                                      dragState.draggedLineId === line.id
+                                    ? 'bg-gray-50 border-gray-300 hover:bg-gray-100'
+                                    : 'bg-white border-gray-200 hover:bg-gray-50 hover:shadow-md'
+                              }`}
+                            >
+                              <GripVertical className="w-4 h-4 text-gray-400" />
+                              <span className="text-gray-700 font-semibold text-sm">
                                 {process.name}
                               </span>
                               <button
                                 title="공정 삭제"
-                                className="group-hover:opacity-100 transition-opacity text-gray-500 hover:text-gray-700"
+                                className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full p-1"
                               >
-                                <X className="w-5 h-5" />
+                                <X className="w-3 h-3" />
                               </button>
                             </div>
                           </div>
                         )
                       })}
-                      <button className="flex justify-center items-center w-9 h-9 bg-blue-500 rounded-full text-white">
-                        <Plus />
-                      </button>
+                      <div className={`${leftTableHead} px-2 py-1`}>
+                        <button className="group flex flex-col items-center justify-center gap-1 w-full h-full bg-gray-100 hover:bg-gray-200 border-2 border-dashed border-gray-300 hover:border-gray-400 rounded-lg text-gray-500 hover:text-gray-600 transition-all duration-200">
+                          <Plus className="w-4 h-4" />
+                          <span className="text-xs font-medium">공정 추가</span>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                   <tr>
                     <td className="sticky left-0 z-10">
                       <div
-                        className={`flex items-center justify-between  ${leftTableShiftHead} px-2 py-1 bg-gray-50`}
+                        className={`flex items-center justify-between ${leftTableShiftHead} px-4 py-3 bg-gray-50`}
                       >
-                        <div
-                          className={`border border-orange-200 bg-orange-100 px-4 py-1 rounded-2xl`}
-                        >
-                          <span className="font-semibold text-base">주간</span>
-                        </div>
-                        <span>정상</span>
+                        <span className="font-semibold text-base text-gray-700">주간</span>
+                        <ShiftStatusLabel status={line.dayStatus} size="sm" />
                       </div>
                     </td>
                     {/* 주간 공정 작업자 리스트 */}
-                    <td className="flex">
+                    <td className="flex bg-gray-50">
                       {line.processes.map((process) => {
                         return (
                           <ContainerWaitingWorker
                             key={process.id}
                             process={process}
                             shiftType="DAY"
-                            onDragStart={(e, processId, shiftType) => handleDragStart(e, { processId, shiftType }, 'worker', line.id, processId)}
-                            onDrop={(e, processId, shiftType) => handleDrop(e, { processId, shiftType }, 'worker', line.id, processId)}
+                            onDragStart={(e, processId, shiftType) =>
+                              handleDragStart(
+                                e,
+                                { processId, shiftType },
+                                'worker',
+                                line.id,
+                                processId,
+                              )
+                            }
+                            onDrop={(e, processId, shiftType) =>
+                              handleDrop(e, { processId, shiftType }, 'worker', line.id, processId)
+                            }
                             onDragOver={handleDragOver}
                             isDragging={isDragging}
                             dragState={dragState}
@@ -138,26 +155,32 @@ const SettingProcess = ({ initialData }: { initialData: LineResponseDto[] }) => 
                   <tr>
                     <td className="sticky left-0 z-10">
                       <div
-                        className={`flex items-center justify-between  ${leftTableShiftHead} px-2 bg-gray-50`}
+                        className={`flex items-center justify-between ${leftTableShiftHead} px-4 py-3 bg-gray-100`}
                       >
-                        <div
-                          className={`border border-purple-300 bg-purple-100 px-4 py-1 rounded-2xl`}
-                        >
-                          <span className="font-semibold text-base">야간</span>
-                        </div>
-                        <span>잔업</span>
+                        <span className="font-semibold text-base text-gray-700">야간</span>
+                        <ShiftStatusLabel status={line.nightStatus} size="sm" />
                       </div>
                     </td>
                     {/* 야간 공정 작업자 리스트 */}
-                    <td className="flex">
+                    <td className="flex bg-gray-100">
                       {line.processes.map((process) => {
                         return (
                           <ContainerWaitingWorker
                             key={process.id}
                             process={process}
                             shiftType="NIGHT"
-                            onDragStart={(e, processId, shiftType) => handleDragStart(e, { processId, shiftType }, 'worker', line.id, processId)}
-                            onDrop={(e, processId, shiftType) => handleDrop(e, { processId, shiftType }, 'worker', line.id, processId)}
+                            onDragStart={(e, processId, shiftType) =>
+                              handleDragStart(
+                                e,
+                                { processId, shiftType },
+                                'worker',
+                                line.id,
+                                processId,
+                              )
+                            }
+                            onDrop={(e, processId, shiftType) =>
+                              handleDrop(e, { processId, shiftType }, 'worker', line.id, processId)
+                            }
                             onDragOver={handleDragOver}
                             isDragging={isDragging}
                             dragState={dragState}
@@ -170,11 +193,15 @@ const SettingProcess = ({ initialData }: { initialData: LineResponseDto[] }) => 
               )
             })}
             <tr>
-              <td className="py-2">
-                <button className="m-auto flex justify-center items-center w-9 h-9 bg-blue-500 rounded-full text-white">
-                  <Plus />
-                </button>
+              <td className="sticky left-0 z-10">
+                <div className="flex justify-center items-center min-h-[58px] px-4 bg-gray-50">
+                  <button className="group flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 border-2 border-dashed border-gray-300 hover:border-gray-400 rounded-lg text-gray-500 hover:text-gray-600 transition-all duration-200">
+                    <Plus className="w-4 h-4" />
+                    <span className="text-sm font-medium">라인 추가</span>
+                  </button>
+                </div>
               </td>
+              <td className="bg-gray-50"></td>
             </tr>
           </tbody>
         </table>
