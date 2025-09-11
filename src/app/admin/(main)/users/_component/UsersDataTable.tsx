@@ -8,7 +8,7 @@ import { ColumnDef } from '@tanstack/react-table'
 import { Button } from '@/components/ui/button'
 import { ArrowUpDown, ChevronRight } from 'lucide-react'
 import { format } from 'date-fns'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import RoleLabel from '@/components/admin/RoleLabel'
 import UploadForm from '@/components/admin/ButtonLicense'
 import { ApiResponse } from '@/types/common'
@@ -30,13 +30,28 @@ const UsersDataTable = ({
   totalCount: number
 }) => {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  
+  // URL 파라미터에서 상태 복원
+  const getStateFromUrl = () => {
+    const urlPage = searchParams.get(`${id}_page`)
+    const urlPageSize = searchParams.get(`${id}_pageSize`)
+    const urlSearch = searchParams.get(`${id}_search`)
+    
+    return {
+      page: urlPage ? parseInt(urlPage) : skip + 1,
+      pageSize: urlPageSize ? parseInt(urlPageSize) : take,
+      search: urlSearch || '',
+    }
+  }
+  
   const [isInitialLoad, setIsInitialLoad] = useState(true)
   const [data, setData] = useState<UserResponseDto[]>(initialData)
   const [loading, setLoading] = useState(false)
-  const [searchInput, setSearchInput] = useState('')
-  const [page, setPage] = useState(skip + 1)
-  const [pageSize, setPageSize] = useState(take)
-  const [search, setSearch] = useState('')
+  const [searchInput, setSearchInput] = useState(getStateFromUrl().search)
+  const [page, setPage] = useState(getStateFromUrl().page)
+  const [pageSize, setPageSize] = useState(getStateFromUrl().pageSize)
+  const [search, setSearch] = useState(getStateFromUrl().search)
 
   // 사용자 목록 조회
   const fetchData = async () => {
@@ -51,12 +66,53 @@ const UsersDataTable = ({
     }
   }
 
+  // URL 상태 업데이트
+  const updateUrlState = () => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set(`${id}_page`, page.toString())
+    params.set(`${id}_pageSize`, pageSize.toString())
+    if (search) {
+      params.set(`${id}_search`, search)
+    } else {
+      params.delete(`${id}_search`)
+    }
+    
+    const newUrl = `${window.location.pathname}?${params.toString()}`
+    window.history.replaceState({}, '', newUrl)
+  }
+
+  // 스크롤 위치 저장
+  const saveScrollPosition = () => {
+    const scrollPosition = window.scrollY
+    sessionStorage.setItem(`${id}_scrollPosition`, scrollPosition.toString())
+    // 어떤 테이블에서 클릭했는지 기록
+    sessionStorage.setItem('lastClickedTable', id)
+  }
+
+  // 스크롤 위치 복원
+  const restoreScrollPosition = () => {
+    const savedScrollPosition = sessionStorage.getItem(`${id}_scrollPosition`)
+    const lastClickedTable = sessionStorage.getItem('lastClickedTable')
+    
+    // 마지막에 클릭한 테이블과 현재 테이블이 같을 때만 스크롤 위치 복원
+    if (savedScrollPosition && lastClickedTable === id) {
+      setTimeout(() => {
+        window.scrollTo(0, parseInt(savedScrollPosition))
+        // 복원 후 lastClickedTable 정리
+        sessionStorage.removeItem('lastClickedTable')
+      }, 100)
+    }
+  }
+
   // 페이징이나 검색어가 변경되면 리패치
   useEffect(() => {
     if (!isInitialLoad) {
       fetchData().then()
+      updateUrlState()
     } else {
       setIsInitialLoad(false)
+      // 뒤로가기로 돌아온 경우 스크롤 위치 복원
+      restoreScrollPosition()
     }
   }, [page, pageSize, search])
 
@@ -136,7 +192,10 @@ const UsersDataTable = ({
             <Button
               variant="outline"
               size="default"
-              onClick={() => router.push(`/admin/users/${user.id}`)}
+              onClick={() => {
+                saveScrollPosition()
+                router.push(`/admin/users/${user.id}`)
+              }}
             >
               상세 보기
               <ChevronRight className="w-3 h-3 -ml-1" />
