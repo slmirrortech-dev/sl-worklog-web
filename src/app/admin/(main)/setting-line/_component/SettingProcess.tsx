@@ -262,7 +262,7 @@ const SettingProcess = ({ initialData }: { initialData: LineResponseDto[] }) => 
                     <tr>
                       <td className="sticky left-0 z-10">
                         <div
-                          className={`group flex items-center justify-between ${leftTableHead} px-4 cursor-move transition-all duration-300 ${
+                          className={`group flex items-center justify-between ${leftTableHead} px-4 ${isEditMode ? 'cursor-move' : ''} transition-all duration-300 ${
                             isDragging &&
                             dragState.draggedType === 'line' &&
                             dragState.draggedItem?.id === line.id
@@ -338,7 +338,7 @@ const SettingProcess = ({ initialData }: { initialData: LineResponseDto[] }) => 
                               onDragOver={isEditMode ? handleDragOver : undefined}
                             >
                               <div
-                                className={`group px-3 py-2 rounded-lg border shadow-sm flex h-full items-center justify-between cursor-move transition-all duration-300 ${
+                                className={`group px-3 py-2 rounded-lg border shadow-sm flex h-full items-center justify-between ${isEditMode ? 'cursor-move' : ''} transition-all duration-300 ${
                                   isDragging &&
                                   dragState.draggedType === 'process' &&
                                   dragState.draggedItem?.id === process.id
