@@ -24,9 +24,9 @@ model User {
   createdAt                DateTime @default(now())         // 생성 시각
 
   // Relations
-  workLogs        WorkLog[]
-  changeHistories WorkLogHistory[] @relation("AdminHistory")
-  waitingProcesses Process[]       @relation("WaitingWorker")
+  workLogs         WorkLog[]
+  changeHistories  WorkLogHistory[] @relation("AdminHistory")
+  waitingShifts    ProcessShift[]   @relation("WaitingWorker") // 대기자로 설정된 교대조들
 
   @@map("users")
 }
@@ -56,22 +56,40 @@ model Line {
 // Process (작업 공정)
 // ================================
 model Process {
-  id        String   @id @default(cuid())    // UUID (PK)
-  name      String                           // 프로세스 이름
-  order     Int                               // 표시 순서
-  shiftType ShiftType                        // 주간/야간
-  status    WorkStatus                       // 정상/잔업/연장
-  lineId    String
-  line      Line     @relation(fields: [lineId], references: [id])
+  id      String   @id @default(cuid())   // UUID (PK)
+  name    String                           // 공정 이름
+  order   Int                              // 공정 순서 (화면 표시용)
+  lineId  String                           // 라인 ID (FK)
 
   // Relations
-  waitingWorkerId String?                     // 대기자 (User.id)
+  line    Line     @relation(fields: [lineId], references: [id]) // 공정이 속한 라인
+  shifts  ProcessShift[]                                         // 공정별 주/야 교대조 정보
+
+  @@map("processes")
+}
+
+// ================================
+// ProcessShift (공정 교대조)
+// ================================
+// 한 공정(Process)에 대해 주간/야간 별 상태와 대기자를 관리하는 테이블
+model ProcessShift {
+  id        String   @id @default(cuid())   // UUID (PK)
+  type      ShiftType                       // 교대조 타입 (주간/야간)
+  status    WorkStatus @default(NORMAL)     // 상태 (정상/잔업/연장)
+
+  processId String                          // 공정 ID (FK)
+  process   Process @relation(fields: [processId], references: [id]) // 소속 공정
+
+  // Relations
+  waitingWorkerId String?
   waitingWorker   User? @relation("WaitingWorker", fields: [waitingWorkerId], references: [id], onDelete: SetNull)
 
-  workLogs WorkLog[]
+  workLogs WorkLog[]                        // 교대조에서 발생한 작업 기록들
 
-  @@unique([lineId, name, shiftType]) // 같은 라인+공정+주/야 조합은 중복 불가
+  @@unique([processId, type])               // 한 공정에 대해 주간/야간은 유일해야 함
+  @@map("process_shifts")
 }
+
 
 // ================================
 // WorkLog (작업 기록)
@@ -92,13 +110,13 @@ model WorkLog {
 
   // Relations
   user    User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  process Process? @relation(fields: [processId], references: [id], onDelete: SetNull)
-  processId String?
+  processShiftId String?        // FK (ProcessShift.id)
+  processShift   ProcessShift?  @relation(fields: [processShiftId], references: [id], onDelete: SetNull)
 
   histories  WorkLogHistory[]
 
   @@index([userId])
-  @@index([processId])
+  @@index([processShiftId])
   @@index([startedAt])
 }
 

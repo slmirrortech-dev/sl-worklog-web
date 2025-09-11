@@ -10,7 +10,7 @@
 //
 // /**
 //  * @swagger
-//  * /api/line-process:
+//  * /api/line-line-with-process:
 //  *   get:
 //  *     summary: 작업장 정보 조회 (라인, 공정 통합)
 //  *     tags: [LineProcess]
@@ -73,7 +73,7 @@
 //
 // /**
 //  * @swagger
-//  * /api/line-process:
+//  * /api/line-line-with-process:
 //  *   put:
 //  *     summary: 작업장 정보 수정 (라인, 공정 통합)
 //  *     tags: [LineProcess]
@@ -137,7 +137,7 @@
 //       await tx.line.updateMany({
 //         data: { isActive: false, deactivatedAt: new Date() },
 //       })
-//       await tx.process.updateMany({
+//       await tx.line-with-process.updateMany({
 //         data: { isActive: false, deactivatedAt: new Date() },
 //       })
 //       return []
@@ -177,14 +177,14 @@
 //
 //       // 프로세스 처리
 //       if (lineId) {
-//         const existingProcesses = await tx.process.findMany({ where: { lineId } })
+//         const existingProcesses = await tx.line-with-process.findMany({ where: { lineId } })
 //         const existingProcessIds = new Set(existingProcesses.map((p) => p.id))
 //         const incomingProcessIds = new Set(line.processes.filter((p) => p.id).map((p) => p.id!))
 //
 //         // 기존 프로세스 중 요청에 없는 것 → soft delete
 //         for (const p of existingProcesses) {
 //           if (!incomingProcessIds.has(p.id)) {
-//             await tx.process.update({
+//             await tx.line-with-process.update({
 //               where: { id: p.id },
 //               data: { isActive: false, deactivatedAt: new Date() },
 //             })
@@ -194,7 +194,7 @@
 //         // 요청 프로세스 처리
 //         for (const p of line.processes) {
 //           if (p.id && existingProcessIds.has(p.id)) {
-//             await tx.process.update({
+//             await tx.line-with-process.update({
 //               where: { id: p.id },
 //               data: {
 //                 name: p.name,
@@ -204,7 +204,7 @@
 //               },
 //             })
 //           } else {
-//             await tx.process.create({
+//             await tx.line-with-process.create({
 //               data: { lineId, name: p.name, order: p.order, isActive: true },
 //             })
 //           }

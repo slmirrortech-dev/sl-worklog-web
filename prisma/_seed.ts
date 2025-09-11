@@ -188,7 +188,7 @@
 //   for (let i = 0; i < 20; i++) {
 //     const worker = workers[Math.floor(Math.random() * workers.length)]
 //     const line = lines[Math.floor(Math.random() * lines.length)]
-//     const process = line.processes[Math.floor(Math.random() * line.processes.length)]
+//     const line-with-process = line.processes[Math.floor(Math.random() * line.processes.length)]
 //
 //     // 랜덤 날짜 (최근 7일)
 //     const baseDate = new Date()
@@ -207,14 +207,14 @@
 //     await prisma.workLog.create({
 //       data: {
 //         userId: worker.id,
-//         processId: process.id,
+//         processId: line-with-process.id,
 //         startedAt: start,
 //         endedAt: end,
 //         durationMinutes: differenceInMinutes(end, start),
 //         shiftType,
 //         isDefective: Math.random() < 0.1, // 10% 확률로 불량 처리
 //         memo: null,
-//         processName: process.name,
+//         processName: line-with-process.name,
 //         lineName: line.name,
 //       },
 //     })
@@ -226,7 +226,7 @@
 // async function main() {
 //   console.log('🚀 Seed 데이터 생성 시작...')
 //   await prisma.workLog.deleteMany({})
-//   await prisma.process.deleteMany({})
+//   await prisma.line-with-process.deleteMany({})
 //   await prisma.line.deleteMany({})
 //   await prisma.user.deleteMany({})
 //
@@ -240,7 +240,7 @@
 // main()
 //   .catch((e) => {
 //     console.error(e)
-//     process.exit(1)
+//     line-with-process.exit(1)
 //   })
 //   .finally(async () => {
 //     await prisma.$disconnect()

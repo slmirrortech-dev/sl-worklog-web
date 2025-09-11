@@ -339,12 +339,12 @@ const DashboardPage = () => {
       cell: ({ row }) => <div className="font-medium">{row.original.user.name}</div>,
     },
     {
-      accessorKey: 'process.line.name',
+      accessorKey: 'line-with-process.line.name',
       header: '라인',
       cell: ({ row }) => <div className="text-sm">{row.original.process.line.name}</div>,
     },
     {
-      accessorKey: 'process.name',
+      accessorKey: 'line-with-process.name',
       header: '공정',
       cell: ({ row }) => <div className="text-sm font-medium">{row.original.process.name}</div>,
     },

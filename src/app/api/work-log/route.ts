@@ -140,7 +140,7 @@
 //   // 라인 (현재 라인 id, 과거 스냅샷 lineName 둘 다 검색)
 //   if (searchLineId) {
 //     where.OR = [
-//       { process: { lineId: searchLineId } }, // 현재 라인 id 기준
+//       { line-with-process: { lineId: searchLineId } }, // 현재 라인 id 기준
 //       { lineName: { contains: searchLineId, mode: 'insensitive' } }, // 과거 스냅샷 (문자열 검색)
 //     ]
 //   }
@@ -173,7 +173,7 @@
 //       orderBy: { startedAt: 'desc' },
 //       include: {
 //         user: { select: { id: true, loginId: true, name: true } },
-//         process: { select: { id: true, name: true, lineId: true } },
+//         line-with-process: { select: { id: true, name: true, lineId: true } },
 //       },
 //     }),
 //     prisma.workLog.count({ where }),
