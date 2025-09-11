@@ -61,9 +61,11 @@ const UserProfile = ({
                   variant="outline"
                   size="sm"
                   onClick={async () => {
-                    alert(
+                    const confirmed = confirm(
                       `사용자를 삭제하시겠습니까?\n삭제 후에도 1년 이내 동일 사번으로 재등록하면 기존 데이터가 복구됩니다.`,
                     )
+                    if (!confirmed) return
+                    
                     const res = await deleteUserApi(freshUser.id)
                     alert(res.message)
                     router.replace(ROUTES.ADMIN.USERS)
