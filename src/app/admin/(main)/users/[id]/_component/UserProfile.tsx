@@ -84,7 +84,11 @@ const UserProfile = ({
           {/* 공정면허증 */}
           <div className="lg:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-3">공정면허증</label>
-            <BoxLicense targetUser={freshUser} canEdit={currentUser?.role === 'ADMIN'} />
+            <BoxLicense
+              targetUser={freshUser}
+              setFreshUser={setFreshUser}
+              canEdit={currentUser?.role === 'ADMIN'}
+            />
           </div>
 
           {/* 기본 정보 */}

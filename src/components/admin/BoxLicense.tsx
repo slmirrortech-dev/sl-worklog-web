@@ -1,10 +1,12 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { IdCardIcon, Upload } from 'lucide-react'
+import { IdCardIcon, Upload, ZoomIn, Trash2 } from 'lucide-react'
 import { UserResponseDto } from '@/types/user'
-import { getLicenseApi, uploadLicenseApi } from '@/lib/api/user-api'
+import { deleteLicenseApi, getLicenseApi, uploadLicenseApi } from '@/lib/api/user-api'
 import { ApiResponse } from '@/types/common'
+import ModalLicense from '@/components/admin/ModalLicense'
+import { useRouter } from 'next/navigation'
 
 /**
  * 이미지 업로드/모달 보기 컴포넌트
@@ -12,11 +14,15 @@ import { ApiResponse } from '@/types/common'
  */
 export default function BoxLicense({
   targetUser,
+  setFreshUser,
   canEdit,
 }: {
   targetUser: UserResponseDto
+  setFreshUser: any
   canEdit: boolean
 }) {
+  const router = useRouter()
+  const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState(false)
   const [file, setFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
@@ -47,6 +53,7 @@ export default function BoxLicense({
     if (data.url) {
       // signed URL
       setPreviewUrl(data.url)
+      router.refresh()
     }
   }
 
@@ -64,7 +71,7 @@ export default function BoxLicense({
   }
 
   return (
-    <div>
+    <div className="relative overflow-hidden rounded-xl">
       {previewUrl || signedUrl ? (
         <>
           {previewUrl ? (
@@ -73,6 +80,48 @@ export default function BoxLicense({
             <img className="w-full" src={signedUrl} alt="uploaded" />
           ) : (
             <p className="text-gray-400">이미지가 없습니다</p>
+          )}
+          <div className="absolute left-0 top-0 w-full h-full bg-black/30 opacity-0 hover:opacity-100 transition-all flex items-center justify-center gap-3">
+            <button
+              onClick={() => {
+                setIsOpenModal(true)
+              }}
+              className="bg-white/90 hover:bg-white text-gray-800 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors shadow-lg"
+            >
+              <ZoomIn className="w-4 h-4" />
+              확대
+            </button>
+            {canEdit && (
+              <button
+                onClick={async () => {
+                  setIsLoading(true)
+                  try {
+                    const user = await deleteLicenseApi(targetUser.id)
+                    setPreviewUrl(null)
+                    setSignedUrl(null)
+                    setFreshUser(user)
+                    router.refresh()
+                  } catch (error) {
+                    console.error(error)
+                    alert('면허증 이미지 삭제 실패했습니다.')
+                  } finally {
+                    setIsLoading(false)
+                  }
+                }}
+                className="bg-red-500/90 hover:bg-red-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors shadow-lg"
+              >
+                <Trash2 className="w-4 h-4" />
+                삭제
+              </button>
+            )}
+          </div>
+          {isOpenModal && (
+            <ModalLicense
+              userName={targetUser.name}
+              setIsOpen={setIsOpenModal}
+              previewUrl={previewUrl || signedUrl}
+              licensePhotoUrl={null}
+            />
           )}
         </>
       ) : (

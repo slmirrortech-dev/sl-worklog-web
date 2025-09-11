@@ -58,3 +58,10 @@ export async function getLicenseApi(imgUrl: string) {
     method: 'GET',
   })
 }
+
+/**
+ * 이미지 삭제
+ */
+export async function deleteLicenseApi(id: string) {
+  return await apiFetch<ApiResponse<UserResponseDto>>(`/api/upload/${id}`, { method: 'DELETE' })
+}

@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button'
 import { FileImage, Plus } from 'lucide-react'
 import ModalLicense from '@/components/admin/ModalLicense'
 import { UserResponseDto } from '@/types/user'
+import { uploadLicenseApi } from '@/lib/api/user-api'
+import { ApiResponse } from '@/types/common'
 
 /**
  * 이미지 업로드/모달 보기 컴포넌트
@@ -31,15 +33,14 @@ export default function ButtonLicense({
     const formData = new FormData()
     formData.append('file', file)
 
-    const res = await fetch(`/api/upload/${targetUser.id}`, {
-      method: 'POST',
-      body: formData,
-    })
-
-    const data = await res.json()
-    if (data.url) {
-      // signed URL
-      setPreviewUrl(data.url)
+    try {
+      const { data }: ApiResponse<{ url: string }> = await uploadLicenseApi(targetUser.id, formData)
+      if (data.url) {
+        // signed URL
+        setPreviewUrl(data.url)
+      }
+    } catch (e) {
+      console.error('면허증 등록 실패', e)
     }
   }
 
@@ -50,7 +51,22 @@ export default function ButtonLicense({
 
   return (
     <div>
-      {previewUrl || targetUser.licensePhotoUrl ? (
+      {previewUrl ? (
+        <>
+          <Button
+            variant="default"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation()
+              setIsModalOpen(true)
+            }}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-sm"
+          >
+            <FileImage className="w-3 h-3" />
+            확인
+          </Button>
+        </>
+      ) : targetUser.licensePhotoUrl ? (
         <>
           <Button
             variant="default"

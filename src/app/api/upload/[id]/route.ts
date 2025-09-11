@@ -6,6 +6,7 @@ import { supabaseServer } from '@/lib/supabase/server'
 import sharp from 'sharp'
 import { withErrorHandler } from '@/lib/core/api-handler'
 import { ApiResponseFactory } from '@/lib/core/api-response-factory'
+import { UserResponseDto } from '@/types/user'
 
 export const runtime = 'nodejs'
 export const BUCKET_NAME = 'licensePhoto'
@@ -59,3 +60,31 @@ export async function uploadLicense(
 }
 
 export const POST = withErrorHandler(uploadLicense)
+
+/** 사용자별 면허증 이미지 삭제 */
+async function deleteLicense(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  await requireAdmin(req)
+  const { id } = await params
+  const user = await findUserOrThrow(id)
+
+  if (!user.licensePhotoUrl) {
+    throw new Error('삭제할 이미지가 없습니다.')
+  }
+
+  // 스토리지에서 삭제
+  const { error: removeError } = await supabaseServer.storage
+    .from(BUCKET_NAME)
+    .remove([user.licensePhotoUrl])
+
+  if (removeError) throw new Error(removeError.message)
+
+  // 경로 초기화
+  const freshUser = (await prisma.user.update({
+    where: { id },
+    data: { licensePhotoUrl: null },
+  })) as UserResponseDto
+
+  return ApiResponseFactory.success(freshUser, '사용자 면허증 이미지 삭제 완료')
+}
+
+export const DELETE = withErrorHandler(deleteLicense)
