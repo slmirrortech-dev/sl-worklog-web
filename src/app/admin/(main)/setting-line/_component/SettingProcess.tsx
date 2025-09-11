@@ -173,26 +173,22 @@ const SettingProcess = ({ initialData }: { initialData: LineResponseDto[] }) => 
 
   // 라인 삭제 함수
   const handleDeleteLine = (lineId: string) => {
-    if (window.confirm('정말 이 라인을 삭제하시겠습니까?')) {
-      const filteredLines = lineWithProcess.filter((line) => line.id !== lineId)
-      setLineWithProcess(filteredLines)
-    }
+    const filteredLines = lineWithProcess.filter((line) => line.id !== lineId)
+    setLineWithProcess(filteredLines)
   }
 
   // 공정 삭제 함수
   const handleDeleteProcess = (lineId: string, processId: string) => {
-    if (window.confirm('정말 이 공정을 삭제하시겠습니까?')) {
-      const updatedLines = lineWithProcess.map((line) => {
-        if (line.id === lineId) {
-          return {
-            ...line,
-            processes: line.processes.filter((process) => process.id !== processId),
-          }
+    const updatedLines = lineWithProcess.map((line) => {
+      if (line.id === lineId) {
+        return {
+          ...line,
+          processes: line.processes.filter((process) => process.id !== processId),
         }
-        return line
-      })
-      setLineWithProcess(updatedLines)
-    }
+      }
+      return line
+    })
+    setLineWithProcess(updatedLines)
   }
 
   return (
@@ -243,7 +239,7 @@ const SettingProcess = ({ initialData }: { initialData: LineResponseDto[] }) => 
       {/* 메인 테이블 */}
       <div
         className={`bg-white rounded-xl shadow-sm border transition-all duration-300 overflow-hidden ${
-          isEditMode ? 'border-blue-200 ring-1 ring-blue-100' : 'border-gray-200'
+          isEditMode ? 'border-blue-200 ring-4 ring-blue-100' : 'border-gray-200'
         } ${isDragging ? 'ring-2 ring-gray-300 shadow-md' : 'hover:shadow-md'}`}
       >
         <div className="overflow-auto max-h-screen">
@@ -403,10 +399,10 @@ const SettingProcess = ({ initialData }: { initialData: LineResponseDto[] }) => 
                           <div className={`${leftTableHead} px-2 py-1`}>
                             <button
                               onClick={() => handleAddProcess(line.id)}
-                              className="group flex flex-col items-center justify-center gap-1 w-full h-full bg-gray-100 hover:bg-gray-200 border-2 border-dashed border-gray-300 hover:border-gray-400 rounded-lg text-gray-500 hover:text-gray-600 transition-all duration-200"
+                              className="group flex items-center justify-center gap-2 w-full h-full bg-gray-100 hover:bg-gray-200 border-2 border-dashed border-gray-300 hover:border-gray-400 rounded-lg text-gray-500 hover:text-gray-600 transition-all duration-200"
                             >
                               <Plus className="w-4 h-4" />
-                              <span className="text-xs font-medium">공정 추가</span>
+                              <span className="text-sm font-medium">공정 추가</span>
                             </button>
                           </div>
                         )}
@@ -557,10 +553,10 @@ const SettingProcess = ({ initialData }: { initialData: LineResponseDto[] }) => 
               {isEditMode && (
                 <tr>
                   <td className="sticky left-0 z-10">
-                    <div className="flex justify-center items-center min-h-[58px] px-4 bg-gray-50">
+                    <div className="flex justify-center items-center min-h-[58px] pl-2 bg-gray-50">
                       <button
                         onClick={handleAddLine}
-                        className="group flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 border-2 border-dashed border-gray-300 hover:border-gray-400 rounded-lg text-gray-500 hover:text-gray-600 transition-all duration-200"
+                        className="w-full group flex items-center justify-center gap-2 px-5 py-3 bg-gray-100 hover:bg-gray-200 border-2 border-dashed border-gray-300 hover:border-gray-400 rounded-lg text-gray-500 hover:text-gray-600 transition-all duration-200"
                       >
                         <Plus className="w-4 h-4" />
                         <span className="text-sm font-medium">라인 추가</span>
