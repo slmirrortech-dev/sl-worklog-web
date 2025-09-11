@@ -317,7 +317,7 @@ const SettingProcess = ({ initialData }: { initialData: LineResponseDto[] }) => 
                           )}
                         </div>
                       </td>
-                      <td className="flex bg-white border-b border-gray-200">
+                      <td className="flex bg-white">
                         {/* 라인의 하위 공정 목록 */}
                         {line.processes.map((process) => {
                           return (

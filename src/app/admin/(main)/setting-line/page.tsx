@@ -2,6 +2,7 @@ import React from 'react'
 import prisma from '@/lib/core/prisma'
 import { LineResponseDto } from '@/types/line-with-process'
 import SettingProcess from '@/app/admin/(main)/setting-line/_component/SettingProcess'
+import { getShiftStatus } from '@/lib/utils/line-status'
 
 /** 작업장 현황판 */
 const ProcessPage = async () => {
@@ -24,11 +25,11 @@ const ProcessPage = async () => {
       },
     })
 
-    // 확장 - 기본값 설정으로 오류 방지
+    // 확장
     responseData = lines.map((line) => ({
       ...line,
-      dayStatus: 'NORMAL' as const,
-      nightStatus: 'NORMAL' as const,
+      dayStatus: getShiftStatus(line.processes, 'DAY'),
+      nightStatus: getShiftStatus(line.processes, 'NIGHT'),
     }))
   } catch (error) {
     console.error(error)
