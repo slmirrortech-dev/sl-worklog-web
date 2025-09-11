@@ -53,10 +53,8 @@ export async function uploadLicenseApi(id: string, formData: FormData) {
 /**
  * 이미지 불러오기
  */
-// TODO : 캐시 처리 다시 고민 필요
 export async function getLicenseApi(imgUrl: string) {
   return await apiFetch<ApiResponse<{ url: string }>>(`/api/storage/signed-url?key=${imgUrl}`, {
     method: 'GET',
-    cache: 'force-cache',
   })
 }
