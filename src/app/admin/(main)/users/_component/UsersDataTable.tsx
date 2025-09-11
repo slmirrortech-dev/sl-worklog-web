@@ -43,7 +43,7 @@ const UsersDataTable = ({
     setLoading(true)
     try {
       const role = id === 'admins' ? 'ADMIN;MANAGER' : 'WORKER'
-      const res = await getUsersApi(page, pageSize, encodeURIComponent(search), role)
+      const res = await getUsersApi(page, pageSize, search, role)
       setData(res.data)
     } catch (error) {
     } finally {

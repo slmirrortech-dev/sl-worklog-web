@@ -15,8 +15,15 @@ export async function getCurrentUserApi() {
  * 전체 사용자 조회하기
  */
 export async function getUsersApi(page: number, pageSize: number, search: string, role: string) {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    pageSize: pageSize.toString(),
+    search,
+    role,
+  })
+  
   return await apiFetch<ApiResponse<UserResponseDto[]>>(
-    `/api/users?page=${page}&pageSize=${pageSize}&search=${search}&role=${role}`,
+    `/api/users?${params.toString()}`,
     {
       method: 'GET',
     },
