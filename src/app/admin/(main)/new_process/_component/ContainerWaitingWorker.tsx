@@ -7,15 +7,28 @@ import CardWaitingWorker from '@/app/admin/(main)/new_process/_component/CardWai
 const ContainerWaitingWorker = ({
   process,
   shiftType = 'DAY',
+  onDragStart,
+  onDrop,
+  onDragOver,
 }: {
   process: ProcessResponseDto
   shiftType: ShiftType
+  onDragStart?: (e: React.DragEvent, processId: string, shiftType: ShiftType) => void
+  onDrop?: (e: React.DragEvent, processId: string, shiftType: ShiftType) => void
+  onDragOver?: (e: React.DragEvent) => void
 }) => {
-  const waitingWorker = process.shifts.filter(({ type }) => type === shiftType)?.[0]?.waitingWorker
+  const shift = process.shifts.filter(({ type }) => type === shiftType)?.[0]
+  const waitingWorker = shift?.waitingWorker
 
   return (
     <div key={process.id} className={`${leftTableShiftHead} px-2 py-1`}>
-      <div className="bg-gray-50 border border-gray-200 rounded-sm flex h-full items-center justify-center gap-1 cursor-move">
+      <div 
+        className="bg-gray-50 border border-gray-200 rounded-sm flex h-full items-center justify-center gap-1 cursor-move hover:bg-gray-100 transition-colors"
+        draggable
+        onDragStart={(e) => onDragStart?.(e, process.id, shiftType)}
+        onDrop={(e) => onDrop?.(e, process.id, shiftType)}
+        onDragOver={onDragOver}
+      >
         {waitingWorker ? (
           // 대기 등록 된 작업자
           <CardWaitingWorker waitingWorker={waitingWorker} />

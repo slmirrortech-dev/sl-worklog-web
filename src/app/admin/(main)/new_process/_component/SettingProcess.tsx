@@ -4,12 +4,18 @@ import React, { useEffect, useState } from 'react'
 import { LineResponseDto } from '@/types/line-with-process'
 import { GripVertical, Plus, X } from 'lucide-react'
 import ContainerWaitingWorker from '@/app/admin/(main)/new_process/_component/ContainerWaitingWorker'
+import { useDragAndDrop } from '@/hooks/useDragAndDrop'
 
 export const leftTableHead = `min-w-[160px] min-h-[58px]`
 export const leftTableShiftHead = `min-w-[160px] min-h-[100px]`
 
 const SettingProcess = ({ initialData }: { initialData: LineResponseDto[] }) => {
   const [lineWithProcess, setLineWithProcess] = useState<LineResponseDto[]>(initialData)
+  
+  const { handleDragStart, handleDragOver, handleDrop } = useDragAndDrop(
+    lineWithProcess,
+    setLineWithProcess
+  )
 
   useEffect(() => {
     console.log(lineWithProcess)
@@ -43,6 +49,10 @@ const SettingProcess = ({ initialData }: { initialData: LineResponseDto[] }) => 
                     <td className="sticky left-0 z-10">
                       <div
                         className={`flex items-center justify-between ${leftTableHead} px-2 bg-green-100 text-green-900 cursor-move`}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, line, 'line')}
+                        onDrop={(e) => handleDrop(e, line, 'line')}
+                        onDragOver={handleDragOver}
                       >
                         <GripVertical className="w-4 h-4 text-gray-400" />
                         <span className="text-lg font-bold">{line.name} </span>
@@ -52,7 +62,14 @@ const SettingProcess = ({ initialData }: { initialData: LineResponseDto[] }) => 
                       {/* 라인의 하위 공정 목록 */}
                       {line.processes.map((process) => {
                         return (
-                          <div key={process.id} className={`${leftTableHead} px-2 py-1`}>
+                          <div 
+                            key={process.id} 
+                            className={`${leftTableHead} px-2 py-1`}
+                            draggable
+                            onDragStart={(e) => handleDragStart(e, process, 'process', line.id)}
+                            onDrop={(e) => handleDrop(e, process, 'process', line.id)}
+                            onDragOver={handleDragOver}
+                          >
                             <div className="bg-green-200 px-2 border rounded-sm flex h-full items-center justify-center gap-1 cursor-move">
                               <GripVertical className="w-6 h-6 text-gray-400" />
                               <span className="block w-full text-green-800 font-bold">
@@ -94,6 +111,9 @@ const SettingProcess = ({ initialData }: { initialData: LineResponseDto[] }) => 
                             key={process.id}
                             process={process}
                             shiftType="DAY"
+                            onDragStart={(e, processId, shiftType) => handleDragStart(e, { processId, shiftType }, 'worker', line.id, processId)}
+                            onDrop={(e, processId, shiftType) => handleDrop(e, { processId, shiftType }, 'worker', line.id, processId)}
+                            onDragOver={handleDragOver}
                           />
                         )
                       })}
@@ -120,6 +140,9 @@ const SettingProcess = ({ initialData }: { initialData: LineResponseDto[] }) => 
                             key={process.id}
                             process={process}
                             shiftType="NIGHT"
+                            onDragStart={(e, processId, shiftType) => handleDragStart(e, { processId, shiftType }, 'worker', line.id, processId)}
+                            onDrop={(e, processId, shiftType) => handleDrop(e, { processId, shiftType }, 'worker', line.id, processId)}
+                            onDragOver={handleDragOver}
                           />
                         )
                       })}
