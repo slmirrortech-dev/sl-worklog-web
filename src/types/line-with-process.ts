@@ -1,8 +1,10 @@
 import { User, Line, Process, ProcessShift } from '@prisma/client'
 
+export type waitingWorkerModel = Pick<User, 'id' | 'userId' | 'name' | 'licensePhotoUrl'>
+
 // 교대조 DTO
 export type ProcessShiftDto = ProcessShift & {
-  waitingWorker: Pick<User, 'id' | 'userId' | 'name' | 'licensePhotoUrl'> | null
+  waitingWorker: waitingWorkerModel | null
 }
 
 // 공정 DTO (DB 기본 필드 + 하위 교대조 포함)

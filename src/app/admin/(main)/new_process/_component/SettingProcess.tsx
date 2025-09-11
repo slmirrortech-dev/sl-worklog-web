@@ -3,6 +3,10 @@
 import React, { useEffect, useState } from 'react'
 import { LineResponseDto } from '@/types/line-with-process'
 import { GripVertical, Plus, X } from 'lucide-react'
+import ContainerWaitingWorker from '@/app/admin/(main)/new_process/_component/ContainerWaitingWorker'
+
+export const leftTableHead = `min-w-[160px] min-h-[58px]`
+export const leftTableShiftHead = `min-w-[160px] min-h-[100px]`
 
 const SettingProcess = ({ initialData }: { initialData: LineResponseDto[] }) => {
   const [lineWithProcess, setLineWithProcess] = useState<LineResponseDto[]>(initialData)
@@ -10,9 +14,6 @@ const SettingProcess = ({ initialData }: { initialData: LineResponseDto[] }) => 
   useEffect(() => {
     console.log(lineWithProcess)
   }, [lineWithProcess])
-
-  const leftTableHead = `min-w-[160px] min-h-[58px]`
-  const leftTableShiftHead = `min-w-[160px] min-h-[90px]`
 
   return (
     <div className="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-300">
@@ -67,6 +68,9 @@ const SettingProcess = ({ initialData }: { initialData: LineResponseDto[] }) => 
                           </div>
                         )
                       })}
+                      <button className="flex justify-center items-center w-9 h-9 bg-blue-500 rounded-full text-white">
+                        <Plus />
+                      </button>
                     </td>
                   </tr>
                   <tr>
@@ -84,23 +88,13 @@ const SettingProcess = ({ initialData }: { initialData: LineResponseDto[] }) => 
                     </td>
                     {/* 주간 공정 작업자 리스트 */}
                     <td className="flex">
-                      {line.processes.map((process, index) => {
-                        const waitingWorker = process.shifts.filter(
-                          ({ type }) => type === 'DAY',
-                        )?.[0]?.waitingWorker
-
-                        const isWaitingWorker = !!waitingWorker
-
+                      {line.processes.map((process) => {
                         return (
-                          <div key={process.id} className={`${leftTableShiftHead} px-2 py-1`}>
-                            <div className="bg-gray-50 border border-gray-200 rounded-sm flex h-full items-center justify-center gap-1 cursor-move">
-                              {isWaitingWorker ? (
-                                <span>{waitingWorker?.name}</span>
-                              ) : (
-                                <span className="text-xs text-gray-400">대기</span>
-                              )}
-                            </div>
-                          </div>
+                          <ContainerWaitingWorker
+                            key={process.id}
+                            process={process}
+                            shiftType="DAY"
+                          />
                         )
                       })}
                     </td>
@@ -120,23 +114,13 @@ const SettingProcess = ({ initialData }: { initialData: LineResponseDto[] }) => 
                     </td>
                     {/* 야간 공정 작업자 리스트 */}
                     <td className="flex">
-                      {line.processes.map((process, index) => {
-                        const waitingWorker = process.shifts.filter(
-                          ({ type }) => type === 'NIGHT',
-                        )?.[0]?.waitingWorker
-
-                        const isWaitingWorker = !!waitingWorker
-
+                      {line.processes.map((process) => {
                         return (
-                          <div key={process.id} className={`${leftTableShiftHead} px-2 py-1`}>
-                            <div className="bg-gray-50 border border-gray-200 rounded-sm flex h-full items-center justify-center gap-1 cursor-move">
-                              {isWaitingWorker ? (
-                                <span>{waitingWorker?.name}</span>
-                              ) : (
-                                <span className="text-xs text-gray-400">대기</span>
-                              )}
-                            </div>
-                          </div>
+                          <ContainerWaitingWorker
+                            key={process.id}
+                            process={process}
+                            shiftType="NIGHT"
+                          />
                         )
                       })}
                     </td>
@@ -146,7 +130,7 @@ const SettingProcess = ({ initialData }: { initialData: LineResponseDto[] }) => 
             })}
             <tr>
               <td className="py-2">
-                <button className="m-auto flex justify-center items-center w-12 h-12 bg-blue-500 rounded-full text-white">
+                <button className="m-auto flex justify-center items-center w-9 h-9 bg-blue-500 rounded-full text-white">
                   <Plus />
                 </button>
               </td>
