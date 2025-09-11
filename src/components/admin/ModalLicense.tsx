@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from 'react'
 import { X } from 'lucide-react'
-import { apiFetch } from '@/lib/api/api-fetch'
 import { getLicenseApi } from '@/lib/api/user-api'
 import { ApiResponse } from '@/types/common'
 
@@ -18,17 +17,23 @@ const ModalLicense = ({
   previewUrl: string | null
   licensePhotoUrl: string | null
 }) => {
+  const [isLoading, setIsLoading] = useState(false)
   const [signedUrl, setSignedUrl] = useState<string | null>(null)
 
   // 새로고침/최초 진입 시 signedUrl 발급
   useEffect(() => {
     const fetchSignedUrl = async () => {
+      setIsLoading(true)
       if (licensePhotoUrl) {
         const { data }: ApiResponse<{ url: string }> = await getLicenseApi(licensePhotoUrl)
         if (data.url) setSignedUrl(data.url)
       }
     }
-    fetchSignedUrl().then()
+    fetchSignedUrl()
+      .then()
+      .finally(() => {
+        setIsLoading(false)
+      })
   }, [licensePhotoUrl])
 
   return (
@@ -56,7 +61,13 @@ const ModalLicense = ({
           ) : signedUrl ? (
             <img src={signedUrl} alt="uploaded" />
           ) : (
-            <p className="text-gray-400 mt-40">이미지가 없습니다</p>
+            <>
+              {isLoading ? (
+                <p className="text-gray-400 mt-40">불러오는 중...</p>
+              ) : (
+                <p className="text-gray-400 mt-40">이미지가 없습니다</p>
+              )}
+            </>
           )}
         </div>
       </div>

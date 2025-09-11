@@ -17,20 +17,25 @@ export default function BoxLicense({
   targetUser: UserResponseDto
   canEdit: boolean
 }) {
+  const [isLoading, setIsLoading] = useState(false)
   const [file, setFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [signedUrl, setSignedUrl] = useState<string | null>(null)
 
   // 새로고침/최초 진입 시 signedUrl 발급
   useEffect(() => {
-    if (!targetUser.licensePhotoUrl) return
-    ;(async () => {
-      const { data }: ApiResponse<{ url: string }> = await getLicenseApi(
-        targetUser.licensePhotoUrl as string,
-      )
+    const fetchSignedUrl = async () => {
+      if (!targetUser.licensePhotoUrl) return
 
+      setIsLoading(true)
+      const { data }: ApiResponse<{ url: string }> = await getLicenseApi(targetUser.licensePhotoUrl)
       if (data.url) setSignedUrl(data.url)
-    })()
+    }
+    fetchSignedUrl()
+      .then()
+      .finally(() => {
+        setIsLoading(false)
+      })
   }, [targetUser.licensePhotoUrl])
 
   const fetchUpload = async (file: File) => {
@@ -49,6 +54,14 @@ export default function BoxLicense({
     if (!file) return
     fetchUpload(file).then()
   }, [file])
+
+  if (isLoading) {
+    return (
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div className="w-full h-56 bg-gray-100 animate-pulse rounded-lg" />
+      </div>
+    )
+  }
 
   return (
     <div>
