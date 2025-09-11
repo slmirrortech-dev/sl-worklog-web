@@ -4,7 +4,7 @@ export const ROUTES = {
     STATUS: '/admin/status',
     USERS: '/admin/users',
     WORK_LOG: '/admin/work-log',
-    PROCESS: '/admin/line-with-process',
+    PROCESS: '/admin/setting-line',
     MONITOR: '/admin/monitor',
     MY_PAGE: '/admin/my-page',
   },

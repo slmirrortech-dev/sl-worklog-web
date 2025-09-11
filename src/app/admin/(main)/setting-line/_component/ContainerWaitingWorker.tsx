@@ -1,8 +1,8 @@
 import React from 'react'
 import { ProcessResponseDto } from '@/types/line-with-process'
-import { leftTableShiftHead } from '@/app/admin/(main)/new_process/_component/SettingProcess'
+import { leftTableShiftHead } from '@/app/admin/(main)/setting-line/_component/SettingProcess'
 import { ShiftType } from '@prisma/client'
-import CardWaitingWorker from '@/app/admin/(main)/new_process/_component/CardWaitingWorker'
+import CardWaitingWorker from '@/app/admin/(main)/setting-line/_component/CardWaitingWorker'
 import { Plus } from 'lucide-react'
 
 const ContainerWaitingWorker = ({
@@ -26,24 +26,24 @@ const ContainerWaitingWorker = ({
   const waitingWorker = shift?.waitingWorker
 
   // 현재 셀이 드래그 중인지 확인
-  const isCurrentlyDragged = isDragging && 
-    dragState?.draggedType === 'worker' && 
-    dragState?.draggedItem?.processId === process.id && 
+  const isCurrentlyDragged =
+    isDragging &&
+    dragState?.draggedType === 'worker' &&
+    dragState?.draggedItem?.processId === process.id &&
     dragState?.draggedItem?.shiftType === shiftType
 
   // 드롭 가능한 영역인지 확인
-  const isDroppable = isDragging && 
-    dragState?.draggedType === 'worker' && 
-    !isCurrentlyDragged
+  const isDroppable = isDragging && dragState?.draggedType === 'worker' && !isCurrentlyDragged
 
   // 동적 스타일 클래스
   const getContainerClass = () => {
-    let baseClass = "rounded-lg border shadow-sm flex h-full items-center justify-center gap-2 cursor-move transition-all duration-300 min-h-[80px]"
-    
+    let baseClass =
+      'rounded-lg border shadow-sm flex h-full items-center justify-center gap-2 cursor-move transition-all duration-300 min-h-[80px]'
+
     // 시프트 타입에 따른 기본 배경색 설정
     const shiftBgColor = shiftType === 'DAY' ? 'bg-gray-50' : 'bg-gray-100'
     const shiftHoverColor = shiftType === 'DAY' ? 'hover:bg-gray-100' : 'hover:bg-gray-200'
-    
+
     if (isCurrentlyDragged) {
       return `${baseClass} bg-gray-200 border-gray-400 opacity-70 scale-95`
     } else if (isDroppable) {
@@ -57,7 +57,7 @@ const ContainerWaitingWorker = ({
 
   return (
     <div key={process.id} className={`${leftTableShiftHead} px-2 py-1`}>
-      <div 
+      <div
         className={getContainerClass()}
         draggable
         onDragStart={(e) => onDragStart?.(e, process.id, shiftType)}
