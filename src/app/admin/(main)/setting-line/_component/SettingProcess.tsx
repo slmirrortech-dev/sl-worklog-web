@@ -22,10 +22,8 @@ const SettingProcess = ({ initialData }: { initialData: LineResponseDto[] }) => 
     shiftType: 'DAY' | 'NIGHT'
   } | null>(null)
 
-  const { dragState, handleDragStart, handleDragOver, handleDrop, handleDragEnd, isDragging } = useDragAndDrop(
-    lineWithProcess,
-    setLineWithProcess,
-  )
+  const { dragState, handleDragStart, handleDragOver, handleDrop, handleDragEnd, isDragging } =
+    useDragAndDrop(lineWithProcess, setLineWithProcess)
 
   useEffect(() => {
     console.log(lineWithProcess)
@@ -242,7 +240,7 @@ const SettingProcess = ({ initialData }: { initialData: LineResponseDto[] }) => 
           isEditMode ? 'border-blue-200 ring-4 ring-blue-100' : 'border-gray-200'
         } ${isDragging ? 'ring-2 ring-gray-300 shadow-md' : 'hover:shadow-md'}`}
       >
-        <div className="overflow-auto max-h-screen">
+        <div className="overflow-auto">
           {/* 테이블 */}
           <table className="w-full border-collapse">
             {/* 테이블 해더 */}
