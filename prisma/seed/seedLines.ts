@@ -14,7 +14,6 @@ const initialLines = [
       { name: 'P4', order: 4 },
       { name: 'P5', order: 5 },
       { name: 'P6', order: 6 },
-      { name: 'P7', order: 7 },
     ],
   },
   {
@@ -27,7 +26,6 @@ const initialLines = [
       { name: 'P4', order: 4 },
       { name: 'P5', order: 5 },
       { name: 'P6', order: 6 },
-      { name: 'P7', order: 7 },
     ],
   },
   {
@@ -40,7 +38,6 @@ const initialLines = [
       { name: 'P4', order: 4 },
       { name: 'P5', order: 5 },
       { name: 'P6', order: 6 },
-      { name: 'P7', order: 7 },
     ],
   },
   {
@@ -53,7 +50,6 @@ const initialLines = [
       { name: 'P4', order: 4 },
       { name: 'P5', order: 5 },
       { name: 'P6', order: 6 },
-      { name: 'P7', order: 7 },
     ],
   },
   {
@@ -66,7 +62,6 @@ const initialLines = [
       { name: 'P4', order: 4 },
       { name: 'P5', order: 5 },
       { name: 'P6', order: 6 },
-      { name: 'P7', order: 7 },
     ],
   },
   {
@@ -79,7 +74,6 @@ const initialLines = [
       { name: 'P4', order: 4 },
       { name: 'P5', order: 5 },
       { name: 'P6', order: 6 },
-      { name: 'P7', order: 7 },
     ],
   },
   {
@@ -92,7 +86,6 @@ const initialLines = [
       { name: 'P4', order: 4 },
       { name: 'P5', order: 5 },
       { name: 'P6', order: 6 },
-      { name: 'P7', order: 7 },
     ],
   },
   {
@@ -105,7 +98,6 @@ const initialLines = [
       { name: 'P4', order: 4 },
       { name: 'P5', order: 5 },
       { name: 'P6', order: 6 },
-      { name: 'P7', order: 7 },
     ],
   },
   {
@@ -118,7 +110,6 @@ const initialLines = [
       { name: 'P4', order: 4 },
       { name: 'P5', order: 5 },
       { name: 'P6', order: 6 },
-      { name: 'P7', order: 7 },
     ],
   },
   {
@@ -131,7 +122,6 @@ const initialLines = [
       { name: 'P4', order: 4 },
       { name: 'P5', order: 5 },
       { name: 'P6', order: 6 },
-      { name: 'P7', order: 7 },
     ],
   },
   {
@@ -144,7 +134,6 @@ const initialLines = [
       { name: 'P4', order: 4 },
       { name: 'P5', order: 5 },
       { name: 'P6', order: 6 },
-      { name: 'P7', order: 7 },
     ],
   },
   {
@@ -157,7 +146,6 @@ const initialLines = [
       { name: 'P4', order: 4 },
       { name: 'P5', order: 5 },
       { name: 'P6', order: 6 },
-      { name: 'P7', order: 7 },
     ],
   },
   {
@@ -170,7 +158,6 @@ const initialLines = [
       { name: 'P4', order: 4 },
       { name: 'P5', order: 5 },
       { name: 'P6', order: 6 },
-      { name: 'P7', order: 7 },
     ],
   },
   {
@@ -183,7 +170,6 @@ const initialLines = [
       { name: 'P4', order: 4 },
       { name: 'P5', order: 5 },
       { name: 'P6', order: 6 },
-      { name: 'P7', order: 7 },
     ],
   },
   {
@@ -196,7 +182,6 @@ const initialLines = [
       { name: 'P4', order: 4 },
       { name: 'P5', order: 5 },
       { name: 'P6', order: 6 },
-      { name: 'P7', order: 7 },
     ],
   },
   {
@@ -209,7 +194,6 @@ const initialLines = [
       { name: 'P4', order: 4 },
       { name: 'P5', order: 5 },
       { name: 'P6', order: 6 },
-      { name: 'P7', order: 7 },
     ],
   },
   {
@@ -222,7 +206,6 @@ const initialLines = [
       { name: 'P4', order: 4 },
       { name: 'P5', order: 5 },
       { name: 'P6', order: 6 },
-      { name: 'P7', order: 7 },
     ],
   },
   {
@@ -235,7 +218,6 @@ const initialLines = [
       { name: 'P4', order: 4 },
       { name: 'P5', order: 5 },
       { name: 'P6', order: 6 },
-      { name: 'P7', order: 7 },
     ],
   },
   {
@@ -248,7 +230,6 @@ const initialLines = [
       { name: 'P4', order: 4 },
       { name: 'P5', order: 5 },
       { name: 'P6', order: 6 },
-      { name: 'P7', order: 7 },
     ],
   },
   {
@@ -261,7 +242,6 @@ const initialLines = [
       { name: 'P4', order: 4 },
       { name: 'P5', order: 5 },
       { name: 'P6', order: 6 },
-      { name: 'P7', order: 7 },
     ],
   },
   {
@@ -274,7 +254,6 @@ const initialLines = [
       { name: 'P4', order: 4 },
       { name: 'P5', order: 5 },
       { name: 'P6', order: 6 },
-      { name: 'P7', order: 7 },
     ],
   },
   {
@@ -287,7 +266,6 @@ const initialLines = [
       { name: 'P4', order: 4 },
       { name: 'P5', order: 5 },
       { name: 'P6', order: 6 },
-      { name: 'P7', order: 7 },
     ],
   },
   {
@@ -300,7 +278,6 @@ const initialLines = [
       { name: 'P4', order: 4 },
       { name: 'P5', order: 5 },
       { name: 'P6', order: 6 },
-      { name: 'P7', order: 7 },
     ],
   },
   {
@@ -313,7 +290,6 @@ const initialLines = [
       { name: 'P4', order: 4 },
       { name: 'P5', order: 5 },
       { name: 'P6', order: 6 },
-      { name: 'P7', order: 7 },
     ],
   },
   {
