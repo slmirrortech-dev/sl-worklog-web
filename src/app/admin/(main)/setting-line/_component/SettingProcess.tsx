@@ -246,14 +246,14 @@ const SettingProcess = ({ initialData }: { initialData: LineResponseDto[] }) => 
           {/* 테이블 */}
           <table className="w-full border-collapse">
             {/* 테이블 해더 */}
-            <thead>
-              <tr>
-                <th className="w-40 border-b border-gray-200 px-6 py-4 bg-gray-50 text-sm font-semibold text-gray-700 sticky left-0 top-0 z-20">
-                  라인/공정
-                </th>
-                <th className="border-b border-gray-200 px-6 py-4 bg-gray-50 text-sm font-semibold text-gray-700 sticky top-0 z-10"></th>
-              </tr>
-            </thead>
+            {/*<thead>*/}
+            {/*  <tr>*/}
+            {/*    <th className="w-40 border-b border-gray-200 px-6 py-4 bg-gray-50 text-sm font-semibold text-gray-700 sticky left-0 top-0 z-20">*/}
+            {/*      라인/공정*/}
+            {/*    </th>*/}
+            {/*    <th className="border-b border-gray-200 px-6 py-4 bg-gray-50 text-sm font-semibold text-gray-700 sticky top-0 z-10"></th>*/}
+            {/*  </tr>*/}
+            {/*</thead>*/}
             {/* 테이블 바디 */}
             <tbody>
               {lineWithProcess.map((line) => {
