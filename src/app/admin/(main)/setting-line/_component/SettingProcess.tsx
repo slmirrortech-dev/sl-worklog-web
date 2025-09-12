@@ -6,9 +6,7 @@ import { GripVertical, Plus, X, RotateCcw } from 'lucide-react'
 import ContainerWaitingWorker from '@/app/admin/(main)/setting-line/_component/ContainerWaitingWorker'
 import { useDragAndDrop } from '@/hooks/useDragAndDrop'
 import ShiftStatusLabel from '@/components/admin/ShiftStatusLabel'
-import { ShiftType, WorkStatus } from '@prisma/client'
-import { deleteWaitingWorKerApi } from '@/lib/api/wating-worker-api'
-import { ApiResponse } from '@/types/common'
+import { WorkStatus } from '@prisma/client'
 
 export const leftTableHead = `min-w-[160px] min-h-[58px]`
 export const leftTableShiftHead = `min-w-[160px] min-h-[100px]`
@@ -30,21 +28,6 @@ const SettingProcess = ({ initialData }: { initialData: LineResponseDto[] }) => 
   useEffect(() => {
     console.log(lineWithProcess)
   }, [lineWithProcess])
-
-  // 대기중인 작업자 삭제
-  const handleRemoveWaitingWorker = async (process: any, shiftType: ShiftType) => {
-    try {
-      const {
-        data,
-      }: ApiResponse<{
-        deleted: any
-        updated: LineResponseDto[]
-      }> = await deleteWaitingWorKerApi(process.id, shiftType)
-      setLineWithProcess(data.updated)
-    } catch (error) {
-      alert('선택한 작업자 대기열에서 삭제 오류')
-    }
-  }
 
   // 초기화 함수
   const handleReset = () => {
@@ -465,7 +448,7 @@ const SettingProcess = ({ initialData }: { initialData: LineResponseDto[] }) => 
                               key={process.id}
                               process={process}
                               shiftType="DAY"
-                              removeWaitingWorker={handleRemoveWaitingWorker}
+                              setLineWithProcess={setLineWithProcess}
                               onDragStart={(e, processId, shiftType) =>
                                 handleDragStart(
                                   e,
@@ -538,7 +521,7 @@ const SettingProcess = ({ initialData }: { initialData: LineResponseDto[] }) => 
                               key={process.id}
                               process={process}
                               shiftType="NIGHT"
-                              removeWaitingWorker={handleRemoveWaitingWorker}
+                              setLineWithProcess={setLineWithProcess}
                               onDragStart={(e, processId, shiftType) =>
                                 handleDragStart(
                                   e,

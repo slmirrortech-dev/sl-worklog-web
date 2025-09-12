@@ -1,15 +1,18 @@
-import React from 'react'
-import { ProcessResponseDto } from '@/types/line-with-process'
+import React, { useState } from 'react'
+import { LineResponseDto, ProcessResponseDto } from '@/types/line-with-process'
 import { leftTableShiftHead } from '@/app/admin/(main)/setting-line/_component/SettingProcess'
 import { ShiftType } from '@prisma/client'
 import CardWaitingWorker from '@/app/admin/(main)/setting-line/_component/CardWaitingWorker'
 import { Plus, User, Clock, MapPin, Settings } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import PopoverContentAdd from '@/app/admin/(main)/setting-line/_component/PopoverContentAdd'
+import { ApiResponse } from '@/types/common'
+import { deleteWaitingWorKerApi } from '@/lib/api/wating-worker-api'
 
 const ContainerWaitingWorker = ({
   process,
   shiftType = 'DAY',
-  removeWaitingWorker,
+  setLineWithProcess,
   onDragStart,
   onDrop,
   onDragOver,
@@ -19,7 +22,7 @@ const ContainerWaitingWorker = ({
 }: {
   process: ProcessResponseDto
   shiftType: ShiftType
-  removeWaitingWorker: any
+  setLineWithProcess: any
   onDragStart?: (e: React.DragEvent, processId: string, shiftType: ShiftType) => void
   onDrop?: (e: React.DragEvent, processId: string, shiftType: ShiftType) => void
   onDragOver?: (e: React.DragEvent) => void
@@ -61,11 +64,13 @@ const ContainerWaitingWorker = ({
     }
   }
 
+  const [isOpen, setIsOpen] = useState(false)
+
   return (
     <div key={process.id} className={`${leftTableShiftHead} px-2 py-1`}>
       <div
         className={getContainerClass()}
-        draggable
+        draggable={!!waitingWorker}
         onDragStart={(e) => onDragStart?.(e, process.id, shiftType)}
         onDrop={(e) => onDrop?.(e, process.id, shiftType)}
         onDragOver={onDragOver}
@@ -115,7 +120,19 @@ const ContainerWaitingWorker = ({
 
                 <div className="pt-3 border-t">
                   <button
-                    onClick={() => removeWaitingWorker(process, shiftType)}
+                    onClick={async () => {
+                      try {
+                        const {
+                          data,
+                        }: ApiResponse<{
+                          deleted: any
+                          updated: LineResponseDto[]
+                        }> = await deleteWaitingWorKerApi(process.id, shiftType)
+                        setLineWithProcess(data.updated)
+                      } catch (error) {
+                        alert('선택한 작업자 대기열에서 삭제 오류')
+                      }
+                    }}
                     className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
                   >
                     <Settings className="w-4 h-4" />
@@ -127,12 +144,24 @@ const ContainerWaitingWorker = ({
           </Popover>
         ) : (
           // 등록이 안된 칸
-          <div className="flex flex-col items-center justify-center gap-2 text-gray-400">
-            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-              <Plus className="w-4 h-4" />
-            </div>
-            <span className="text-xs font-medium">대기</span>
-          </div>
+          <Popover open={isOpen} onOpenChange={setIsOpen}>
+            <PopoverTrigger asChild>
+              <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-gray-400 cursor-pointer">
+                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                  <Plus className="w-4 h-4" />
+                </div>
+                <span className="text-xs font-medium">대기</span>
+              </div>
+            </PopoverTrigger>
+            {isOpen && (
+              <PopoverContentAdd
+                setLineWithProcess={setLineWithProcess}
+                setIsOpen={setIsOpen}
+                process={process}
+                shiftType={shiftType}
+              />
+            )}
+          </Popover>
         )}
       </div>
     </div>
