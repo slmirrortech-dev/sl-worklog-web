@@ -22,7 +22,7 @@ const SettingProcess = ({ initialData }: { initialData: LineResponseDto[] }) => 
     shiftType: 'DAY' | 'NIGHT'
   } | null>(null)
 
-  const { dragState, handleDragStart, handleDragOver, handleDrop, isDragging } = useDragAndDrop(
+  const { dragState, handleDragStart, handleDragOver, handleDrop, handleDragEnd, isDragging } = useDragAndDrop(
     lineWithProcess,
     setLineWithProcess,
   )
@@ -469,6 +469,7 @@ const SettingProcess = ({ initialData }: { initialData: LineResponseDto[] }) => 
                                 )
                               }
                               onDragOver={handleDragOver}
+                              onDragEnd={handleDragEnd}
                               isDragging={isDragging}
                               dragState={dragState}
                             />
@@ -540,6 +541,7 @@ const SettingProcess = ({ initialData }: { initialData: LineResponseDto[] }) => 
                                 )
                               }
                               onDragOver={handleDragOver}
+                              onDragEnd={handleDragEnd}
                               isDragging={isDragging}
                               dragState={dragState}
                             />

@@ -278,11 +278,16 @@ export const useDragAndDrop = (
     })
   }
 
+  const handleDragEnd = () => {
+    resetDragState()
+  }
+
   return {
     dragState,
     handleDragStart,
     handleDragOver,
     handleDrop,
+    handleDragEnd,
     resetDragState,
     isDragging: dragState.draggedType !== null
   }

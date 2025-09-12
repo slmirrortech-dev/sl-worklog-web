@@ -11,6 +11,7 @@ const ContainerWaitingWorker = ({
   onDragStart,
   onDrop,
   onDragOver,
+  onDragEnd,
   isDragging,
   dragState,
 }: {
@@ -19,6 +20,7 @@ const ContainerWaitingWorker = ({
   onDragStart?: (e: React.DragEvent, processId: string, shiftType: ShiftType) => void
   onDrop?: (e: React.DragEvent, processId: string, shiftType: ShiftType) => void
   onDragOver?: (e: React.DragEvent) => void
+  onDragEnd?: () => void
   isDragging?: boolean
   dragState?: any
 }) => {
@@ -34,6 +36,7 @@ const ContainerWaitingWorker = ({
 
   // 드롭 가능한 영역인지 확인
   const isDroppable = isDragging && dragState?.draggedType === 'worker' && !isCurrentlyDragged
+  
 
   // 동적 스타일 클래스
   const getContainerClass = () => {
@@ -44,11 +47,13 @@ const ContainerWaitingWorker = ({
     const shiftBgColor = shiftType === 'DAY' ? 'bg-gray-50' : 'bg-gray-100'
     const shiftHoverColor = shiftType === 'DAY' ? 'hover:bg-gray-100' : 'hover:bg-gray-200'
 
+    // 드래그 상태별 스타일
     if (isCurrentlyDragged) {
       return `${baseClass} bg-gray-200 border-gray-400 opacity-70 scale-95`
     } else if (isDroppable) {
       return `${baseClass} ${shiftBgColor} border-gray-300 ${shiftHoverColor} hover:shadow-md`
-    } else if (waitingWorker) {
+    } 
+    else if (waitingWorker) {
       return `${baseClass} bg-white border-gray-200 hover:bg-gray-50 hover:shadow-md`
     } else {
       return `${baseClass} ${shiftBgColor} border-gray-200 ${shiftHoverColor} border-dashed`
@@ -63,6 +68,7 @@ const ContainerWaitingWorker = ({
         onDragStart={(e) => onDragStart?.(e, process.id, shiftType)}
         onDrop={(e) => onDrop?.(e, process.id, shiftType)}
         onDragOver={onDragOver}
+        onDragEnd={onDragEnd}
       >
         {waitingWorker ? (
           // 대기 등록 된 작업자
