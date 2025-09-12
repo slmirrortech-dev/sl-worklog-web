@@ -3,11 +3,13 @@ import { ProcessResponseDto } from '@/types/line-with-process'
 import { leftTableShiftHead } from '@/app/admin/(main)/setting-line/_component/SettingProcess'
 import { ShiftType } from '@prisma/client'
 import CardWaitingWorker from '@/app/admin/(main)/setting-line/_component/CardWaitingWorker'
-import { Plus } from 'lucide-react'
+import { Plus, User, Clock, MapPin, Settings } from 'lucide-react'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 
 const ContainerWaitingWorker = ({
   process,
   shiftType = 'DAY',
+  removeWaitingWorker,
   onDragStart,
   onDrop,
   onDragOver,
@@ -17,6 +19,7 @@ const ContainerWaitingWorker = ({
 }: {
   process: ProcessResponseDto
   shiftType: ShiftType
+  removeWaitingWorker: any
   onDragStart?: (e: React.DragEvent, processId: string, shiftType: ShiftType) => void
   onDrop?: (e: React.DragEvent, processId: string, shiftType: ShiftType) => void
   onDragOver?: (e: React.DragEvent) => void
@@ -36,7 +39,6 @@ const ContainerWaitingWorker = ({
 
   // 드롭 가능한 영역인지 확인
   const isDroppable = isDragging && dragState?.draggedType === 'worker' && !isCurrentlyDragged
-  
 
   // 동적 스타일 클래스
   const getContainerClass = () => {
@@ -52,8 +54,7 @@ const ContainerWaitingWorker = ({
       return `${baseClass} bg-gray-200 border-gray-400 opacity-70 scale-95`
     } else if (isDroppable) {
       return `${baseClass} ${shiftBgColor} border-gray-300 ${shiftHoverColor} hover:shadow-md`
-    } 
-    else if (waitingWorker) {
+    } else if (waitingWorker) {
       return `${baseClass} bg-white border-gray-200 hover:bg-gray-50 hover:shadow-md`
     } else {
       return `${baseClass} ${shiftBgColor} border-gray-200 ${shiftHoverColor} border-dashed`
@@ -71,8 +72,59 @@ const ContainerWaitingWorker = ({
         onDragEnd={onDragEnd}
       >
         {waitingWorker ? (
-          // 대기 등록 된 작업자
-          <CardWaitingWorker waitingWorker={waitingWorker} />
+          <Popover>
+            <PopoverTrigger asChild>
+              <div className="cursor-pointer w-full h-full flex items-center justify-center">
+                <CardWaitingWorker waitingWorker={waitingWorker} />
+              </div>
+            </PopoverTrigger>
+            <PopoverContent className="w-80">
+              <div className="space-y-4">
+                <div className="text-center border-b pb-3">
+                  <h3 className="text-lg font-semibold text-gray-900">{waitingWorker.name}</h3>
+                  <p className="text-sm text-gray-600">작업자 정보</p>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <User className="w-4 h-4 text-blue-600" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">사번</p>
+                      <p className="text-sm text-gray-600">{waitingWorker.userId}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <MapPin className="w-4 h-4 text-green-600" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">현재 위치</p>
+                      <p className="text-sm text-gray-600">
+                        {process.name} ({shiftType === 'DAY' ? '주간' : '야간'})
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <Clock className="w-4 h-4 text-orange-600" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">근무 시간</p>
+                      <p className="text-sm text-gray-600">14시간 36분</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t">
+                  <button
+                    onClick={() => removeWaitingWorker(process, shiftType)}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    <Settings className="w-4 h-4" />
+                    작업자 대기열에서 제외
+                  </button>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
         ) : (
           // 등록이 안된 칸
           <div className="flex flex-col items-center justify-center gap-2 text-gray-400">
