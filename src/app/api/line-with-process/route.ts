@@ -21,8 +21,6 @@ export async function getLineWithProcess(req: NextRequest) {
     },
   })
 
-  console.log('data', data)
-
   return ApiResponseFactory.success(data, '라인과 프로세스 통합 데이터를 조회했습니다.')
 }
 

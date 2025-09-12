@@ -6,6 +6,7 @@ import { requireAdmin } from '@/lib/utils/auth-guards'
 import { ShiftType } from '@prisma/client'
 import { LineResponseDto } from '@/types/line-with-process'
 import { ApiError } from '@/lib/core/errors'
+import { getShiftStatus } from '@/lib/utils/line-status'
 
 /** 대기열에 작업자 추가 */
 export async function addWaitingWorker(request: NextRequest) {
@@ -44,7 +45,7 @@ export async function addWaitingWorker(request: NextRequest) {
     },
   })
 
-  const updatedLine = (await prisma.line.findMany({
+  const lines = await prisma.line.findMany({
     include: {
       processes: {
         include: {
@@ -58,6 +59,13 @@ export async function addWaitingWorker(request: NextRequest) {
         },
       },
     },
+  })
+
+  // 확장 데이터 추가
+  const updatedLine = lines.map((line) => ({
+    ...line,
+    dayStatus: getShiftStatus(line.processes, 'DAY'),
+    nightStatus: getShiftStatus(line.processes, 'NIGHT'),
   })) as LineResponseDto[]
 
   return ApiResponseFactory.success(
@@ -92,7 +100,7 @@ export async function deleteWaitingWorker(request: NextRequest) {
     },
   })
 
-  const updatedLine = (await prisma.line.findMany({
+  const lines = await prisma.line.findMany({
     include: {
       processes: {
         include: {
@@ -106,10 +114,20 @@ export async function deleteWaitingWorker(request: NextRequest) {
         },
       },
     },
+  })
+
+  // 확장 데이터 추가
+  const updatedLine = lines.map((line) => ({
+    ...line,
+    dayStatus: getShiftStatus(line.processes, 'DAY'),
+    nightStatus: getShiftStatus(line.processes, 'NIGHT'),
   })) as LineResponseDto[]
 
   return ApiResponseFactory.success(
-    { deleted: deleteData, updated: updatedLine },
+    {
+      deleted: deleteData,
+      updated: updatedLine,
+    },
     '선택한 프로세스의 대기중인 직원을 삭제했습니다.',
   )
 }
