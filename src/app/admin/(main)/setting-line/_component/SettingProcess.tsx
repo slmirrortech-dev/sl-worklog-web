@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { LineResponseDto } from '@/types/line-with-process'
 import { GripVertical, Plus, X } from 'lucide-react'
 import ContainerWaitingWorker from '@/app/admin/(main)/setting-line/_component/ContainerWaitingWorker'
@@ -10,6 +10,9 @@ import { WorkStatus } from '@prisma/client'
 import useEditLock from '@/hooks/useEditLock'
 import { SessionUser } from '@/lib/core/session'
 import ModalEditLock from '@/app/admin/(main)/setting-line/_component/ModalEditLock'
+import { isEqual } from 'lodash'
+import { updateLineWithProcess } from '@/lib/api/line-with-process-api'
+import { useRouter } from 'next/navigation'
 
 export const leftTableHead = `min-w-[160px] min-h-[58px]`
 export const leftTableShiftHead = `min-w-[160px] min-h-[100px]`
@@ -21,7 +24,9 @@ interface SettingProcessProps {
 
 /** 작업자 관리 */
 const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
+  const router = useRouter()
   const [lineWithProcess, setLineWithProcess] = useState<LineResponseDto[]>(initialData)
+  const [tempLineWithProcess, setTempLineWithProcess] = useState<LineResponseDto[]>(lineWithProcess)
   const [editingLine, setEditingLine] = useState<string | null>(null)
   const [editingProcess, setEditingProcess] = useState<string | null>(null)
   const [editValue, setEditValue] = useState('')
@@ -33,42 +38,38 @@ const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
   // 편집모드 Lock hook
   const { lockInfo, startEditing, stopEditing, isLoading } = useEditLock(currentUser)
 
+  // 편집 모드 변경 시 tempLineWithProcess 초기화
+  useEffect(() => {
+    if (lockInfo.isEditMode) {
+      setTempLineWithProcess([...lineWithProcess])
+    }
+  }, [lockInfo.isEditMode, lineWithProcess])
+
   // 드래그 앤 드롭 hook
   const { dragState, handleDragStart, handleDragOver, handleDrop, handleDragEnd, isDragging } =
-    useDragAndDrop(lineWithProcess, setLineWithProcess)
-
-  // 초기화 함수
-  const handleReset = () => {
-    if (window.confirm('모든 변경사항이 초기 상태로 되돌아갑니다. 계속하시겠습니까?')) {
-      setLineWithProcess(initialData)
-      setEditingLine(null)
-      setEditingProcess(null)
-      setEditValue('')
-      setEditingShift(null)
-    }
-  }
+    useDragAndDrop(tempLineWithProcess, setTempLineWithProcess)
 
   // 라인 추가 함수
   const handleAddLine = () => {
     const newLine: LineResponseDto = {
       id: `temp-line-${Date.now()}`,
-      name: `새 라인 ${lineWithProcess.length + 1}`,
-      order: lineWithProcess.length + 1,
+      name: `라인 이름`,
+      order: tempLineWithProcess.length + 1,
       classNo: [1],
       dayStatus: 'NORMAL',
       nightStatus: 'NORMAL',
       processes: [],
     }
-    setLineWithProcess([...lineWithProcess, newLine])
+    setTempLineWithProcess([...tempLineWithProcess, newLine])
   }
 
   // 공정 추가 함수
   const handleAddProcess = (lineId: string) => {
-    const updatedLines = lineWithProcess.map((line) => {
+    const updatedLines = tempLineWithProcess.map((line) => {
       if (line.id === lineId) {
         const newProcess = {
           id: `temp-process-${Date.now()}`,
-          name: `P${line.processes.length + 1}`,
+          name: '공정 이름',
           order: line.processes.length + 1,
           lineId: lineId,
           shifts: [
@@ -97,7 +98,7 @@ const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
       }
       return line
     })
-    setLineWithProcess(updatedLines)
+    setTempLineWithProcess(updatedLines)
   }
 
   // 라인 이름 편집 시작
@@ -117,11 +118,11 @@ const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
   // 라인 이름 저장
   const handleSaveLineEdit = () => {
     if (!editingLine) return
-    const newName = editValue.trim() || '새 라인'
+    const newName = editValue.trim() || '라인 이름'
     const updatedLines = lineWithProcess.map((line) =>
       line.id === editingLine ? { ...line, name: newName } : line,
     )
-    setLineWithProcess(updatedLines)
+    setTempLineWithProcess(updatedLines)
     setEditingLine(null)
     setEditValue('')
   }
@@ -129,23 +130,38 @@ const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
   // 공정 이름 저장
   const handleSaveProcessEdit = () => {
     if (!editingProcess) return
-    const newName = editValue.trim() || 'P1'
+    const newName = editValue.trim() || '공정 이름'
     const updatedLines = lineWithProcess.map((line) => ({
       ...line,
       processes: line.processes.map((process) =>
         process.id === editingProcess ? { ...process, name: newName } : process,
       ),
     }))
-    setLineWithProcess(updatedLines)
+    setTempLineWithProcess(updatedLines)
     setEditingProcess(null)
     setEditValue('')
   }
 
   // 편집 취소
   const handleCancelEdit = () => {
+    stopEditing().then()
     setEditingLine(null)
     setEditingProcess(null)
     setEditValue('')
+  }
+
+  const handleAutoSaveEdit = async () => {
+    if (isEqual(lineWithProcess, tempLineWithProcess)) {
+      handleCancelEdit()
+    } else {
+      // API 호출
+      const { data } = await updateLineWithProcess(tempLineWithProcess)
+      console.log(data)
+      setLineWithProcess(data)
+      setTempLineWithProcess(data)
+      router.refresh()
+      handleCancelEdit()
+    }
   }
 
   // 키보드 이벤트 처리
@@ -153,8 +169,6 @@ const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
     if (e.key === 'Enter') {
       if (editingLine) handleSaveLineEdit()
       if (editingProcess) handleSaveProcessEdit()
-    } else if (e.key === 'Escape') {
-      handleCancelEdit()
     }
   }
 
@@ -180,13 +194,13 @@ const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
 
   // 라인 삭제 함수
   const handleDeleteLine = (lineId: string) => {
-    const filteredLines = lineWithProcess.filter((line) => line.id !== lineId)
-    setLineWithProcess(filteredLines)
+    const filteredLines = tempLineWithProcess.filter((line) => line.id !== lineId)
+    setTempLineWithProcess(filteredLines)
   }
 
   // 공정 삭제 함수
   const handleDeleteProcess = (lineId: string, processId: string) => {
-    const updatedLines = lineWithProcess.map((line) => {
+    const updatedLines = tempLineWithProcess.map((line) => {
       if (line.id === lineId) {
         return {
           ...line,
@@ -195,7 +209,7 @@ const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
       }
       return line
     })
-    setLineWithProcess(updatedLines)
+    setTempLineWithProcess(updatedLines)
   }
 
   return (
@@ -213,16 +227,6 @@ const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
           </div>
 
           <div className="flex items-center gap-3">
-            {/*{lockInfo.isEditMode && (*/}
-            {/*  <button*/}
-            {/*    onClick={handleReset}*/}
-            {/*    className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500"*/}
-            {/*    title="초기 상태로 되돌리기"*/}
-            {/*  >*/}
-            {/*    <RotateCcw className="w-4 h-4" />*/}
-            {/*    초기화*/}
-            {/*  </button>*/}
-            {/*)}*/}
             <span
               className={`text-base font-medium ${lockInfo.isEditMode ? 'text-blue-600' : 'text-gray-600'}`}
             >
@@ -233,7 +237,8 @@ const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
                 if (!lockInfo.isEditMode) {
                   startEditing()
                 } else {
-                  stopEditing()
+                  handleAutoSaveEdit()
+                  // handleCancelEdit()
                 }
               }}
               disabled={lockInfo.isLocked || isLoading}
@@ -265,7 +270,7 @@ const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
           {/* 테이블 */}
           <table className="w-full border-collapse">
             <tbody>
-              {lineWithProcess.map((line) => {
+              {(lockInfo.isEditMode ? tempLineWithProcess : lineWithProcess).map((line) => {
                 return (
                   <React.Fragment key={line.id}>
                     <tr>
@@ -589,7 +594,7 @@ const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
           </table>
         </div>
       </div>
-      <ModalEditLock lockInfo={lockInfo} stopEditing={stopEditing} />
+      <ModalEditLock lockInfo={lockInfo} handleCancelEdit={handleCancelEdit} />
     </div>
   )
 }

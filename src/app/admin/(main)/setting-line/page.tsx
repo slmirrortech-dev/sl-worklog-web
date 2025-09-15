@@ -14,6 +14,7 @@ const ProcessPage = async () => {
     const lines = await prisma.line.findMany({
       include: {
         processes: {
+          orderBy: { order: 'asc' },
           include: {
             shifts: {
               include: {
@@ -25,6 +26,7 @@ const ProcessPage = async () => {
           },
         },
       },
+      orderBy: { order: 'asc' },
     })
 
     // 확장

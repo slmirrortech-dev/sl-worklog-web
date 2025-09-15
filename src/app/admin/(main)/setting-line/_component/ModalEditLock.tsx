@@ -2,7 +2,13 @@ import React from 'react'
 import { LockInfo } from '@/hooks/useEditLock'
 
 /** 편집 중 안내 화면 */
-const ModalEditLock = ({ lockInfo, stopEditing }: { lockInfo: LockInfo; stopEditing: any }) => {
+const ModalEditLock = ({
+  lockInfo,
+  handleCancelEdit,
+}: {
+  lockInfo: LockInfo
+  handleCancelEdit: any
+}) => {
   // 본인이 편집 중일 때
   if (lockInfo.isEditMode) {
     return (
@@ -18,10 +24,10 @@ const ModalEditLock = ({ lockInfo, stopEditing }: { lockInfo: LockInfo; stopEdit
                   <p className="sm:text-xs md:text-lg text-black text-center">
                     편집 모드를 해제하면 변경사항이 자동 저장됩니다.
                   </p>
-                  {stopEditing && (
+                  {handleCancelEdit && (
                     <button
                       className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-sm rounded-md transition-colors"
-                      onClick={stopEditing}
+                      onClick={handleCancelEdit}
                     >
                       편집취소
                     </button>
