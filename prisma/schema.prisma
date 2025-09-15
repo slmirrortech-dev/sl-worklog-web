@@ -27,6 +27,7 @@ model User {
   workLogs         WorkLog[]
   changeHistories  WorkLogHistory[] @relation("AdminHistory")
   waitingShifts    ProcessShift[]   @relation("WaitingWorker") // 대기자로 설정된 교대조들
+  editLocks        EditLock[]       @relation("EditLockUser")  // 사용자가 보유한 편집 잠금들
 
   @@map("users")
 }
@@ -46,7 +47,8 @@ enum Role {
 model Line {
   id        String    @id @default(cuid())   // UUID (PK)
   name      String    @unique                // 라인 이름 (전역 유일)
-  order     Int                               // 라인 순서
+  order     Int                              // 라인 순서
+  classNo   Int[]       @default([1])
 
   // Relations
   processes Process[]
@@ -137,6 +139,27 @@ model WorkLogHistory {
   workLog WorkLog @relation(fields: [workLogId], references: [id])
   admin   User    @relation("AdminHistory", fields: [changedBy], references: [id])
 }
+
+// ================================
+// EditLock (편집 잠금)
+// ================================
+// 작업장 관리 화면의 편집 모드 상태를 관리하는 테이블
+model EditLock {
+  id              String   @id @default(cuid())     // UUID (PK)
+  resourceType    String                           // 잠금 리소스 타입 (예: "setting-line")
+  lockedBy        String                           // 잠금한 사용자 ID (FK)
+  lockedByName    String                           // 잠금한 사용자 이름 (스냅샷)
+  lockedByUserId  String                           // 잠금한 사용자 사번 (스냅샷)
+  lockedAt        DateTime @default(now())         // 잠금 시각
+  heartbeatAt     DateTime @default(now())         // 마지막 하트비트 시각 (세션 유지 확인용)
+
+  // Relations
+  user User @relation("EditLockUser", fields: [lockedBy], references: [id], onDelete: Cascade)
+
+  @@unique([resourceType]) // 하나의 리소스에는 하나의 잠금만 존재
+  @@map("edit_locks")
+}
+
 
 // ================================
 // Enums

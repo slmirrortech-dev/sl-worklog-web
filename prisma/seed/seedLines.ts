@@ -7,6 +7,7 @@ const initialLines = [
   {
     name: 'MV L/R',
     order: 1,
+    classNo: [1],
     processes: [
       { name: 'P1', order: 1 },
       { name: 'P2', order: 2 },
@@ -19,6 +20,7 @@ const initialLines = [
   {
     name: 'MX5 LH',
     order: 2,
+    classNo: [1],
     processes: [
       { name: 'P1', order: 1 },
       { name: 'P2', order: 2 },
@@ -31,6 +33,7 @@ const initialLines = [
   {
     name: 'MX5 RH',
     order: 3,
+    classNo: [1],
     processes: [
       { name: 'P1', order: 1 },
       { name: 'P2', order: 2 },
@@ -43,6 +46,7 @@ const initialLines = [
   {
     name: 'MQ4 LH',
     order: 4,
+    classNo: [2],
     processes: [
       { name: 'P1', order: 1 },
       { name: 'P2', order: 2 },
@@ -55,6 +59,7 @@ const initialLines = [
   {
     name: 'MQ4 RH',
     order: 5,
+    classNo: [2],
     processes: [
       { name: 'P1', order: 1 },
       { name: 'P2', order: 2 },
@@ -67,6 +72,7 @@ const initialLines = [
   {
     name: 'AX/CV/SG2 LH',
     order: 6,
+    classNo: [2],
     processes: [
       { name: 'P1', order: 1 },
       { name: 'P2', order: 2 },
@@ -79,6 +85,7 @@ const initialLines = [
   {
     name: 'AX/CV/SG2 RH',
     order: 7,
+    classNo: [2],
     processes: [
       { name: 'P1', order: 1 },
       { name: 'P2', order: 2 },
@@ -91,6 +98,7 @@ const initialLines = [
   {
     name: 'SW L/R',
     order: 8,
+    classNo: [2],
     processes: [
       { name: 'P1', order: 1 },
       { name: 'P2', order: 2 },
@@ -103,6 +111,7 @@ const initialLines = [
   {
     name: 'LB L/R',
     order: 9,
+    classNo: [2],
     processes: [
       { name: 'P1', order: 1 },
       { name: 'P2', order: 2 },
@@ -115,6 +124,7 @@ const initialLines = [
   {
     name: 'NX4A L/R',
     order: 10,
+    classNo: [2],
     processes: [
       { name: 'P1', order: 1 },
       { name: 'P2', order: 2 },
@@ -124,9 +134,11 @@ const initialLines = [
       { name: 'P6', order: 6 },
     ],
   },
+  // 없음
   {
     name: 'NQ5 LH',
     order: 11,
+    classNo: [2],
     processes: [
       { name: 'P1', order: 1 },
       { name: 'P2', order: 2 },
@@ -136,9 +148,11 @@ const initialLines = [
       { name: 'P6', order: 6 },
     ],
   },
+  // 없음
   {
     name: 'NQ5 RH',
     order: 12,
+    classNo: [2],
     processes: [
       { name: 'P1', order: 1 },
       { name: 'P2', order: 2 },
@@ -148,9 +162,11 @@ const initialLines = [
       { name: 'P6', order: 6 },
     ],
   },
+
   {
     name: 'C121 L/R',
     order: 13,
+    classNo: [1],
     processes: [
       { name: 'P1', order: 1 },
       { name: 'P2', order: 2 },
@@ -163,6 +179,7 @@ const initialLines = [
   {
     name: 'OV1K L/R',
     order: 14,
+    classNo: [1],
     processes: [
       { name: 'P1', order: 1 },
       { name: 'P2', order: 2 },
@@ -175,6 +192,7 @@ const initialLines = [
   {
     name: 'LQ2 L/R',
     order: 15,
+    classNo: [2],
     processes: [
       { name: 'P1', order: 1 },
       { name: 'P2', order: 2 },
@@ -187,6 +205,7 @@ const initialLines = [
   {
     name: 'JA/YB LH',
     order: 16,
+    classNo: [1],
     processes: [
       { name: 'P1', order: 1 },
       { name: 'P2', order: 2 },
@@ -199,6 +218,7 @@ const initialLines = [
   {
     name: 'JA/YB RH',
     order: 17,
+    classNo: [1],
     processes: [
       { name: 'P1', order: 1 },
       { name: 'P2', order: 2 },
@@ -211,6 +231,7 @@ const initialLines = [
   {
     name: 'SV/CT/NH2 LH',
     order: 18,
+    classNo: [2],
     processes: [
       { name: 'P1', order: 1 },
       { name: 'P2', order: 2 },
@@ -223,6 +244,7 @@ const initialLines = [
   {
     name: 'SV/CT/NH2 RH',
     order: 19,
+    classNo: [2],
     processes: [
       { name: 'P1', order: 1 },
       { name: 'P2', order: 2 },
@@ -235,6 +257,7 @@ const initialLines = [
   {
     name: 'ME L/R',
     order: 20,
+    classNo: [1],
     processes: [
       { name: 'P1', order: 1 },
       { name: 'P2', order: 2 },
@@ -247,6 +270,7 @@ const initialLines = [
   {
     name: '프리미엄 A',
     order: 21,
+    classNo: [1],
     processes: [
       { name: 'P1', order: 1 },
       { name: 'P2', order: 2 },
@@ -259,6 +283,7 @@ const initialLines = [
   {
     name: '프리미엄 B',
     order: 22,
+    classNo: [1],
     processes: [
       { name: 'P1', order: 1 },
       { name: 'P2', order: 2 },
@@ -271,6 +296,7 @@ const initialLines = [
   {
     name: 'CMS',
     order: 23,
+    classNo: [1],
     processes: [
       { name: 'P1', order: 1 },
       { name: 'P2', order: 2 },
@@ -283,6 +309,7 @@ const initialLines = [
   {
     name: 'ETCS',
     order: 24,
+    classNo: [1],
     processes: [
       { name: 'P1', order: 1 },
       { name: 'P2', order: 2 },
@@ -295,6 +322,7 @@ const initialLines = [
   {
     name: '린지원',
     order: 25,
+    classNo: [1, 2],
     processes: [
       { name: '서열피더', order: 1 },
       { name: '조립피더', order: 2 },
@@ -311,6 +339,7 @@ export async function seedLines() {
       data: {
         name: line.name,
         order: line.order,
+        classNo: line.classNo,
         processes: {
           create: line.processes.map((p) => ({
             name: p.name,
