@@ -11,8 +11,8 @@ import useEditLock from '@/hooks/useEditLock'
 import { SessionUser } from '@/lib/core/session'
 import ModalEditLock from '@/app/admin/(main)/setting-line/_component/ModalEditLock'
 import { isEqual } from 'lodash'
-import { updateLineWithProcess } from '@/lib/api/line-with-process-api'
-import { useRouter } from 'next/navigation'
+import { getLineWithProcess, updateLineWithProcess } from '@/lib/api/line-with-process-api'
+import { supabaseClient } from '@/lib/supabase/client'
 
 export const leftTableHead = `min-w-[160px] min-h-[58px]`
 export const leftTableShiftHead = `min-w-[160px] min-h-[100px]`
@@ -24,7 +24,7 @@ interface SettingProcessProps {
 
 /** 작업자 관리 */
 const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
-  const router = useRouter()
+  const [isFetching, setIsFetching] = useState(false)
   const [lineWithProcess, setLineWithProcess] = useState<LineResponseDto[]>(initialData)
   const [tempLineWithProcess, setTempLineWithProcess] = useState<LineResponseDto[]>(lineWithProcess)
   const [editingLine, setEditingLine] = useState<string | null>(null)
@@ -37,6 +37,64 @@ const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
 
   // 편집모드 Lock hook
   const { lockInfo, startEditing, stopEditing, isLoading } = useEditLock(currentUser)
+
+  useEffect(() => {
+    const channel = supabaseClient.channel('line-process-sync')
+    let changeTimeout: NodeJS.Timeout | null = null
+
+    console.log('🔌 Setting up Realtime subscriptions...')
+
+    const handleDataChange = (type: string) => {
+      // 기존 타이머가 있으면 취소
+      if (changeTimeout) {
+        clearTimeout(changeTimeout)
+      }
+
+      // 500ms 후에 한 번만 로그 출력 (디바운싱)
+      changeTimeout = setTimeout(async () => {
+        console.log(`🔄 ${type} 데이터 변경 완료 - 일괄 처리됨`)
+        setIsFetching(true)
+        try {
+          const { data } = await getLineWithProcess()
+          setLineWithProcess(data)
+        } catch (e) {
+          console.error(e)
+        } finally {
+          setIsFetching(false)
+        }
+      }, 500)
+    }
+
+    // 모든 라인/공정 관련 변경사항 감지
+    channel
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'lines' }, () => {
+        handleDataChange('라인')
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'processes' }, () => {
+        handleDataChange('공정')
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'process_shifts' }, () => {
+        handleDataChange('교대조')
+      })
+      .subscribe((status) => {
+        console.log('📡 Realtime subscription status:', status)
+        if (status === 'SUBSCRIBED') {
+          console.log('✅ Successfully subscribed to realtime changes')
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('❌ Realtime subscription error')
+        } else if (status === 'TIMED_OUT') {
+          console.error('⏱️ Realtime subscription timed out')
+        }
+      })
+
+    return () => {
+      console.log('🔌 Cleaning up Realtime subscriptions...')
+      if (changeTimeout) {
+        clearTimeout(changeTimeout)
+      }
+      supabaseClient.removeChannel(channel)
+    }
+  }, [lockInfo.isEditMode])
 
   // 편집 모드 변경 시 tempLineWithProcess 초기화
   useEffect(() => {
@@ -150,6 +208,7 @@ const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
     setEditValue('')
   }
 
+  // 자동 저장
   const handleAutoSaveEdit = async () => {
     if (isEqual(lineWithProcess, tempLineWithProcess)) {
       handleCancelEdit()
@@ -159,7 +218,6 @@ const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
       console.log(data)
       setLineWithProcess(data)
       setTempLineWithProcess(data)
-      router.refresh()
       handleCancelEdit()
     }
   }
@@ -595,6 +653,7 @@ const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
         </div>
       </div>
       <ModalEditLock lockInfo={lockInfo} handleCancelEdit={handleCancelEdit} />
+      {isFetching && <div className="fixed bg-black/40 top-0 bottom-0 left-0 right-0 z-100"></div>}
     </div>
   )
 }

@@ -3,12 +3,15 @@ import prisma from '@/lib/core/prisma'
 import { withErrorHandler } from '@/lib/core/api-handler'
 import { ApiResponseFactory } from '@/lib/core/api-response-factory'
 import { LineResponseDto } from '@/types/line-with-process'
+import { getShiftStatus } from '@/lib/utils/line-status'
 
 /** 라인과 프로세스 통합 조회 */
 export async function getLineWithProcess(req: NextRequest) {
-  const data = await prisma.line.findMany({
+  let result: LineResponseDto[] = []
+  const lines = await prisma.line.findMany({
     include: {
       processes: {
+        orderBy: { order: 'asc' },
         include: {
           shifts: {
             include: {
@@ -20,9 +23,17 @@ export async function getLineWithProcess(req: NextRequest) {
         },
       },
     },
+    orderBy: { order: 'asc' },
   })
 
-  return ApiResponseFactory.success(data, '라인과 프로세스 통합 데이터를 조회했습니다.')
+  // 확장
+  result = lines.map((line) => ({
+    ...line,
+    dayStatus: getShiftStatus(line.processes, 'DAY'),
+    nightStatus: getShiftStatus(line.processes, 'NIGHT'),
+  }))
+
+  return ApiResponseFactory.success(result, '라인과 프로세스 통합 데이터를 조회했습니다.')
 }
 
 export const GET = withErrorHandler(getLineWithProcess)

@@ -131,7 +131,7 @@ export async function seedUsers() {
   )
 
   await prisma.user.createMany({ data: admins, skipDuplicates: true })
-  await prisma.user.create({ data: manager })
+  await prisma.user.createMany({ data: [manager], skipDuplicates: true })
   await prisma.user.createMany({ data: workers, skipDuplicates: true })
 
   console.log(`👑 Admins: ${admins.length}, 👨‍💼 Manager: 1, 👷 Workers: ${workers.length}`)

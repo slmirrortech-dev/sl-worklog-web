@@ -28,6 +28,7 @@ model User {
   changeHistories  WorkLogHistory[] @relation("AdminHistory")
   waitingShifts    ProcessShift[]   @relation("WaitingWorker") // 대기자로 설정된 교대조들
   editLocks        EditLock[]       @relation("EditLockUser")  // 사용자가 보유한 편집 잠금들
+  cellLocks        CellLock[]       @relation("CellLockUser")  // 사용자가 보유한 셀 잠금들
 
   @@map("users")
 }
@@ -52,6 +53,7 @@ model Line {
 
   // Relations
   processes Process[]
+  @@map("lines")
 }
 
 // ================================
@@ -120,6 +122,7 @@ model WorkLog {
   @@index([userId])
   @@index([processShiftId])
   @@index([startedAt])
+  @@map("work_log")
 }
 
 // ================================
@@ -138,6 +141,7 @@ model WorkLogHistory {
 
   workLog WorkLog @relation(fields: [workLogId], references: [id])
   admin   User    @relation("AdminHistory", fields: [changedBy], references: [id])
+  @@map("work_log_history")
 }
 
 // ================================
@@ -158,6 +162,23 @@ model EditLock {
 
   @@unique([resourceType]) // 하나의 리소스에는 하나의 잠금만 존재
   @@map("edit_locks")
+}
+
+// ================================
+// CellLock (셀 단위 편집 잠금)
+// ================================
+// 작업자 배치, 상태 변경 등 셀 단위 편집 잠금을 관리하는 테이블
+model CellLock {
+  id            String   @id @default(cuid())     // UUID (PK)
+  cellId        String   @unique                  // 셀 ID (예: "processId-DAY", "lineId-status-NIGHT")
+  lockedBy      String                           // 잠금한 사용자 ID (FK)
+  lockedByName  String                           // 잠금한 사용자 이름 (스냅샷)
+  lockedAt      DateTime @default(now())         // 잠금 시각
+
+  // Relations
+  user User @relation("CellLockUser", fields: [lockedBy], references: [id], onDelete: Cascade)
+
+  @@map("cell_locks")
 }
 
 
