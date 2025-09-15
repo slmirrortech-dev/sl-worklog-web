@@ -11,7 +11,7 @@ import { format } from 'date-fns'
 import { useRouter, useSearchParams } from 'next/navigation'
 import RoleLabel from '@/components/admin/RoleLabel'
 import UploadForm from '@/components/admin/ButtonLicense'
-import { ApiResponse } from '@/types/common'
+import { SessionUser } from '@/lib/core/session'
 
 /** 사용자 테이블 */
 const UsersDataTable = ({
@@ -23,7 +23,7 @@ const UsersDataTable = ({
   totalCount,
 }: {
   id: 'admins' | 'workers'
-  currentUser: UserResponseDto
+  currentUser: SessionUser
   initialData: UserResponseDto[]
   skip: number
   take: number
@@ -31,20 +31,20 @@ const UsersDataTable = ({
 }) => {
   const router = useRouter()
   const searchParams = useSearchParams()
-  
+
   // URL 파라미터에서 상태 복원
   const getStateFromUrl = () => {
     const urlPage = searchParams.get(`${id}_page`)
     const urlPageSize = searchParams.get(`${id}_pageSize`)
     const urlSearch = searchParams.get(`${id}_search`)
-    
+
     return {
       page: urlPage ? parseInt(urlPage) : skip + 1,
       pageSize: urlPageSize ? parseInt(urlPageSize) : take,
       search: urlSearch || '',
     }
   }
-  
+
   const [isInitialLoad, setIsInitialLoad] = useState(true)
   const [data, setData] = useState<UserResponseDto[]>(initialData)
   const [loading, setLoading] = useState(false)
@@ -76,7 +76,7 @@ const UsersDataTable = ({
     } else {
       params.delete(`${id}_search`)
     }
-    
+
     const newUrl = `${window.location.pathname}?${params.toString()}`
     window.history.replaceState({}, '', newUrl)
   }
@@ -93,7 +93,7 @@ const UsersDataTable = ({
   const restoreScrollPosition = () => {
     const savedScrollPosition = sessionStorage.getItem(`${id}_scrollPosition`)
     const lastClickedTable = sessionStorage.getItem('lastClickedTable')
-    
+
     // 마지막에 클릭한 테이블과 현재 테이블이 같을 때만 스크롤 위치 복원
     if (savedScrollPosition && lastClickedTable === id) {
       setTimeout(() => {

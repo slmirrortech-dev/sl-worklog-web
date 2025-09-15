@@ -1,8 +1,8 @@
 import React from 'react'
 import { Shield } from 'lucide-react'
-import { CurrentUserModel } from '@/types/user'
+import { SessionUser } from '@/lib/core/session'
 
-const MyProfile = ({ currentUser }: { currentUser: CurrentUserModel }) => {
+const MyProfile = ({ currentUser }: { currentUser: SessionUser }) => {
   return (
     <div className="p-6">
       <div className="space-y-6">

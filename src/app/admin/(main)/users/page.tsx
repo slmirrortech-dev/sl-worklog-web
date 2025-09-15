@@ -3,23 +3,14 @@ import UsersSummary from '@/app/admin/(main)/users/_component/UsersSummary'
 import { UserResponseDto } from '@/types/user'
 import prisma from '@/lib/core/prisma'
 import UsersDataTable from '@/app/admin/(main)/users/_component/UsersDataTable'
-import { cookies } from 'next/headers'
+import { getServerSession } from '@/lib/utils/auth-guards'
 
 const INITIAL_SKIP = 0
 const INITIAL_TAKE = 10
 
 /** 사용자 관리 페이지 */
 const AdminUsersPage = async () => {
-  // TODO: 리팩토링 필요
-  const cookieStore = cookies()
-  const cookieHeader = cookieStore.toString() // 모든 쿠키를 헤더 문자열로 변환
-
-  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/users/current-user`, {
-    cache: 'no-store',
-    headers: { Cookie: cookieHeader },
-  })
-
-  const { data: currentUser } = await res.json()
+  const session = await getServerSession()
 
   // 총 데이터 수
   const totalCount = await prisma.user.count({ where: { isActive: true } })
@@ -73,7 +64,12 @@ const AdminUsersPage = async () => {
     <div className="flex flex-col space-y-6">
       {/* 사용자 정보 */}
       <UsersSummary
-        currentUser={currentUser}
+        currentUser={{
+          id: session!.id,
+          userId: session!.userId,
+          name: session!.name,
+          role: session!.role
+        }}
         totalCount={totalCount}
         adminTotalCount={adminTotalCount}
         managerTotalCount={managerTotalCount}
@@ -84,7 +80,12 @@ const AdminUsersPage = async () => {
         {/* 관리자 목록 */}
         <UsersDataTable
           id="admins"
-          currentUser={currentUser}
+          currentUser={{
+            id: session!.id,
+            userId: session!.userId,
+            name: session!.name,
+            role: session!.role
+          }}
           initialData={admins}
           skip={INITIAL_SKIP}
           take={INITIAL_TAKE}
@@ -97,7 +98,12 @@ const AdminUsersPage = async () => {
         {/* 사용자 목록 */}
         <UsersDataTable
           id="workers"
-          currentUser={currentUser}
+          currentUser={{
+            id: session!.id,
+            userId: session!.userId,
+            name: session!.name,
+            role: session!.role
+          }}
           initialData={workers}
           skip={INITIAL_SKIP}
           take={INITIAL_TAKE}

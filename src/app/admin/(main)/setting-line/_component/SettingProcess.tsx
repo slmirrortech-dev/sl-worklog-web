@@ -11,7 +11,16 @@ import { WorkStatus } from '@prisma/client'
 export const leftTableHead = `min-w-[160px] min-h-[58px]`
 export const leftTableShiftHead = `min-w-[160px] min-h-[100px]`
 
-const SettingProcess = ({ initialData }: { initialData: LineResponseDto[] }) => {
+interface SettingProcessProps {
+  initialData: LineResponseDto[]
+  currentUser: {
+    id: string
+    name: string
+    userId: string
+  }
+}
+
+const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
   const [lineWithProcess, setLineWithProcess] = useState<LineResponseDto[]>(initialData)
   const [isEditMode, setIsEditMode] = useState(false)
   const [editingLine, setEditingLine] = useState<string | null>(null)

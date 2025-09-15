@@ -3,10 +3,14 @@ import prisma from '@/lib/core/prisma'
 import { LineResponseDto } from '@/types/line-with-process'
 import SettingProcess from '@/app/admin/(main)/setting-line/_component/SettingProcess'
 import { getShiftStatus } from '@/lib/utils/line-status'
+import { getServerSession } from '@/lib/utils/auth-guards'
 
 /** 작업장 현황판 */
 const ProcessPage = async () => {
   let responseData: LineResponseDto[] = []
+
+  // middleware에서 이미 인증 체크를 하므로 세션만 가져오면 됨
+  const session = await getServerSession()
 
   try {
     const lines = await prisma.line.findMany({
@@ -46,7 +50,14 @@ const ProcessPage = async () => {
       {/*    </div>*/}
       {/*  </div>*/}
       {/*</div>*/}
-      <SettingProcess initialData={responseData} />
+      <SettingProcess
+        initialData={responseData}
+        currentUser={{
+          id: session?.id || '',
+          name: session?.name || '',
+          userId: session?.userId || ''
+        }}
+      />
     </div>
   )
 }

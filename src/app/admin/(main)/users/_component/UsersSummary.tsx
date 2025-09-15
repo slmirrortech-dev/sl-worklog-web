@@ -4,7 +4,7 @@ import React from 'react'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
 import { Plus } from 'lucide-react'
-import { UserResponseDto } from '@/types/user'
+import { SessionUser } from '@/lib/core/session'
 
 const UsersSummary = ({
   currentUser,
@@ -13,7 +13,7 @@ const UsersSummary = ({
   managerTotalCount,
   workerTotalCount,
 }: {
-  currentUser: UserResponseDto
+  currentUser: SessionUser
   totalCount: number
   adminTotalCount: number
   managerTotalCount: number
