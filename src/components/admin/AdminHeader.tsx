@@ -4,7 +4,7 @@ import React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { BarChart3, Users, Settings, Activity, User } from 'lucide-react'
+import { BarChart3, Users, Settings, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ROUTES } from '@/lib/constants/routes'
 
@@ -13,28 +13,22 @@ const AdminHeader = ({ name, userId }: { name: string; userId: string }) => {
 
   const navItems = [
     {
+      name: '작업장 관리',
+      href: ROUTES.ADMIN.SETTING_LINE,
+      icon: Settings,
+      description: '라인 및 공정 관리',
+    },
+    {
       name: '작업 기록',
       href: ROUTES.ADMIN.WORK_LOG,
       icon: BarChart3,
       description: '작업 기록 조회',
     },
     {
-      name: '실시간 현황',
-      href: ROUTES.ADMIN.STATUS,
-      icon: Activity,
-      description: '작업자 실시간 상황',
-    },
-    {
       name: '직원 관리',
       href: ROUTES.ADMIN.USERS,
       icon: Users,
       description: '직원 정보 관리',
-    },
-    {
-      name: '작업장 설정',
-      href: ROUTES.ADMIN.PROCESS,
-      icon: Settings,
-      description: '라인 및 공정 관리',
     },
   ]
 
@@ -44,7 +38,7 @@ const AdminHeader = ({ name, userId }: { name: string; userId: string }) => {
         <div className="flex justify-between items-center h-16">
           {/* 로고 및 타이틀 섹션 */}
           <div className="flex items-center gap-4">
-            <Link href={ROUTES.ADMIN.STATUS} className="flex items-center gap-3">
+            <Link href={ROUTES.ADMIN.SETTING_LINE} className="flex items-center gap-3">
               <div>
                 <Image
                   src="/logo.png"
@@ -89,7 +83,7 @@ const AdminHeader = ({ name, userId }: { name: string; userId: string }) => {
               <User className="w-4 h-4 text-gray-600 transition-colors" />
               <div className="text-right">
                 <p className="text-sm font-medium text-gray-900 transition-colors">
-                  <span>{name}</span>{' '}<span className="text-gray-500">({userId})</span>
+                  <span>{name}</span> <span className="text-gray-500">({userId})</span>
                 </p>
               </div>
             </Link>
@@ -101,7 +95,7 @@ const AdminHeader = ({ name, userId }: { name: string; userId: string }) => {
             >
               <User className="w-4 h-4 text-gray-600 transition-colors" />
               <span className="text-xs font-medium text-gray-900 transition-colors">
-                <span>{name}</span>{' '}<span className="text-gray-500">({userId})</span>
+                <span>{name}</span> <span className="text-gray-500">({userId})</span>
               </span>
             </Link>
           </div>

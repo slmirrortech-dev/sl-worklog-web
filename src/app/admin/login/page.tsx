@@ -26,7 +26,7 @@ const AdminLoginPage = () => {
         userId: userId.trim(),
         password: password,
       })
-      router.push(ROUTES.ADMIN.STATUS)
+      router.push(ROUTES.ADMIN.SETTING_LINE)
     } catch (error) {
       setError((error as Error).message)
     } finally {

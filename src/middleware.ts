@@ -16,7 +16,7 @@ export async function middleware(req: NextRequest) {
     if (pathname === ROUTES.ADMIN.LOGIN) {
       // 세션이 유효하면 status로 이동
       if (await isValidSession(req)) {
-        return NextResponse.redirect(new URL(ROUTES.ADMIN.STATUS, req.url))
+        return NextResponse.redirect(new URL(ROUTES.ADMIN.SETTING_LINE, req.url))
       }
       return NextResponse.next()
     }
