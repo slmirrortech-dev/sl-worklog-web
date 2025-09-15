@@ -1,28 +1,27 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { LineResponseDto } from '@/types/line-with-process'
-import { GripVertical, Plus, X, RotateCcw } from 'lucide-react'
+import { GripVertical, Plus, X } from 'lucide-react'
 import ContainerWaitingWorker from '@/app/admin/(main)/setting-line/_component/ContainerWaitingWorker'
 import { useDragAndDrop } from '@/hooks/useDragAndDrop'
 import ShiftStatusLabel from '@/components/admin/ShiftStatusLabel'
 import { WorkStatus } from '@prisma/client'
+import useEditLock from '@/hooks/useEditLock'
+import { SessionUser } from '@/lib/core/session'
+import ModalEditLock from '@/app/admin/(main)/setting-line/_component/ModalEditLock'
 
 export const leftTableHead = `min-w-[160px] min-h-[58px]`
 export const leftTableShiftHead = `min-w-[160px] min-h-[100px]`
 
 interface SettingProcessProps {
   initialData: LineResponseDto[]
-  currentUser: {
-    id: string
-    name: string
-    userId: string
-  }
+  currentUser: SessionUser
 }
 
+/** 작업자 관리 */
 const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
   const [lineWithProcess, setLineWithProcess] = useState<LineResponseDto[]>(initialData)
-  const [isEditMode, setIsEditMode] = useState(false)
   const [editingLine, setEditingLine] = useState<string | null>(null)
   const [editingProcess, setEditingProcess] = useState<string | null>(null)
   const [editValue, setEditValue] = useState('')
@@ -31,12 +30,12 @@ const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
     shiftType: 'DAY' | 'NIGHT'
   } | null>(null)
 
+  // 편집모드 Lock hook
+  const { lockInfo, startEditing, stopEditing, isLoading } = useEditLock(currentUser)
+
+  // 드래그 앤 드롭 hook
   const { dragState, handleDragStart, handleDragOver, handleDrop, handleDragEnd, isDragging } =
     useDragAndDrop(lineWithProcess, setLineWithProcess)
-
-  useEffect(() => {
-    console.log(lineWithProcess)
-  }, [lineWithProcess])
 
   // 초기화 함수
   const handleReset = () => {
@@ -55,6 +54,7 @@ const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
       id: `temp-line-${Date.now()}`,
       name: `새 라인 ${lineWithProcess.length + 1}`,
       order: lineWithProcess.length + 1,
+      classNo: [1],
       dayStatus: 'NORMAL',
       nightStatus: 'NORMAL',
       processes: [],
@@ -102,14 +102,14 @@ const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
 
   // 라인 이름 편집 시작
   const handleStartEditLine = (lineId: string, currentName: string) => {
-    if (!isEditMode) return
+    if (!lockInfo.isEditMode) return
     setEditingLine(lineId)
     setEditValue(currentName)
   }
 
   // 공정 이름 편집 시작
   const handleStartEditProcess = (processId: string, currentName: string) => {
-    if (!isEditMode) return
+    if (!lockInfo.isEditMode) return
     setEditingProcess(processId)
     setEditValue(currentName)
   }
@@ -206,36 +206,48 @@ const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
           <div>
             <h3 className="text-2xl font-bold text-gray-900">작업장 관리</h3>
             <p className="text-sm text-gray-600 mt-2">
-              {isEditMode
-                ? '편집 모드 : 라인/공정 관리가 가능합니다'
-                : '보기 모드 : 작업자 배치와 작업 상태 변경이 가능합니다.'}
+              {lockInfo.isEditMode
+                ? '라인/공정 관리가 가능합니다'
+                : '작업자 배치와 작업 상태 변경이 가능합니다.'}
             </p>
           </div>
+
           <div className="flex items-center gap-3">
-            {isEditMode && (
-              <button
-                onClick={handleReset}
-                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500"
-                title="초기 상태로 되돌리기"
-              >
-                <RotateCcw className="w-4 h-4" />
-                초기화
-              </button>
-            )}
+            {/*{lockInfo.isEditMode && (*/}
+            {/*  <button*/}
+            {/*    onClick={handleReset}*/}
+            {/*    className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500"*/}
+            {/*    title="초기 상태로 되돌리기"*/}
+            {/*  >*/}
+            {/*    <RotateCcw className="w-4 h-4" />*/}
+            {/*    초기화*/}
+            {/*  </button>*/}
+            {/*)}*/}
             <span
-              className={`text-sm font-medium ${isEditMode ? 'text-blue-600' : 'text-gray-600'}`}
+              className={`text-base font-medium ${lockInfo.isEditMode ? 'text-blue-600' : 'text-gray-600'}`}
             >
-              편집 모드
+              편집모드
             </span>
             <button
-              onClick={() => setIsEditMode(!isEditMode)}
+              onClick={() => {
+                if (!lockInfo.isEditMode) {
+                  startEditing()
+                } else {
+                  stopEditing()
+                }
+              }}
+              disabled={lockInfo.isLocked || isLoading}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                isEditMode ? 'bg-blue-600' : 'bg-gray-200'
+                lockInfo.isLocked
+                  ? 'bg-gray-300 cursor-not-allowed'
+                  : lockInfo.isEditMode
+                    ? 'bg-blue-600'
+                    : 'bg-gray-200'
               }`}
             >
               <span
                 className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  isEditMode ? 'translate-x-6' : 'translate-x-1'
+                  lockInfo.isEditMode ? 'translate-x-6' : 'translate-x-1'
                 }`}
               />
             </button>
@@ -246,22 +258,12 @@ const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
       {/* 메인 테이블 */}
       <div
         className={`bg-white rounded-xl shadow-sm border transition-all duration-300 overflow-hidden ${
-          isEditMode ? 'border-blue-200 ring-4 ring-blue-100' : 'border-gray-200'
+          lockInfo.isEditMode ? 'border-blue-200 ring-4 ring-blue-100' : 'border-gray-200'
         } ${isDragging ? 'ring-2 ring-gray-300 shadow-md' : 'hover:shadow-md'}`}
       >
         <div className="overflow-auto">
           {/* 테이블 */}
           <table className="w-full border-collapse">
-            {/* 테이블 해더 */}
-            {/*<thead>*/}
-            {/*  <tr>*/}
-            {/*    <th className="w-40 border-b border-gray-200 px-6 py-4 bg-gray-50 text-sm font-semibold text-gray-700 sticky left-0 top-0 z-20">*/}
-            {/*      라인/공정*/}
-            {/*    </th>*/}
-            {/*    <th className="border-b border-gray-200 px-6 py-4 bg-gray-50 text-sm font-semibold text-gray-700 sticky top-0 z-10"></th>*/}
-            {/*  </tr>*/}
-            {/*</thead>*/}
-            {/* 테이블 바디 */}
             <tbody>
               {lineWithProcess.map((line) => {
                 return (
@@ -269,7 +271,7 @@ const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
                     <tr>
                       <td className="sticky left-0 z-10">
                         <div
-                          className={`group flex items-center justify-between ${leftTableHead} px-4 ${isEditMode ? 'cursor-move' : ''} transition-all duration-300 ${
+                          className={`group flex items-center justify-between ${leftTableHead} px-4 ${lockInfo.isEditMode ? 'cursor-move' : ''} transition-all duration-300 ${
                             isDragging &&
                             dragState.draggedType === 'line' &&
                             dragState.draggedItem?.id === line.id
@@ -278,15 +280,21 @@ const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
                                 ? 'bg-blue-50 border-l-4 border-blue-300 hover:bg-blue-100'
                                 : 'bg-white border-l-4 border-blue-500 hover:bg-blue-50'
                           }`}
-                          draggable={isEditMode}
+                          draggable={lockInfo.isEditMode}
                           onDragStart={
-                            isEditMode ? (e) => handleDragStart(e, line, 'line') : undefined
+                            lockInfo.isEditMode
+                              ? (e) => handleDragStart(e, line, 'line')
+                              : undefined
                           }
-                          onDrop={isEditMode ? (e) => handleDrop(e, line, 'line') : undefined}
-                          onDragOver={isEditMode ? handleDragOver : undefined}
+                          onDrop={
+                            lockInfo.isEditMode ? (e) => handleDrop(e, line, 'line') : undefined
+                          }
+                          onDragOver={lockInfo.isEditMode ? handleDragOver : undefined}
                         >
                           <div className="flex items-center gap-3">
-                            {isEditMode && <GripVertical className="w-4 h-4 text-gray-400" />}
+                            {lockInfo.isEditMode && (
+                              <GripVertical className="w-4 h-4 text-gray-400" />
+                            )}
                             {editingLine === line.id ? (
                               <input
                                 type="text"
@@ -300,7 +308,7 @@ const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
                             ) : (
                               <span
                                 className={`text-lg font-semibold text-gray-800 ${
-                                  isEditMode
+                                  lockInfo.isEditMode
                                     ? 'cursor-pointer hover:text-blue-600 hover:underline'
                                     : ''
                                 }`}
@@ -310,7 +318,7 @@ const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
                               </span>
                             )}
                           </div>
-                          {isEditMode && (
+                          {lockInfo.isEditMode && (
                             <button
                               onClick={(e) => {
                                 e.stopPropagation()
@@ -331,21 +339,21 @@ const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
                             <div
                               key={process.id}
                               className={`${leftTableHead} px-2 py-1`}
-                              draggable={isEditMode}
+                              draggable={lockInfo.isEditMode}
                               onDragStart={
-                                isEditMode
+                                lockInfo.isEditMode
                                   ? (e) => handleDragStart(e, process, 'process', line.id)
                                   : undefined
                               }
                               onDrop={
-                                isEditMode
+                                lockInfo.isEditMode
                                   ? (e) => handleDrop(e, process, 'process', line.id)
                                   : undefined
                               }
-                              onDragOver={isEditMode ? handleDragOver : undefined}
+                              onDragOver={lockInfo.isEditMode ? handleDragOver : undefined}
                             >
                               <div
-                                className={`group px-3 py-2 rounded-lg border shadow-sm flex h-full items-center justify-between ${isEditMode ? 'cursor-move' : ''} transition-all duration-300 ${
+                                className={`group px-3 py-2 rounded-lg border shadow-sm flex h-full items-center justify-between ${lockInfo.isEditMode ? 'cursor-move' : ''} transition-all duration-300 ${
                                   isDragging &&
                                   dragState.draggedType === 'process' &&
                                   dragState.draggedItem?.id === process.id
@@ -357,7 +365,7 @@ const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
                                       : 'bg-blue-500 border-blue-600 hover:bg-blue-600 hover:shadow-md text-white'
                                 }`}
                               >
-                                {isEditMode && (
+                                {lockInfo.isEditMode && (
                                   <GripVertical className="w-4 h-4 text-white flex-shrink-0" />
                                 )}
                                 <div className="flex-1 flex justify-center">
@@ -374,7 +382,7 @@ const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
                                   ) : (
                                     <span
                                       className={`text-white font-semibold text-sm ${
-                                        isEditMode
+                                        lockInfo.isEditMode
                                           ? 'cursor-pointer hover:text-blue-100 hover:underline'
                                           : ''
                                       }`}
@@ -386,7 +394,7 @@ const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
                                     </span>
                                   )}
                                 </div>
-                                {isEditMode && (
+                                {lockInfo.isEditMode && (
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation()
@@ -402,7 +410,7 @@ const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
                             </div>
                           )
                         })}
-                        {isEditMode && (
+                        {lockInfo.isEditMode && (
                           <div className={`${leftTableHead} px-2 py-1`}>
                             <button
                               onClick={() => handleAddProcess(line.id)}
@@ -561,7 +569,7 @@ const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
                   </React.Fragment>
                 )
               })}
-              {isEditMode && (
+              {lockInfo.isEditMode && (
                 <tr>
                   <td className="sticky left-0 z-10">
                     <div className="flex justify-center items-center min-h-[58px] pl-2 bg-gray-50">
@@ -581,6 +589,7 @@ const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
           </table>
         </div>
       </div>
+      <ModalEditLock lockInfo={lockInfo} stopEditing={stopEditing} />
     </div>
   )
 }

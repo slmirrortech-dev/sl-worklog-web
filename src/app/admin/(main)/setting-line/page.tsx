@@ -9,9 +9,7 @@ import { getServerSession } from '@/lib/utils/auth-guards'
 const ProcessPage = async () => {
   let responseData: LineResponseDto[] = []
 
-  // middleware에서 이미 인증 체크를 하므로 세션만 가져오면 됨
   const session = await getServerSession()
-
   try {
     const lines = await prisma.line.findMany({
       include: {
@@ -38,6 +36,7 @@ const ProcessPage = async () => {
   } catch (error) {
     console.error(error)
   }
+
   return (
     <div className="flex flex-col space-y-6 pb-10">
       {/*<div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">*/}
@@ -54,8 +53,9 @@ const ProcessPage = async () => {
         initialData={responseData}
         currentUser={{
           id: session?.id || '',
-          name: session?.name || '',
-          userId: session?.userId || ''
+          userId: session?.userId || '',
+          name: session?.name || '알수없음',
+          role: session?.role || 'WORKER',
         }}
       />
     </div>
