@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { leftTableShiftHead } from '@/app/admin/(main)/setting-line/_component/SettingProcess'
 import { ShiftType, WorkStatus } from '@prisma/client'
 import ShiftStatusLabel from '@/components/admin/ShiftStatusLabel'
@@ -15,8 +15,11 @@ const ShiftTypeCell = ({
 }) => {
   const shiftTypeName = shiftType === 'DAY' ? '주간' : '야간'
   const bgColor = shiftType === 'DAY' ? 'bg-gray-50' : 'bg-gray-100'
-
   const [value, setValue] = useState(shiftType === 'DAY' ? line.dayStatus : line.nightStatus)
+
+  useEffect(() => {
+    setValue(shiftType === 'DAY' ? line.dayStatus : line.nightStatus)
+  }, [line])
 
   const [editingShift, setEditingShift] = useState<{
     lineId: string

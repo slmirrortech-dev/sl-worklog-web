@@ -56,12 +56,12 @@ const useLineDataSync = ({
       .on('postgres_changes', { event: '*', schema: 'public', table: 'lines' }, () => {
         handleDataChange('라인')
       })
-      // .on('postgres_changes', { event: '*', schema: 'public', table: 'processes' }, () => {
-      //   handleDataChange('공정')
-      // })
-      // .on('postgres_changes', { event: '*', schema: 'public', table: 'process_shifts' }, () => {
-      //   handleDataChange('교대조')
-      // })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'processes' }, () => {
+        handleDataChange('공정')
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'process_shifts' }, () => {
+        handleDataChange('교대조')
+      })
       .subscribe()
 
     return () => {

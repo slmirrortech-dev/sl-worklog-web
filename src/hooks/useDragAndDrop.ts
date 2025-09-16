@@ -163,12 +163,6 @@ export const useDragAndDrop = (
       waitingWorker: targetShift?.waitingWorker || null,
     }
 
-    console.log('🔄 Swapping workers:', {
-      draggedWorker: draggedWorker.waitingWorker?.name,
-      targetWorker: targetWorker.waitingWorker?.name,
-      draggedLocation: `${draggedProcessId}-${draggedItem.shiftType}`,
-      targetLocation: `${targetProcessId}-${targetItem.shiftType}`,
-    })
 
     const newLines = lines.map((line) => ({
       ...line,
@@ -208,10 +202,6 @@ export const useDragAndDrop = (
       })),
     }))
 
-    console.log('🔄 Before setLines:', lines.length)
-    console.log('🔄 After setLines:', newLines.length)
-    console.log('🔄 First line processes count:', newLines[0]?.processes?.length)
-
     // 강제 리렌더링을 위해 새로운 배열 참조 생성
     setLines([...newLines])
 
@@ -226,8 +216,6 @@ export const useDragAndDrop = (
     } catch (e) {
       console.error(e)
     }
-
-    console.log('✅ setLines called!')
   }
 
   const resetDragState = () => {
