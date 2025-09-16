@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server'
 import { withErrorHandler } from '@/lib/core/api-handler'
-import { requireAdmin } from '@/lib/utils/auth-guards'
+import { requireManagerOrAdmin } from '@/lib/utils/auth-guards'
 import { ShiftType, WorkStatus } from '@prisma/client'
 import prisma from '@/lib/core/prisma'
 import { ApiResponseFactory } from '@/lib/core/api-response-factory'
@@ -8,8 +8,8 @@ import { getShiftStatus } from '@/lib/utils/line-status'
 import { LineResponseDto } from '@/types/line-with-process'
 
 export async function updateLineStatus(request: NextRequest) {
-  // 관리자 권한 확인
-  await requireAdmin(request)
+  // 권한 확인
+  await requireManagerOrAdmin(request)
 
   const {
     lineId,

@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server'
 import prisma from '@/lib/core/prisma'
 import { withErrorHandler } from '@/lib/core/api-handler'
 import { ApiResponseFactory } from '@/lib/core/api-response-factory'
-import { requireAdmin } from '@/lib/utils/auth-guards'
+import { requireAdmin, requireManagerOrAdmin } from '@/lib/utils/auth-guards'
 import { ShiftType } from '@prisma/client'
 import { LineResponseDto } from '@/types/line-with-process'
 import { ApiError } from '@/lib/core/errors'
@@ -10,8 +10,8 @@ import { getShiftStatus } from '@/lib/utils/line-status'
 
 /** 대기열에 작업자 추가 */
 export async function addWaitingWorker(request: NextRequest) {
-  // 관리자 권한 확인
-  await requireAdmin(request)
+  // 권한 확인
+  await requireManagerOrAdmin(request)
 
   const body: {
     processId: string
@@ -78,8 +78,8 @@ export const POST = withErrorHandler(addWaitingWorker)
 
 /** 대기열에 작업자 삭제 */
 export async function deleteWaitingWorker(request: NextRequest) {
-  // 관리자 권한 확인
-  await requireAdmin(request)
+  // 권한 확인
+  await requireManagerOrAdmin(request)
   // 쿼리 파라미터 확인
   const { searchParams } = new URL(request.url)
   // 역할 (다중 role 지원)
@@ -136,8 +136,8 @@ export const DELETE = withErrorHandler(deleteWaitingWorker)
 
 /** 대기열에 작업자 자리 교체 */
 export async function swapWaitingWorker(request: NextRequest) {
-  // 관리자 권한 확인
-  await requireAdmin(request)
+  // 권한 확인
+  await requireManagerOrAdmin(request)
 
   const {
     sourceProcessId,

@@ -4,6 +4,7 @@ import { withErrorHandler } from '@/lib/core/api-handler'
 import { ApiResponseFactory } from '@/lib/core/api-response-factory'
 import { LineResponseDto } from '@/types/line-with-process'
 import { getShiftStatus } from '@/lib/utils/line-status'
+import { requireManagerOrAdmin } from '@/lib/utils/auth-guards'
 
 /** 라인과 프로세스 통합 조회 */
 export async function getLineWithProcess(req: NextRequest) {
@@ -40,6 +41,9 @@ export const GET = withErrorHandler(getLineWithProcess)
 
 /** 라인과 프로세스 통합 업데이트 */
 export async function updateLineWithProcess(req: NextRequest) {
+  // 권한 확인
+  await requireManagerOrAdmin(req)
+
   const body = await req.json()
   const { lineWithProcess } = body
 
