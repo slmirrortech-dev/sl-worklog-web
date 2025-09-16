@@ -2,22 +2,21 @@ import React, { useState } from 'react'
 import { leftTableShiftHead } from '@/app/admin/(main)/setting-line/_component/SettingProcess'
 import { ShiftType, WorkStatus } from '@prisma/client'
 import ShiftStatusLabel from '@/components/admin/ShiftStatusLabel'
-import { LineResponseDto } from '@/types/line-with-process'
+import { updateLineStatusApi } from '@/lib/api/line-status-api'
 
 const ShiftTypeCell = ({
   shiftType,
   line,
-  lineWithProcess,
   setLineWithProcess,
 }: {
   shiftType: ShiftType
   line: any
-  lineWithProcess: LineResponseDto[]
   setLineWithProcess: any
 }) => {
   const shiftTypeName = shiftType === 'DAY' ? '주간' : '야간'
   const bgColor = shiftType === 'DAY' ? 'bg-gray-50' : 'bg-gray-100'
-  const value = shiftType === 'DAY' ? line.dayStatus : line.nightStatus
+
+  const [value, setValue] = useState(shiftType === 'DAY' ? line.dayStatus : line.nightStatus)
 
   const [editingShift, setEditingShift] = useState<{
     lineId: string
@@ -25,23 +24,23 @@ const ShiftTypeCell = ({
   } | null>(null)
 
   // 시프트 상태 변경
-  const handleChangeShiftStatus = (
+  const handleChangeShiftStatus = async (
     lineId: string,
     shiftType: ShiftType,
-    newStatus: 'NORMAL' | 'OVERTIME' | 'EXTENDED',
+    newStatus: WorkStatus,
   ) => {
-    const updatedLines = lineWithProcess.map((line) => {
-      if (line.id === lineId) {
-        if (shiftType === 'DAY') {
-          return { ...line, dayStatus: newStatus }
-        } else {
-          return { ...line, nightStatus: newStatus }
-        }
-      }
-      return line
-    })
-    setLineWithProcess(updatedLines)
+    // 낙관적 업데이트
+    setValue(newStatus)
     setEditingShift(null)
+
+    // 서버 요청
+    try {
+      const { data } = await updateLineStatusApi(lineId, shiftType, newStatus)
+      setLineWithProcess(data) // 서버 기준으로 최종 동기화
+    } catch (e) {
+      console.error(e)
+      setValue(shiftType === 'DAY' ? line.dayStatus : line.nightStatus) // 실패 시 되돌리기
+    }
   }
 
   return (

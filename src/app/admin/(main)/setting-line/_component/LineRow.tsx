@@ -71,7 +71,6 @@ const LineRow = ({
               <ShiftTypeCell
                 shiftType={'DAY'}
                 line={line}
-                lineWithProcess={lineWithProcess}
                 setLineWithProcess={setLineWithProcess}
               />
               {/* 주간 공정 작업자 리스트 */}
@@ -102,7 +101,6 @@ const LineRow = ({
               <ShiftTypeCell
                 shiftType={'NIGHT'}
                 line={line}
-                lineWithProcess={lineWithProcess}
                 setLineWithProcess={setLineWithProcess}
               />
               {/* 야간 공정 작업자 리스트 */}
