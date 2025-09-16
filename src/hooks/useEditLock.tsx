@@ -58,7 +58,6 @@ const useEditLock = (currentUser: SessionUser) => {
         lockedByUser: '',
       }
 
-
   // 초기 편집 상태 로딩
   const loadCurrentLockState = async () => {
     try {
@@ -66,7 +65,7 @@ const useEditLock = (currentUser: SessionUser) => {
         .from('edit_locks')
         .select('*')
         .eq('resourceType', 'setting-line')
-        .single()
+        .maybeSingle()
 
       if (data) {
         setRawLockInfo(data as RawLockData)
