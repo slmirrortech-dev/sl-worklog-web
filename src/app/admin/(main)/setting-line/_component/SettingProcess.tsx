@@ -52,6 +52,7 @@ const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
 
   // 드래그 앤 드롭 hook
   const dragAndDropControl = useDragAndDrop(tempLineWithProcess, setTempLineWithProcess)
+  const workerDropControl = useDragAndDrop(lineWithProcess, setLineWithProcess)
 
   // 편집 취소
   const handleCancelEdit = () => {
@@ -130,6 +131,7 @@ const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
           data={lockInfo.isEditMode ? tempLineWithProcess : lineWithProcess}
           setLineWithProcess={setLineWithProcess}
           dragAndDropControl={dragAndDropControl}
+          workerDropControl={workerDropControl}
           editLineControl={editLineControl}
         />
       </LineTable>

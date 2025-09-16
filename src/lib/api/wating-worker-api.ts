@@ -39,3 +39,23 @@ export async function deleteWaitingWorKerApi(processId: string, shiftType: Shift
     method: 'DELETE',
   })
 }
+
+/**
+ * 대기열에 작업자 자리 교체
+ */
+export async function swapWaitingWorKerApi(
+  sourceProcessId: string,
+  sourceShiftType: ShiftType,
+  targetProcessId: string,
+  targetShiftType: ShiftType,
+) {
+  return await apiFetch<ApiResponse<LineResponseDto[]>>(`/api/waiting-worker`, {
+    method: 'PUT',
+    body: JSON.stringify({
+      sourceProcessId,
+      sourceShiftType,
+      targetProcessId,
+      targetShiftType,
+    }),
+  })
+}

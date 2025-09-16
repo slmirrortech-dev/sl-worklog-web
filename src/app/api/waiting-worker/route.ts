@@ -133,3 +133,89 @@ export async function deleteWaitingWorker(request: NextRequest) {
 }
 
 export const DELETE = withErrorHandler(deleteWaitingWorker)
+
+/** 대기열에 작업자 자리 교체 */
+export async function swapWaitingWorker(request: NextRequest) {
+  // 관리자 권한 확인
+  await requireAdmin(request)
+
+  const {
+    sourceProcessId,
+    sourceShiftType,
+    targetProcessId,
+    targetShiftType,
+  }: {
+    sourceProcessId: string
+    sourceShiftType: ShiftType
+    targetProcessId: string
+    targetShiftType: ShiftType
+  } = await request.json()
+
+  await prisma.$transaction(async (tx) => {
+    // 기준 정보 가져오기
+    const source = await tx.processShift.findUniqueOrThrow({
+      where: {
+        processId_type: {
+          processId: sourceProcessId,
+          type: sourceShiftType,
+        },
+      },
+      select: {
+        id: true,
+        waitingWorkerId: true,
+      },
+    })
+
+    // 타켓 정보 가져오기
+    const target = await tx.processShift.findUniqueOrThrow({
+      where: {
+        processId_type: {
+          processId: targetProcessId,
+          type: targetShiftType,
+        },
+      },
+      select: {
+        id: true,
+        waitingWorkerId: true,
+      },
+    })
+
+    // 대기자 정보 스왑
+    await tx.processShift.update({
+      where: { id: source.id },
+      data: { waitingWorkerId: target.waitingWorkerId },
+    })
+
+    await tx.processShift.update({
+      where: { id: target.id },
+      data: { waitingWorkerId: source.waitingWorkerId },
+    })
+  })
+
+  const lines = await prisma.line.findMany({
+    include: {
+      processes: {
+        include: {
+          shifts: {
+            include: {
+              waitingWorker: {
+                select: { id: true, userId: true, name: true },
+              },
+            },
+          },
+        },
+      },
+    },
+  })
+
+  // 확장 데이터 추가
+  const updatedLine = lines.map((line) => ({
+    ...line,
+    dayStatus: getShiftStatus(line.processes, 'DAY'),
+    nightStatus: getShiftStatus(line.processes, 'NIGHT'),
+  })) as LineResponseDto[]
+
+  return ApiResponseFactory.success(updatedLine, '대기열의 작업자 위치를 변경했습니다.')
+}
+
+export const PUT = withErrorHandler(swapWaitingWorker)

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { LineResponseDto } from '@/types/line-with-process'
+import { swapWaitingWorKerApi } from '@/lib/api/wating-worker-api'
 
 export type DragType = 'line' | 'process' | 'worker'
 
@@ -127,7 +128,7 @@ export const useDragAndDrop = (
     setLines(newLines)
   }
 
-  const handleWorkerDrop = (
+  const handleWorkerDrop = async (
     targetItem: any, // { processId, shiftType }
     draggedItem: any, // { processId, shiftType }
     targetLineId?: string,
@@ -151,7 +152,7 @@ export const useDragAndDrop = (
     const draggedShift = findShiftInLines(draggedLineId, draggedProcessId, draggedItem.shiftType)
     const targetShift = findShiftInLines(targetLineId, targetProcessId, targetItem.shiftType)
 
-    // 워커 정보 저장
+    // 워커 정보 저장 (스왑을 위해)
     const draggedWorker = {
       waitingWorkerId: draggedShift?.waitingWorkerId || null,
       waitingWorker: draggedShift?.waitingWorker || null,
@@ -162,127 +163,71 @@ export const useDragAndDrop = (
       waitingWorker: targetShift?.waitingWorker || null,
     }
 
-    const newLines = lines.map((line) => {
-      if (line.id === targetLineId || line.id === draggedLineId) {
-        return {
-          ...line,
-          processes: line.processes.map((process) => {
-            let updatedProcess = { ...process }
-
-            // 같은 프로세스인 경우 (같은 라인 내에서 주간↔야간)
-            if (
-              process.id === targetProcessId &&
-              process.id === draggedProcessId &&
-              line.id === targetLineId &&
-              line.id === draggedLineId
-            ) {
-              const targetShiftType = targetItem.shiftType
-              const draggedShiftType = draggedItem.shiftType
-
-              // 두 shift를 동시에 처리
-              let updatedShifts = [...process.shifts]
-
-              // 타겟 shift 처리
-              const targetShiftIndex = updatedShifts.findIndex((s) => s.type === targetShiftType)
-              if (targetShiftIndex >= 0) {
-                updatedShifts[targetShiftIndex] = {
-                  ...updatedShifts[targetShiftIndex],
-                  waitingWorkerId: draggedWorker.waitingWorkerId,
-                  waitingWorker: draggedWorker.waitingWorker,
-                }
-              } else {
-                updatedShifts.push({
-                  id: `new-shift-${Date.now()}`,
-                  type: targetShiftType,
-                  status: 'NORMAL' as const,
-                  processId: process.id,
-                  waitingWorkerId: draggedWorker.waitingWorkerId,
-                  waitingWorker: draggedWorker.waitingWorker,
-                })
-              }
-
-              // 드래그된 shift 처리
-              const draggedShiftIndex = updatedShifts.findIndex((s) => s.type === draggedShiftType)
-              if (draggedShiftIndex >= 0) {
-                updatedShifts[draggedShiftIndex] = {
-                  ...updatedShifts[draggedShiftIndex],
-                  waitingWorkerId: targetWorker.waitingWorkerId,
-                  waitingWorker: targetWorker.waitingWorker,
-                }
-              } else {
-                updatedShifts.push({
-                  id: `new-shift-${Date.now()}-2`,
-                  type: draggedShiftType,
-                  status: 'NORMAL' as const,
-                  processId: process.id,
-                  waitingWorkerId: targetWorker.waitingWorkerId,
-                  waitingWorker: targetWorker.waitingWorker,
-                })
-              }
-
-              return { ...process, shifts: updatedShifts }
-            }
-            // 다른 프로세스인 경우 (서로 다른 라인 또는 같은 라인의 다른 프로세스)
-            else if (process.id === targetProcessId && line.id === targetLineId) {
-              // 타겟 프로세스 처리 - 드래그된 워커로 교체
-              const targetShiftType = targetItem.shiftType
-              const existingShiftIndex = process.shifts.findIndex((s) => s.type === targetShiftType)
-
-              if (existingShiftIndex >= 0) {
-                const updatedShifts = [...process.shifts]
-                updatedShifts[existingShiftIndex] = {
-                  ...updatedShifts[existingShiftIndex],
-                  waitingWorkerId: draggedWorker.waitingWorkerId,
-                  waitingWorker: draggedWorker.waitingWorker,
-                }
-                return { ...process, shifts: updatedShifts }
-              } else {
-                const newShift = {
-                  id: `new-shift-${Date.now()}`,
-                  type: targetShiftType,
-                  status: 'NORMAL' as const,
-                  processId: process.id,
-                  waitingWorkerId: draggedWorker.waitingWorkerId,
-                  waitingWorker: draggedWorker.waitingWorker,
-                }
-                return { ...process, shifts: [...process.shifts, newShift] }
-              }
-            } else if (process.id === draggedProcessId && line.id === draggedLineId) {
-              // 드래그된 프로세스 처리 - 타겟 워커로 교체
-              const draggedShiftType = draggedItem.shiftType
-              const existingShiftIndex = process.shifts.findIndex(
-                (s) => s.type === draggedShiftType,
-              )
-
-              if (existingShiftIndex >= 0) {
-                const updatedShifts = [...process.shifts]
-                updatedShifts[existingShiftIndex] = {
-                  ...updatedShifts[existingShiftIndex],
-                  waitingWorkerId: targetWorker.waitingWorkerId,
-                  waitingWorker: targetWorker.waitingWorker,
-                }
-                return { ...process, shifts: updatedShifts }
-              } else {
-                const newShift = {
-                  id: `new-shift-${Date.now()}-2`,
-                  type: draggedShiftType,
-                  status: 'NORMAL' as const,
-                  processId: process.id,
-                  waitingWorkerId: targetWorker.waitingWorkerId,
-                  waitingWorker: targetWorker.waitingWorker,
-                }
-                return { ...process, shifts: [...process.shifts, newShift] }
-              }
-            }
-
-            return process
-          }),
-        }
-      }
-      return line
+    console.log('🔄 Swapping workers:', {
+      draggedWorker: draggedWorker.waitingWorker?.name,
+      targetWorker: targetWorker.waitingWorker?.name,
+      draggedLocation: `${draggedProcessId}-${draggedItem.shiftType}`,
+      targetLocation: `${targetProcessId}-${targetItem.shiftType}`,
     })
 
-    setLines(newLines)
+    const newLines = lines.map((line) => ({
+      ...line,
+      processes: line.processes.map((process) => ({
+        ...process,
+        shifts: process.shifts.map((shift) => {
+          // 드래그된 워커의 원래 위치 - 타겟 워커로 교체
+          if (
+            line.id === draggedLineId &&
+            process.id === draggedProcessId &&
+            shift.type === draggedItem.shiftType
+          ) {
+            return {
+              ...shift,
+              waitingWorkerId: targetWorker.waitingWorkerId,
+              waitingWorker: targetWorker.waitingWorker ? { ...targetWorker.waitingWorker } : null,
+            }
+          }
+
+          // 타겟 워커의 위치 - 드래그된 워커로 교체
+          if (
+            line.id === targetLineId &&
+            process.id === targetProcessId &&
+            shift.type === targetItem.shiftType
+          ) {
+            return {
+              ...shift,
+              waitingWorkerId: draggedWorker.waitingWorkerId,
+              waitingWorker: draggedWorker.waitingWorker
+                ? { ...draggedWorker.waitingWorker }
+                : null,
+            }
+          }
+
+          return { ...shift }
+        }),
+      })),
+    }))
+
+    console.log('🔄 Before setLines:', lines.length)
+    console.log('🔄 After setLines:', newLines.length)
+    console.log('🔄 First line processes count:', newLines[0]?.processes?.length)
+
+    // 강제 리렌더링을 위해 새로운 배열 참조 생성
+    setLines([...newLines])
+
+    try {
+      const { data } = await swapWaitingWorKerApi(
+        draggedProcessId,
+        draggedItem.shiftType,
+        targetProcessId,
+        targetItem.shiftType,
+      )
+      setLines(data)
+    } catch (e) {
+      console.error(e)
+    }
+
+    console.log('✅ setLines called!')
   }
 
   const resetDragState = () => {

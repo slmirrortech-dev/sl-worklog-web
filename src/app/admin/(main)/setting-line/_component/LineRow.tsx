@@ -13,24 +13,16 @@ const LineRow = ({
   data,
   setLineWithProcess,
   dragAndDropControl,
+  workerDropControl,
   editLineControl,
 }: {
   isEditMode: boolean
   data: LineResponseDto[]
   setLineWithProcess: any
   dragAndDropControl: any
+  workerDropControl: any
   editLineControl: any
 }) => {
-  const {
-    isDragging,
-    dragState,
-    handleDragStart,
-    handleDragOver,
-    handleDrop,
-    handleDragEnd,
-    handleAddLine,
-  } = dragAndDropControl
-
   return (
     <tbody>
       {data.map((line) => {
@@ -83,7 +75,7 @@ const LineRow = ({
                           shiftType={type}
                           setLineWithProcess={setLineWithProcess}
                           onDragStart={(e, processId, shiftType) =>
-                            handleDragStart(
+                            workerDropControl.handleDragStart(
                               e,
                               { processId, shiftType },
                               'worker',
@@ -92,12 +84,18 @@ const LineRow = ({
                             )
                           }
                           onDrop={(e, processId, shiftType) =>
-                            handleDrop(e, { processId, shiftType }, 'worker', line.id, processId)
+                            workerDropControl.handleDrop(
+                              e,
+                              { processId, shiftType },
+                              'worker',
+                              line.id,
+                              processId,
+                            )
                           }
-                          onDragOver={handleDragOver}
-                          onDragEnd={handleDragEnd}
-                          isDragging={isDragging}
-                          dragState={dragState}
+                          onDragOver={workerDropControl.handleDragOver}
+                          onDragEnd={workerDropControl.handleDragEnd}
+                          isDragging={workerDropControl.isDragging}
+                          dragState={workerDropControl.dragState}
                         />
                       )
                     })}
@@ -109,7 +107,7 @@ const LineRow = ({
         )
       })}
       {/* 라인 추가 */}
-      {isEditMode && <ButtonAddLine onClick={handleAddLine} />}
+      {isEditMode && <ButtonAddLine onClick={editLineControl.handleAddLine} />}
     </tbody>
   )
 }
