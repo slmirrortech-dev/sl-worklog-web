@@ -128,7 +128,6 @@ const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
         <LineRow
           isEditMode={lockInfo.isEditMode}
           data={lockInfo.isEditMode ? tempLineWithProcess : lineWithProcess}
-          lineWithProcess={lineWithProcess}
           setLineWithProcess={setLineWithProcess}
           dragAndDropControl={dragAndDropControl}
           editLineControl={editLineControl}
