@@ -84,7 +84,7 @@ const useEditLineWithProcess = (
   const handleSaveLineEdit = () => {
     if (!editingLine) return
     const newName = editValue.trim() || '라인 이름'
-    const updatedLines = lineWithProcess.map((line) =>
+    const updatedLines = tempLineWithProcess.map((line) =>
       line.id === editingLine ? { ...line, name: newName } : line,
     )
     setTempLineWithProcess(updatedLines)
@@ -96,7 +96,7 @@ const useEditLineWithProcess = (
   const handleSaveProcessEdit = () => {
     if (!editingProcess) return
     const newName = editValue.trim() || '공정 이름'
-    const updatedLines = lineWithProcess.map((line) => ({
+    const updatedLines = tempLineWithProcess.map((line) => ({
       ...line,
       processes: line.processes.map((process) =>
         process.id === editingProcess ? { ...process, name: newName } : process,

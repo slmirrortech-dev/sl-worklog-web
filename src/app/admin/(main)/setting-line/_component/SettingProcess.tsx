@@ -14,8 +14,8 @@ import LineTable from '@/app/admin/(main)/setting-line/_component/LineTable'
 import LineRow from '@/app/admin/(main)/setting-line/_component/LineRow'
 import { Progress } from '@/components/ui/progress'
 
-export const leftTableHead = `min-w-[160px] min-h-[58px]`
-export const leftTableShiftHead = `min-w-[160px] min-h-[100px]`
+export const leftTableHead = `min-w-[170px] min-h-[60px]`
+export const leftTableShiftHead = `min-w-[170px] min-h-[100px]`
 
 interface SettingProcessProps {
   initialData: LineResponseDto[]
