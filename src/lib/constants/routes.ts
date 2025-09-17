@@ -10,6 +10,6 @@ export const ROUTES = {
   WORKER: {
     LOGIN: '/worker/login',
     HOME: '/worker/home',
-    START: '/worker/bakstart',
+    START: '/worker/start',
   },
 }
