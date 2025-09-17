@@ -101,20 +101,29 @@ const useEditLock = (currentUser: SessionUser) => {
 
   // 편집 시작
   const startEditing = async () => {
-    await supabaseClient.from('edit_locks').upsert({
-      id: 'global-lock',
-      resourceType: 'setting-line',
-      lockedBy: currentUser.id,
-      lockedByName: currentUser.name,
-      lockedByUserId: currentUser.userId,
-    })
+    setIsLoading(true)
+    try {
+      await supabaseClient.from('edit_locks').upsert({
+        id: 'global-lock',
+        resourceType: 'setting-line',
+        lockedBy: currentUser.id,
+        lockedByName: currentUser.name,
+        lockedByUserId: currentUser.userId,
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   // 편집 종료
   const stopEditing = async () => {
-    await supabaseClient.from('edit_locks').delete().eq('resourceType', 'setting-line')
+    setIsLoading(true)
+    try {
+      await supabaseClient.from('edit_locks').delete().eq('resourceType', 'setting-line')
+    } finally {
+      setIsLoading(false)
+    }
   }
-
   return {
     lockInfo,
     startEditing,
