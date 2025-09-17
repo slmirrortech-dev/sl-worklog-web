@@ -10,11 +10,12 @@ import { LineResponseDto } from '@/types/line-with-process'
 const useLineDataSync = ({
   isEditMode,
   onDataUpdate,
+  setSaveProgress,
 }: {
   isEditMode: boolean
   onDataUpdate: (data: LineResponseDto[]) => void
+  setSaveProgress: (progress: number) => void
 }) => {
-  const [isFetching, setIsFetching] = useState(false)
   const isEditModeRef = useRef(isEditMode)
 
   // 편집모드 상태를 ref로 관리 (클로저 문제 방지)
@@ -38,14 +39,18 @@ const useLineDataSync = ({
 
         // 편집모드가 아닐 때만 데이터 동기화 (성능 최적화)
         if (!isEditModeRef.current) {
-          setIsFetching(true)
+          setSaveProgress(30)
           try {
             const { data } = await getLineWithProcess()
+            setSaveProgress(70)
             onDataUpdate(data)
           } catch (e) {
             console.error('Failed to sync line data:', e)
           } finally {
-            setIsFetching(false)
+            setSaveProgress(100)
+            setTimeout(() => {
+              setSaveProgress(0)
+            }, 500)
           }
         }
       }, 500)
@@ -72,10 +77,7 @@ const useLineDataSync = ({
     }
   }, [])
 
-  return {
-    isFetching,
-    setIsFetching,
-  }
+  return {}
 }
 
 export default useLineDataSync

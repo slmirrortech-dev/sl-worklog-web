@@ -15,6 +15,7 @@ interface DragState {
 export const useDragAndDrop = (
   lines: LineResponseDto[],
   setLines: (lines: LineResponseDto[]) => void,
+  setSaveProgress?: (progress: number) => void,
 ) => {
   const [dragState, setDragState] = useState<DragState>({
     draggedItem: null,
@@ -142,6 +143,8 @@ export const useDragAndDrop = (
 
     if (!targetLineId || !targetProcessId || !draggedLineId || !draggedProcessId) return
 
+    setSaveProgress && setSaveProgress(10)
+
     // 현재 데이터에서 실제 shift 정보 찾기
     const findShiftInLines = (lineId: string, processId: string, shiftType: string) => {
       const line = lines.find((l) => l.id === lineId)
@@ -162,7 +165,6 @@ export const useDragAndDrop = (
       waitingWorkerId: targetShift?.waitingWorkerId || null,
       waitingWorker: targetShift?.waitingWorker || null,
     }
-
 
     const newLines = lines.map((line) => ({
       ...line,
@@ -206,13 +208,12 @@ export const useDragAndDrop = (
     setLines([...newLines])
 
     try {
-      const { data } = await swapWaitingWorKerApi(
+      await swapWaitingWorKerApi(
         draggedProcessId,
         draggedItem.shiftType,
         targetProcessId,
         targetItem.shiftType,
       )
-      setLines(data)
     } catch (e) {
       console.error(e)
     }

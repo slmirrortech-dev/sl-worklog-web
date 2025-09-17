@@ -12,6 +12,7 @@ import { updateLineWithProcess } from '@/lib/api/line-with-process-api'
 import useEditLineWithProcess from '@/hooks/useEditLineWithProcess'
 import LineTable from '@/app/admin/(main)/setting-line/_component/LineTable'
 import LineRow from '@/app/admin/(main)/setting-line/_component/LineRow'
+import { Progress } from '@/components/ui/progress'
 
 export const leftTableHead = `min-w-[160px] min-h-[58px]`
 export const leftTableShiftHead = `min-w-[160px] min-h-[100px]`
@@ -25,6 +26,7 @@ interface SettingProcessProps {
 const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
   const [lineWithProcess, setLineWithProcess] = useState<LineResponseDto[]>(initialData)
   const [tempLineWithProcess, setTempLineWithProcess] = useState<LineResponseDto[]>(lineWithProcess)
+  const [saveProgress, setSaveProgress] = useState(0)
 
   // 라인 공정 편집 관련 hook
   const editLineControl = useEditLineWithProcess(
@@ -38,9 +40,10 @@ const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
   const { lockInfo, startEditing, stopEditing, isLoading } = useEditLock(currentUser)
 
   // 라인 데이터 실시간 동기화 hook
-  const { isFetching } = useLineDataSync({
+  useLineDataSync({
     isEditMode: lockInfo.isEditMode,
     onDataUpdate: setLineWithProcess,
+    setSaveProgress,
   })
 
   // 편집 모드 변경 시 tempLineWithProcess 초기화
@@ -49,10 +52,6 @@ const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
       setTempLineWithProcess([...lineWithProcess])
     }
   }, [lockInfo.isEditMode, lineWithProcess])
-
-  // 드래그 앤 드롭 hook
-  const dragAndDropControl = useDragAndDrop(tempLineWithProcess, setTempLineWithProcess)
-  const workerDropControl = useDragAndDrop(lineWithProcess, setLineWithProcess)
 
   // 편집 취소
   const handleCancelEdit = () => {
@@ -67,17 +66,37 @@ const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
     if (isEqual(lineWithProcess, tempLineWithProcess)) {
       handleCancelEdit()
     } else {
-      // API 호출
-      const { data } = await updateLineWithProcess(tempLineWithProcess)
-      console.log(data)
-      setLineWithProcess(data)
-      setTempLineWithProcess(data)
-      handleCancelEdit()
+      setSaveProgress(10)
+
+      try {
+        setSaveProgress(30)
+        // API 호출
+        const { data } = await updateLineWithProcess(tempLineWithProcess)
+        setSaveProgress(70)
+        console.log(data)
+        setLineWithProcess(data)
+        setTempLineWithProcess(data)
+      } catch (error) {
+        console.error('저장 실패:', error)
+      } finally {
+        setSaveProgress(100)
+        setTimeout(() => {
+          handleCancelEdit()
+          setSaveProgress(0)
+        }, 500)
+      }
     }
   }
 
+  // 드래그 앤 드롭 hook
+  const dragAndDropControl = useDragAndDrop(tempLineWithProcess, setTempLineWithProcess)
+  const workerDropControl = useDragAndDrop(lineWithProcess, setLineWithProcess, setSaveProgress)
+
   return (
     <div className="space-y-4">
+      <div className="sticky top-28 md:top-16 z-56 left-0 right-0 w-full h-2">
+        {saveProgress > 0 && <Progress value={saveProgress} className="h-2" />}
+      </div>
       {/* 편집 모드 토글 */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div className="flex items-center justify-between">
@@ -102,7 +121,6 @@ const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
                   startEditing()
                 } else {
                   handleAutoSaveEdit()
-                  // handleCancelEdit()
                 }
               }}
               disabled={lockInfo.isLocked || isLoading}
@@ -137,7 +155,6 @@ const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
       </LineTable>
 
       <ModalEditLock lockInfo={lockInfo} handleCancelEdit={handleCancelEdit} />
-      {isFetching && <div className="fixed bg-black/40 top-0 bottom-0 left-0 right-0 z-100"></div>}
     </div>
   )
 }

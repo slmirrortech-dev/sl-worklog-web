@@ -10,6 +10,7 @@ import { ApiResponse } from '@/types/common'
 import { deleteWaitingWorKerApi } from '@/lib/api/wating-worker-api'
 
 const ContainerWaitingWorker = ({
+  isEditMode,
   process,
   shiftType = 'DAY',
   setLineWithProcess,
@@ -20,6 +21,7 @@ const ContainerWaitingWorker = ({
   isDragging,
   dragState,
 }: {
+  isEditMode: boolean
   process: ProcessResponseDto
   shiftType: ShiftType
   setLineWithProcess: any
@@ -46,7 +48,7 @@ const ContainerWaitingWorker = ({
   // 동적 스타일 클래스
   const getContainerClass = () => {
     let baseClass =
-      'rounded-lg border shadow-sm flex h-full items-center justify-center gap-2 cursor-move transition-all duration-300 min-h-[80px]'
+      'rounded-lg border shadow-sm flex h-full items-center justify-center gap-2 transition-all duration-300 min-h-[80px]'
 
     // 시프트 타입에 따른 기본 배경색 설정
     const shiftBgColor = shiftType === 'DAY' ? 'bg-gray-50' : 'bg-gray-100'
@@ -56,11 +58,11 @@ const ContainerWaitingWorker = ({
     if (isCurrentlyDragged) {
       return `${baseClass} bg-gray-200 border-gray-400 opacity-70 scale-95`
     } else if (isDroppable) {
-      return `${baseClass} ${shiftBgColor} border-gray-300 ${shiftHoverColor} hover:shadow-md`
+      return `${baseClass} ${shiftBgColor} border-gray-300 ${!isEditMode && shiftHoverColor} ${!isEditMode && 'hover:shadow-md'}`
     } else if (waitingWorker) {
-      return `${baseClass} bg-white border-gray-200 hover:bg-gray-50 hover:shadow-md`
+      return `${baseClass} bg-white border-gray-200  ${!isEditMode && 'hover:bg-gray-50 hover:shadow-md'}`
     } else {
-      return `${baseClass} ${shiftBgColor} border-gray-200 ${shiftHoverColor} border-dashed`
+      return `${baseClass} ${shiftBgColor} border-gray-200 ${!isEditMode && shiftHoverColor} border-dashed`
     }
   }
 
@@ -69,17 +71,21 @@ const ContainerWaitingWorker = ({
   return (
     <div key={process.id} className={`${leftTableShiftHead} px-2 py-1`}>
       <div
-        className={getContainerClass()}
-        draggable={!!waitingWorker}
+        className={
+          getContainerClass() +
+          ' ' +
+          `${isEditMode ? 'pointer-events-none !cursor-not-allowed opacity-50' : '!cursor-move'}`
+        }
+        draggable={!!waitingWorker && !isEditMode}
         onDragStart={(e) => onDragStart?.(e, process.id, shiftType)}
         onDrop={(e) => onDrop?.(e, process.id, shiftType)}
         onDragOver={onDragOver}
         onDragEnd={onDragEnd}
       >
         {waitingWorker ? (
-          <Popover>
-            <PopoverTrigger asChild>
-              <div className="cursor-pointer w-full h-full flex items-center justify-center">
+          <Popover open={isEditMode ? false : undefined}>
+            <PopoverTrigger className={`${isEditMode ? '!cursor-not-allowed' : 'cursor-pointer'}`}>
+              <div className={`w-full h-full flex items-center justify-center`}>
                 <CardWaitingWorker waitingWorker={waitingWorker} />
               </div>
             </PopoverTrigger>
@@ -120,6 +126,7 @@ const ContainerWaitingWorker = ({
 
                 <div className="pt-3 border-t">
                   <button
+                    disabled={isEditMode}
                     onClick={async () => {
                       try {
                         const {
@@ -133,7 +140,7 @@ const ContainerWaitingWorker = ({
                         alert('선택한 작업자 대기열에서 삭제 오류')
                       }
                     }}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                    className={`w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors`}
                   >
                     <Settings className="w-4 h-4" />
                     작업자 대기열에서 제외
@@ -145,7 +152,11 @@ const ContainerWaitingWorker = ({
         ) : (
           // 등록이 안된 칸
           <Popover open={isOpen} onOpenChange={setIsOpen}>
-            <PopoverTrigger asChild>
+            <PopoverTrigger
+              asChild
+              disabled={isEditMode}
+              className={`${isEditMode ? '!cursor-not-allowed' : 'cursor-pointer'}`}
+            >
               <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-gray-400 cursor-pointer">
                 <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
                   <Plus className="w-4 h-4" />
@@ -153,7 +164,7 @@ const ContainerWaitingWorker = ({
                 <span className="text-xs font-medium">대기</span>
               </div>
             </PopoverTrigger>
-            {isOpen && (
+            {!isEditMode && isOpen && (
               <PopoverContentAdd
                 setLineWithProcess={setLineWithProcess}
                 setIsOpen={setIsOpen}

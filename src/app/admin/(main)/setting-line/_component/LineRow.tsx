@@ -70,6 +70,7 @@ const LineRow = ({
                     {line.processes.map((process) => {
                       return (
                         <ContainerWaitingWorker
+                          isEditMode={isEditMode}
                           key={process.id}
                           process={process}
                           shiftType={type}

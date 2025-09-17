@@ -10,10 +10,10 @@ const CardWaitingWorker = ({ waitingWorker }: { waitingWorker: waitingWorkerMode
         {waitingWorker.name}
       </span>
       <span className="text-sm text-blue-600">사번 : {waitingWorker.userId}</span>
-      <span className="flex items-center justify-center gap-1 text-xs text-blue-600">
-        <Clock className="w-3 h-3" />
-        14h 36m
-      </span>
+      {/*<span className="flex items-center justify-center gap-1 text-xs text-blue-600">*/}
+      {/*  <Clock className="w-3 h-3" />*/}
+      {/*  14h 36m*/}
+      {/*</span>*/}
     </div>
   )
 }
