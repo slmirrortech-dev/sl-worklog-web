@@ -9,6 +9,7 @@ export const ROUTES = {
   },
   WORKER: {
     LOGIN: '/worker/login',
-    WORK_LOG: '/worker/worklog',
+    HOME: '/worker/home',
+    START: '/worker/start',
   },
 }

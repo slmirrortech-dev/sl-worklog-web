@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { loginWorkerApi } from '@/lib/api/auth-api'
 import { AlertCircle } from 'lucide-react'
+import { ROUTES } from '@/lib/constants/routes'
 
 export default function WorkerLoginPage() {
   const [userId, setUserId] = useState('')
@@ -20,7 +21,7 @@ export default function WorkerLoginPage() {
 
     try {
       await loginWorkerApi({ userId: userId, password: password })
-      router.push('/worker/worklog')
+      router.push(ROUTES.WORKER.HOME)
     } catch (error: any) {
       console.error('Login error:', error)
       setErrorMsg(error?.message || '로그인 중 오류가 발생했습니다.')
