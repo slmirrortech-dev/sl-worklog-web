@@ -40,6 +40,7 @@ interface WorkLog {
     line: {
       id: string
       name: string
+      classNo: string
     }
   }
 }
@@ -99,7 +100,7 @@ const mockWorkLogs: WorkLog[] = [
     shiftType: 'DAY_NORMAL',
     isDefective: false,
     user: { id: 'user1', name: '김철수', employeeId: '2024001' },
-    process: { id: '1-1', name: 'P1', line: { id: '1', name: 'MV L/R' } },
+    process: { id: '1-1', name: 'P1', line: { id: '1', name: 'MV L/R', classNo: '1' } },
   },
   // 야간 정상 근무 (불량품 있음)
   {
@@ -112,7 +113,7 @@ const mockWorkLogs: WorkLog[] = [
     shiftType: 'NIGHT_NORMAL',
     isDefective: true,
     user: { id: 'user2', name: '박민수', employeeId: '2024003' },
-    process: { id: '25-2', name: '조립피더', line: { id: '25', name: '린지원' } },
+    process: { id: '25-2', name: '조립피더', line: { id: '25', name: '린지원', classNo: '1' } },
   },
   // 주간 잔업
   {
@@ -125,7 +126,7 @@ const mockWorkLogs: WorkLog[] = [
     shiftType: 'DAY_OVERTIME',
     isDefective: false,
     user: { id: 'user3', name: '이영희', employeeId: '2024002' },
-    process: { id: '2-3', name: 'P3', line: { id: '2', name: 'MX5 LH' } },
+    process: { id: '2-3', name: 'P3', line: { id: '2', name: 'MX5 LH', classNo: '1' } },
   },
   // 야간 잔업
   {
@@ -138,7 +139,7 @@ const mockWorkLogs: WorkLog[] = [
     shiftType: 'NIGHT_OVERTIME',
     isDefective: false,
     user: { id: 'user4', name: '정현우', employeeId: '2024004' },
-    process: { id: '1-5', name: 'P5', line: { id: '1', name: 'MV L/R' } },
+    process: { id: '1-5', name: 'P5', line: { id: '1', name: 'MV L/R', classNo: '1' } },
   },
   // 진행 중인 작업
   {
@@ -151,7 +152,7 @@ const mockWorkLogs: WorkLog[] = [
     shiftType: 'UNKNOWN',
     isDefective: false,
     user: { id: 'user5', name: '최지은', employeeId: '2024005' },
-    process: { id: '2-1', name: 'P1', line: { id: '2', name: 'MX5 LH' } },
+    process: { id: '2-1', name: 'P1', line: { id: '2', name: 'MX5 LH', classNo: '2' } },
   },
 ]
 
@@ -341,7 +342,11 @@ const DashboardPage = () => {
     {
       accessorKey: 'line-with-process.line.name',
       header: '라인',
-      cell: ({ row }) => <div className="text-sm">{row.original.process.line.name}</div>,
+      cell: ({ row }) => (
+        <div className="text-sm">
+          {row.original.process.line.name} ({row.original.process.line.classNo}반)
+        </div>
+      ),
     },
     {
       accessorKey: 'line-with-process.name',
@@ -862,7 +867,9 @@ const DashboardPage = () => {
           searchInput={filters.employeeSearch}
           setPage={setPage}
           setPageSize={setPageSize}
-          setSearchInput={(value) => setFilters((prev) => ({ ...prev, employeeSearch: value }))}
+          setSearchInput={(value: any) =>
+            setFilters((prev) => ({ ...prev, employeeSearch: value }))
+          }
           onSearch={handleSearch}
         />
       </div>

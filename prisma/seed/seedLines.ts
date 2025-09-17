@@ -322,6 +322,18 @@ const initialLines = [
   {
     name: '린지원',
     order: 25,
+    classNo: 1,
+    processes: [
+      { name: '서열피더', order: 1 },
+      { name: '조립피더', order: 2 },
+      { name: '리워크', order: 3 },
+      { name: '폴리싱', order: 4 },
+      { name: '서열대차', order: 5 },
+    ],
+  },
+  {
+    name: '린지원',
+    order: 26,
     classNo: 2,
     processes: [
       { name: '서열피더', order: 1 },
