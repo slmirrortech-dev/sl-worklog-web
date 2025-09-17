@@ -3,7 +3,8 @@ import { leftTableHead } from '@/app/admin/(main)/setting-line/_component/Settin
 import { GripVertical, X } from 'lucide-react'
 
 const ProcessCell = ({ line, process, isEditMode, dragAndDropControl, editLineControl }: any) => {
-  const { isDragging, dragState, handleDragStart, handleDragOver, handleDrop, handleDragEnd } = dragAndDropControl
+  const { isDragging, dragState, handleDragStart, handleDragOver, handleDrop, handleDragEnd } =
+    dragAndDropControl
 
   return (
     <div
@@ -61,7 +62,7 @@ const ProcessCell = ({ line, process, isEditMode, dragAndDropControl, editLineCo
               editLineControl.handleDeleteProcess(line.id, process.id)
             }}
             title="공정 삭제"
-            className="opacity-0 group-hover:opacity-100 transition-opacity text-white hover:text-red-300 hover:bg-red-500/20 rounded-full p-1 flex-shrink-0"
+            className="text-white hover:text-red-300 hover:bg-red-500/20 rounded-full p-1 flex-shrink-0"
           >
             <X className="w-3 h-3" />
           </button>

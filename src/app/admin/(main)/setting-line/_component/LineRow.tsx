@@ -16,6 +16,7 @@ const LineRow = ({
   dragAndDropControl,
   workerDropControl,
   editLineControl,
+  setSaveProgress,
 }: {
   isEditMode: boolean
   isLocked: boolean
@@ -24,6 +25,7 @@ const LineRow = ({
   dragAndDropControl: any
   workerDropControl: any
   editLineControl: any
+  setSaveProgress: any
 }) => {
   return (
     <tbody>
@@ -37,6 +39,7 @@ const LineRow = ({
                 editLineControl={editLineControl}
                 dragAndDropControl={dragAndDropControl}
                 isEditMode={isEditMode}
+                setSaveProgress={setSaveProgress}
               />
               <td className="flex bg-white">
                 {/* 라인의 하위 공정 목록 */}
@@ -68,6 +71,7 @@ const LineRow = ({
                     shiftType={type}
                     line={line}
                     setLineWithProcess={setLineWithProcess}
+                    setSaveProgress={setSaveProgress}
                   />
                   <td className="flex bg-gray-50">
                     {line.processes.map((process) => {

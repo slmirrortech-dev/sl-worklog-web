@@ -9,11 +9,13 @@ const ShiftTypeCell = ({
   shiftType,
   line,
   setLineWithProcess,
+  setSaveProgress,
 }: {
   isEditMode: boolean
   shiftType: ShiftType
   line: any
   setLineWithProcess: any
+  setSaveProgress: any
 }) => {
   const shiftTypeName = shiftType === 'DAY' ? '주간' : '야간'
   const bgColor = shiftType === 'DAY' ? 'bg-gray-50' : 'bg-gray-100'
@@ -39,12 +41,15 @@ const ShiftTypeCell = ({
     setEditingShift(null)
 
     // 서버 요청
+    setSaveProgress(10)
     try {
       const { data } = await updateLineStatusApi(lineId, shiftType, newStatus)
       setLineWithProcess(data) // 서버 기준으로 최종 동기화
+      setSaveProgress(15)
     } catch (e) {
       console.error(e)
       setValue(shiftType === 'DAY' ? line.dayStatus : line.nightStatus) // 실패 시 되돌리기
+      setSaveProgress(0)
     }
   }
 

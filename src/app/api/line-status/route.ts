@@ -15,30 +15,43 @@ export async function updateLineStatus(request: NextRequest) {
     lineId,
     shiftType,
     workStatus,
+    classNo,
   }: {
     lineId: string
-    shiftType: ShiftType
-    workStatus: WorkStatus
+    shiftType?: ShiftType
+    workStatus?: WorkStatus
+    classNo?: number
   } = await request.json()
 
   await prisma.$transaction(async (tx) => {
-    // 라인에 속한 프로세스 ID 가져오기
-    const processes = await tx.process.findMany({
-      where: { lineId },
-      select: { id: true },
-    })
-    const processIds = processes.map((p) => p.id)
+    // classNo가 제공된 경우 라인의 classNo 업데이트
+    if (classNo !== undefined) {
+      await tx.line.update({
+        where: { id: lineId },
+        data: { classNo: classNo },
+      })
+    }
 
-    if (processIds.length === 0) return
+    // workStatus가 제공된 경우 프로세스 shift도 업데이트
+    if (workStatus && shiftType) {
+      // 라인에 속한 프로세스 ID 가져오기
+      const processes = await tx.process.findMany({
+        where: { lineId },
+        select: { id: true },
+      })
+      const processIds = processes.map((p) => p.id)
 
-    // 해당 프로세스들의 shift 업데이트
-    await tx.processShift.updateMany({
-      where: {
-        processId: { in: processIds },
-        type: shiftType,
-      },
-      data: { status: workStatus },
-    })
+      if (processIds.length > 0) {
+        // 해당 프로세스들의 shift 업데이트
+        await tx.processShift.updateMany({
+          where: {
+            processId: { in: processIds },
+            type: shiftType,
+          },
+          data: { status: workStatus },
+        })
+      }
+    }
   })
 
   // 업데이트 후 라인 전체 데이터 다시 조회

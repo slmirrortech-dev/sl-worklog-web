@@ -152,6 +152,7 @@ const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
           dragAndDropControl={dragAndDropControl}
           workerDropControl={workerDropControl}
           editLineControl={editLineControl}
+          setSaveProgress={setSaveProgress}
         />
       </LineTable>
 
