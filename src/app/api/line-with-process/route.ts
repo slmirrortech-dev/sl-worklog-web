@@ -93,6 +93,8 @@ export async function updateLineWithProcess(req: NextRequest) {
         .map((p) => p.id)
 
       if (toDeleteProcIds.length > 0) {
+        // 공정 삭제 전 연관된 processShift 먼저 삭제
+        await tx.processShift.deleteMany({ where: { processId: { in: toDeleteProcIds } } })
         await tx.process.deleteMany({ where: { id: { in: toDeleteProcIds } } })
       }
 
