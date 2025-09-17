@@ -86,14 +86,14 @@ export default function ButtonLicense({
           {canEdit ? (
             <>
               <label
-                htmlFor="inputFile"
+                htmlFor={`inputFile-${targetUser.id}`}
                 className="inline-flex justify-center items-center border rounded-md  px-2 py-1.5 text-sm hover:bg-gray-100 transition-all cursor-pointer"
               >
                 <Plus className="w-3 h-3 mr-1" />
                 업로드
               </label>
               <input
-                id="inputFile"
+                id={`inputFile-${targetUser.id}`}
                 type="file"
                 onChange={handleFileChange}
                 style={{

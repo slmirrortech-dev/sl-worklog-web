@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import { UserResponseDto } from '@/types/user'
-import { getCurrentUserApi, getUsersApi } from '@/lib/api/user-api'
+import { getUsersApi } from '@/lib/api/user-api'
 import { CustomDataTable } from '@/components/CustomDataTable'
 import { ColumnDef } from '@tanstack/react-table'
 import { Button } from '@/components/ui/button'
@@ -10,7 +10,7 @@ import { ArrowUpDown, ChevronRight } from 'lucide-react'
 import { format } from 'date-fns'
 import { useRouter, useSearchParams } from 'next/navigation'
 import RoleLabel from '@/components/admin/RoleLabel'
-import UploadForm from '@/components/admin/ButtonLicense'
+import ButtonLicense from '@/components/admin/ButtonLicense'
 import { SessionUser } from '@/lib/core/session'
 
 /** 사용자 테이블 */
@@ -157,7 +157,7 @@ const UsersDataTable = ({
 
         return (
           <div className="text-center">
-            <UploadForm targetUser={user} canEdit={currentUser?.role === 'ADMIN'} />
+            <ButtonLicense targetUser={user} canEdit={currentUser?.role === 'ADMIN'} />
           </div>
         )
       },
