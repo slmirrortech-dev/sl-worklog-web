@@ -6,8 +6,6 @@ import { LineResponseDto } from '@/types/line-with-process'
 import { getShiftStatus } from '@/lib/utils/line-status'
 import { requireManagerOrAdmin } from '@/lib/utils/auth-guards'
 
-const isTempId = (id?: string) => !id || id.startsWith('temp-')
-
 /** 라인과 프로세스 통합 조회 */
 export async function getLineWithProcess(req: NextRequest) {
   const lines = await prisma.line.findMany({
@@ -37,22 +35,43 @@ export async function getLineWithProcess(req: NextRequest) {
 
 export const GET = withErrorHandler(getLineWithProcess)
 
-/** 라인과 프로세스 통합 업데이트 */
+//** 라인과 프로세스 통합 업데이트 */
 export async function updateLineWithProcess(req: NextRequest) {
   await requireManagerOrAdmin(req)
 
   const body = await req.json()
   const { lineWithProcess } = body
 
+  // 임시 ID 판별
+  function isTempId(id: string) {
+    return id.startsWith('temp-')
+  }
+
   const result = (await prisma.$transaction(async (tx) => {
     // 기존 라인 조회
     const existingLines = await tx.line.findMany({ include: { processes: true } })
 
-    // 삭제된 라인 제거
+    // 삭제된 라인 처리
     const toDeleteLineIds = existingLines
       .filter((l) => !lineWithProcess.some((n: any) => n.id === l.id))
       .map((l) => l.id)
+
     if (toDeleteLineIds.length > 0) {
+      // 삭제할 라인의 프로세스 조회
+      const processesToDelete = await tx.process.findMany({
+        where: { lineId: { in: toDeleteLineIds } },
+        select: { id: true },
+      })
+      const procIds = processesToDelete.map((p) => p.id)
+
+      if (procIds.length > 0) {
+        // 교대조 삭제
+        await tx.processShift.deleteMany({ where: { processId: { in: procIds } } })
+        // 프로세스 삭제
+        await tx.process.deleteMany({ where: { id: { in: procIds } } })
+      }
+
+      // 라인 삭제
       await tx.line.deleteMany({ where: { id: { in: toDeleteLineIds } } })
     }
 
@@ -72,6 +91,7 @@ export async function updateLineWithProcess(req: NextRequest) {
         where: { lineId: savedLine.id },
       })
 
+      // 삭제된 프로세스 처리
       const toDeleteProcIds = existingProcesses
         .filter((p) => !line.processes.some((n: any) => n.id === p.id))
         .map((p) => p.id)
@@ -81,6 +101,7 @@ export async function updateLineWithProcess(req: NextRequest) {
         await tx.process.deleteMany({ where: { id: { in: toDeleteProcIds } } })
       }
 
+      // 프로세스 저장/업데이트
       for (const proc of line.processes) {
         if (!isTempId(proc.id)) {
           await tx.process.update({
