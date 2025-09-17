@@ -96,10 +96,10 @@ export default function BoxLicense({
                 onClick={async () => {
                   setIsLoading(true)
                   try {
-                    const user = await deleteLicenseApi(targetUser.id)
+                    const { data } = await deleteLicenseApi(targetUser.id)
                     setPreviewUrl(null)
                     setSignedUrl(null)
-                    setFreshUser(user)
+                    setFreshUser(data)
                     router.refresh()
                   } catch (error) {
                     console.error(error)
