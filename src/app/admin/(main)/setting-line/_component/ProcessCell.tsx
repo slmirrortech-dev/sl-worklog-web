@@ -3,7 +3,7 @@ import { leftTableHead } from '@/app/admin/(main)/setting-line/_component/Settin
 import { GripVertical, X } from 'lucide-react'
 
 const ProcessCell = ({ line, process, isEditMode, dragAndDropControl, editLineControl }: any) => {
-  const { isDragging, dragState, handleDragStart, handleDragOver, handleDrop } = dragAndDropControl
+  const { isDragging, dragState, handleDragStart, handleDragOver, handleDrop, handleDragEnd } = dragAndDropControl
 
   return (
     <div
@@ -12,6 +12,7 @@ const ProcessCell = ({ line, process, isEditMode, dragAndDropControl, editLineCo
       onDragStart={isEditMode ? (e) => handleDragStart(e, process, 'process', line.id) : undefined}
       onDrop={isEditMode ? (e) => handleDrop(e, process, 'process', line.id) : undefined}
       onDragOver={isEditMode ? handleDragOver : undefined}
+      onDragEnd={isEditMode ? handleDragEnd : undefined}
     >
       <div
         className={`group px-3 py-2 rounded-lg border shadow-sm flex h-full items-center justify-between ${isEditMode ? 'cursor-move' : ''} transition-all duration-300 ${

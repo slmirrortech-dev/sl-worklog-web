@@ -3,7 +3,7 @@ import { leftTableHead } from '@/app/admin/(main)/setting-line/_component/Settin
 import { GripVertical, X } from 'lucide-react'
 
 const EditableLineCell = ({ line, editLineControl, isEditMode, dragAndDropControl }: any) => {
-  const { isDragging, dragState, handleDragStart, handleDragOver, handleDrop } = dragAndDropControl
+  const { isDragging, dragState, handleDragStart, handleDragOver, handleDrop, handleDragEnd } = dragAndDropControl
 
   const {
     editingLine,
@@ -28,6 +28,7 @@ const EditableLineCell = ({ line, editLineControl, isEditMode, dragAndDropContro
         onDragStart={isEditMode ? (e) => handleDragStart(e, line, 'line') : undefined}
         onDrop={isEditMode ? (e) => handleDrop(e, line, 'line') : undefined}
         onDragOver={isEditMode ? handleDragOver : undefined}
+        onDragEnd={isEditMode ? handleDragEnd : undefined}
       >
         <div className="flex items-center gap-3">
           {isEditMode && <GripVertical className="w-4 h-4 text-gray-400" />}
