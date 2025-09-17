@@ -34,8 +34,8 @@ const WorklogPage = () => {
   const [workerInfo, setWorkerInfo] = useState<{ employeeId: string; name: string } | null>(null)
 
   useEffect(() => {
-    const startInfo = localStorage.getItem('start-info')
-    const startTime = localStorage.getItem('start-time')
+    const startInfo = localStorage.getItem('bakstart-info')
+    const startTime = localStorage.getItem('bakstart-time')
     const workerInfo = localStorage.getItem('worker-info')
 
     if (startInfo) {
@@ -74,8 +74,8 @@ const WorklogPage = () => {
   // }
 
   const endWork = () => {
-    localStorage.removeItem('start-info')
-    localStorage.removeItem('start-time')
+    localStorage.removeItem('bakstart-info')
+    localStorage.removeItem('bakstart-time')
     setStartInfo(null)
     setStartTime(null)
   }

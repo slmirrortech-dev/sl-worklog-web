@@ -159,22 +159,22 @@
 //
 // // 시프트 정의
 // const SHIFT_RANGES = [
-//   { type: ShiftType.DAY_NORMAL, start: 8, end: 17 },
-//   { type: ShiftType.DAY_OVERTIME, start: 17, end: 20 },
-//   { type: ShiftType.NIGHT_NORMAL, start: 20, end: 29 }, // 29시 = 다음날 05시
-//   { type: ShiftType.NIGHT_OVERTIME, start: 29, end: 32 }, // 32시 = 다음날 08시
+//   { type: ShiftType.DAY_NORMAL, bakstart: 8, end: 17 },
+//   { type: ShiftType.DAY_OVERTIME, bakstart: 17, end: 20 },
+//   { type: ShiftType.NIGHT_NORMAL, bakstart: 20, end: 29 }, // 29시 = 다음날 05시
+//   { type: ShiftType.NIGHT_OVERTIME, bakstart: 29, end: 32 }, // 32시 = 다음날 08시
 // ]
 //
 // // 중간 시간을 기준으로 ShiftType 계산
-// function getShiftType(start: Date, end: Date): ShiftType {
-//   const duration = differenceInMinutes(end, start)
+// function getShiftType(bakstart: Date, end: Date): ShiftType {
+//   const duration = differenceInMinutes(end, bakstart)
 //   if (duration <= 5) return ShiftType.UNKNOWN
 //
-//   const mid = new Date(start.getTime() + (end.getTime() - start.getTime()) / 2)
+//   const mid = new Date(bakstart.getTime() + (end.getTime() - bakstart.getTime()) / 2)
 //   const midHour = mid.getHours() + mid.getDate() * 24
 //
 //   for (const range of SHIFT_RANGES) {
-//     if (midHour >= range.start && midHour < range.end) {
+//     if (midHour >= range.bakstart && midHour < range.end) {
 //       return range.type
 //     }
 //   }
@@ -196,21 +196,21 @@
 //
 //     // 랜덤 시작/종료 시간
 //     const startHour = [7, 8, 16, 17, 19, 20, 4, 5][Math.floor(Math.random() * 8)]
-//     const start = new Date(baseDate)
-//     start.setHours(startHour, Math.floor(Math.random() * 60), 0, 0)
+//     const bakstart = new Date(baseDate)
+//     bakstart.setHours(startHour, Math.floor(Math.random() * 60), 0, 0)
 //
-//     const end = addMinutes(start, 30 + Math.floor(Math.random() * 600)) // 30분 ~ 10시간
+//     const end = addMinutes(bakstart, 30 + Math.floor(Math.random() * 600)) // 30분 ~ 10시간
 //
 //     // ShiftType 판정
-//     const shiftType = getShiftType(start, end)
+//     const shiftType = getShiftType(bakstart, end)
 //
 //     await prisma.workLog.create({
 //       data: {
 //         userId: worker.id,
 //         processId: line-with-process.id,
-//         startedAt: start,
+//         startedAt: bakstart,
 //         endedAt: end,
-//         durationMinutes: differenceInMinutes(end, start),
+//         durationMinutes: differenceInMinutes(end, bakstart),
 //         shiftType,
 //         isDefective: Math.random() < 0.1, // 10% 확률로 불량 처리
 //         memo: null,
