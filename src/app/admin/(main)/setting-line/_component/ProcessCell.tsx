@@ -22,8 +22,8 @@ const ProcessCell = ({ line, process, isEditMode, dragAndDropControl, editLineCo
             : isDragging &&
                 dragState.draggedType === 'process' &&
                 dragState.draggedLineId === line.id
-              ? 'bg-blue-100 border-blue-300 hover:bg-blue-200'
-              : 'bg-blue-500 border-blue-600 hover:bg-blue-600 hover:shadow-md text-white'
+              ? `bg-blue-100 border-blue-300 ${isEditMode && 'hover:bg-blue-200'}`
+              : `bg-blue-500 border-blue-600  ${isEditMode && 'hover:bg-blue-600'} hover:shadow-md text-white`
         }`}
       >
         {isEditMode && <GripVertical className="w-4 h-4 text-white flex-shrink-0" />}
@@ -43,7 +43,11 @@ const ProcessCell = ({ line, process, isEditMode, dragAndDropControl, editLineCo
               className={`text-white font-semibold text-sm ${
                 isEditMode ? 'cursor-pointer hover:text-blue-100 hover:underline' : ''
               }`}
-              onClick={() => editLineControl.handleStartEditProcess(process.id, process.name)}
+              onClick={
+                isEditMode
+                  ? () => editLineControl.handleStartEditProcess(process.id, process.name)
+                  : undefined
+              }
             >
               {process.name}
             </span>

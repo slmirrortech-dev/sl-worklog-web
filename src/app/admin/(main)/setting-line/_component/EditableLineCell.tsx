@@ -21,8 +21,8 @@ const EditableLineCell = ({ line, editLineControl, isEditMode, dragAndDropContro
           isDragging && dragState.draggedType === 'line' && dragState.draggedItem?.id === line.id
             ? 'bg-blue-50 border-l-4 border-blue-400 opacity-70 scale-98'
             : isDragging && dragState.draggedType === 'line'
-              ? 'bg-blue-50 border-l-4 border-blue-300 hover:bg-blue-100'
-              : 'bg-white border-l-4 border-blue-500 hover:bg-blue-50'
+              ? `bg-blue-50 border-l-4 border-blue-300 ${isEditMode && 'hover:bg-blue-100'}`
+              : `bg-white border-l-4 border-blue-500 ${isEditMode && 'hover:bg-blue-50'}`
         }`}
         draggable={isEditMode}
         onDragStart={isEditMode ? (e) => handleDragStart(e, line, 'line') : undefined}
@@ -46,7 +46,7 @@ const EditableLineCell = ({ line, editLineControl, isEditMode, dragAndDropContro
               className={`text-lg font-semibold text-gray-800 ${
                 isEditMode ? 'cursor-pointer hover:text-blue-600 hover:underline' : ''
               }`}
-              onClick={() => handleStartEditLine(line.id, line.name)}
+              onClick={isEditMode ? () => handleStartEditLine(line.id, line.name) : undefined}
             >
               {line.name}
             </span>
