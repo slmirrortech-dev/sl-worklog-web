@@ -1,15 +1,8 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { leftTableHead } from '@/app/admin/(main)/setting-line/_component/SettingProcess'
 import { GripVertical, X } from 'lucide-react'
-import { updateLineStatusApi } from '@/lib/api/line-status-api'
 
-const EditableLineCell = ({
-  line,
-  editLineControl,
-  isEditMode,
-  dragAndDropControl,
-  setSaveProgress,
-}: any) => {
+const EditableLineCell = ({ line, editLineControl, isEditMode, dragAndDropControl }: any) => {
   const { isDragging, dragState, handleDragStart, handleDragOver, handleDrop, handleDragEnd } =
     dragAndDropControl
 
@@ -21,25 +14,8 @@ const EditableLineCell = ({
     handleSaveLineEdit,
     handleStartEditLine,
     handleDeleteLine,
+    handleClassNoChange: handleEditModeClassNoChange,
   } = editLineControl
-  const [classNo, setClassNo] = useState<number>(1)
-
-  useEffect(() => {
-    setClassNo(line.classNo)
-  }, [line])
-
-  const handleClassNoChange = async (newClassNo: number) => {
-    setClassNo(newClassNo)
-    setSaveProgress(10)
-    try {
-      await updateLineStatusApi(line.id, undefined, undefined, newClassNo)
-      setSaveProgress(15)
-    } catch (error) {
-      console.error('반 변경 실패:', error)
-      setClassNo(line.classNo)
-      setSaveProgress(0)
-    }
-  }
 
   return (
     <td className="sticky left-0 z-10">
@@ -95,16 +71,22 @@ const EditableLineCell = ({
           )}
         </div>
         <div className="flex items-center gap-3">
-          {isEditMode && <div className="w-4"></div>}
-          <select
-            id={line.id}
-            value={classNo}
-            onChange={(e) => handleClassNoChange(Number(e.target.value))}
-            className="-ml-1 border-none outline-none bg-transparent cursor-pointer text-gray-500 font-medium"
-          >
-            <option value={1}>1반</option>
-            <option value={2}>2반</option>
-          </select>
+          {!isEditMode ? (
+            <span className="text-gray-500 font-medium">{line.classNo}반</span>
+          ) : (
+            <select
+              id={line.id}
+              value={line.classNo}
+              onChange={(e) => {
+                const newClassNo = Number(e.target.value)
+                handleEditModeClassNoChange(line.id, newClassNo)
+              }}
+              className="-ml-1 border-none outline-none bg-transparent cursor-pointer text-gray-500 font-medium"
+            >
+              <option value={1}>1반</option>
+              <option value={2}>2반</option>
+            </select>
+          )}
         </div>
       </div>
     </td>

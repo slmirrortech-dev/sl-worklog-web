@@ -20,7 +20,7 @@ const useEditLineWithProcess = (
       id: `temp-line-${Date.now()}`,
       name: `라인 이름`,
       order: tempLineWithProcess.length + 1,
-      classNo: [1],
+      classNo: 1,
       dayStatus: 'NORMAL',
       nightStatus: 'NORMAL',
       processes: [],
@@ -107,6 +107,14 @@ const useEditLineWithProcess = (
     setEditValue('')
   }
 
+  // 반 변경 처리
+  const handleClassNoChange = (lineId: string, newClassNo: number) => {
+    const updatedLines = tempLineWithProcess.map((line) =>
+      line.id === lineId ? { ...line, classNo: newClassNo } : line,
+    )
+    setTempLineWithProcess(updatedLines)
+  }
+
   // 키보드 이벤트 처리
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
@@ -148,6 +156,7 @@ const useEditLineWithProcess = (
     handleStartEditProcess,
     handleSaveLineEdit,
     handleSaveProcessEdit,
+    handleClassNoChange,
     handleKeyDown,
     handleDeleteLine,
     handleDeleteProcess,

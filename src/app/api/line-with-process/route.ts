@@ -6,9 +6,10 @@ import { LineResponseDto } from '@/types/line-with-process'
 import { getShiftStatus } from '@/lib/utils/line-status'
 import { requireManagerOrAdmin } from '@/lib/utils/auth-guards'
 
+const isTempId = (id?: string) => !id || id.startsWith('temp-')
+
 /** 라인과 프로세스 통합 조회 */
 export async function getLineWithProcess(req: NextRequest) {
-  let result: LineResponseDto[] = []
   const lines = await prisma.line.findMany({
     include: {
       processes: {
@@ -16,9 +17,7 @@ export async function getLineWithProcess(req: NextRequest) {
         include: {
           shifts: {
             include: {
-              waitingWorker: {
-                select: { id: true, userId: true, name: true },
-              },
+              waitingWorker: { select: { id: true, userId: true, name: true } },
             },
           },
         },
@@ -27,8 +26,7 @@ export async function getLineWithProcess(req: NextRequest) {
     orderBy: { order: 'asc' },
   })
 
-  // 확장
-  result = lines.map((line) => ({
+  const result: LineResponseDto[] = lines.map((line) => ({
     ...line,
     dayStatus: getShiftStatus(line.processes, 'DAY'),
     nightStatus: getShiftStatus(line.processes, 'NIGHT'),
@@ -41,46 +39,32 @@ export const GET = withErrorHandler(getLineWithProcess)
 
 /** 라인과 프로세스 통합 업데이트 */
 export async function updateLineWithProcess(req: NextRequest) {
-  // 권한 확인
   await requireManagerOrAdmin(req)
 
   const body = await req.json()
   const { lineWithProcess } = body
 
   const result = (await prisma.$transaction(async (tx) => {
-    // 기존 라인 전체 조회
-    const existingLines = await tx.line.findMany({
-      include: { processes: true },
-    })
+    // 기존 라인 조회
+    const existingLines = await tx.line.findMany({ include: { processes: true } })
 
     // 삭제된 라인 제거
     const toDeleteLineIds = existingLines
       .filter((l) => !lineWithProcess.some((n: any) => n.id === l.id))
       .map((l) => l.id)
-
     if (toDeleteLineIds.length > 0) {
       await tx.line.deleteMany({ where: { id: { in: toDeleteLineIds } } })
     }
 
-    // 라인 + 프로세스 저장
+    // 라인 저장/업데이트
     for (const line of lineWithProcess) {
-      const existingLine = line.id ? await tx.line.findUnique({ where: { id: line.id } }) : null
-
-      const savedLine = existingLine
+      const savedLine = !isTempId(line.id)
         ? await tx.line.update({
             where: { id: line.id },
-            data: {
-              name: line.name,
-              order: line.order,
-              classNo: line.classNo,
-            },
+            data: { name: line.name, order: line.order, classNo: line.classNo },
           })
         : await tx.line.create({
-            data: {
-              name: line.name,
-              order: line.order,
-              classNo: line.classNo,
-            },
+            data: { name: line.name, order: line.order, classNo: line.classNo },
           })
 
       // 기존 프로세스 조회
@@ -93,20 +77,15 @@ export async function updateLineWithProcess(req: NextRequest) {
         .map((p) => p.id)
 
       if (toDeleteProcIds.length > 0) {
-        // 공정 삭제 전 연관된 processShift 먼저 삭제
         await tx.processShift.deleteMany({ where: { processId: { in: toDeleteProcIds } } })
         await tx.process.deleteMany({ where: { id: { in: toDeleteProcIds } } })
       }
 
       for (const proc of line.processes) {
-        const existingProc = proc.id
-          ? await tx.process.findUnique({ where: { id: proc.id } })
-          : null
-
-        if (existingProc) {
+        if (!isTempId(proc.id)) {
           await tx.process.update({
             where: { id: proc.id },
-            data: { name: proc.name, order: proc.order },
+            data: { name: proc.name, order: proc.order, lineId: savedLine.id },
           })
         } else {
           await tx.process.create({
@@ -116,7 +95,7 @@ export async function updateLineWithProcess(req: NextRequest) {
       }
     }
 
-    // 최종 저장된 데이터 다시 조회
+    // 최종 데이터 조회
     return await tx.line.findMany({
       include: {
         processes: {
@@ -124,9 +103,7 @@ export async function updateLineWithProcess(req: NextRequest) {
           include: {
             shifts: {
               include: {
-                waitingWorker: {
-                  select: { id: true, userId: true, name: true },
-                },
+                waitingWorker: { select: { id: true, userId: true, name: true } },
               },
             },
           },
