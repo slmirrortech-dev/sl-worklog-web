@@ -41,6 +41,7 @@ const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
 
   // 라인 데이터 실시간 동기화 hook
   useLineDataSync({
+    isLocked: lockInfo.isLocked,
     isEditMode: lockInfo.isEditMode,
     onDataUpdate: setLineWithProcess,
     setSaveProgress,
@@ -73,7 +74,6 @@ const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
         // API 호출
         const { data } = await updateLineWithProcess(tempLineWithProcess)
         setSaveProgress(70)
-        console.log(data)
         setLineWithProcess(data)
         setTempLineWithProcess(data)
       } catch (error) {
@@ -146,6 +146,7 @@ const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
       <LineTable>
         <LineRow
           isEditMode={lockInfo.isEditMode}
+          isLocked={lockInfo.isLocked}
           data={lockInfo.isEditMode ? tempLineWithProcess : lineWithProcess}
           setLineWithProcess={setLineWithProcess}
           dragAndDropControl={dragAndDropControl}

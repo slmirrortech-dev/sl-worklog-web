@@ -8,20 +8,27 @@ import { LineResponseDto } from '@/types/line-with-process'
  * Supabase Realtime을 통해 데이터베이스 변경사항을 감지하고 동기화
  */
 const useLineDataSync = ({
+  isLocked,
   isEditMode,
   onDataUpdate,
   setSaveProgress,
 }: {
+  isLocked: boolean
   isEditMode: boolean
   onDataUpdate: (data: LineResponseDto[]) => void
   setSaveProgress: (progress: number) => void
 }) => {
   const isEditModeRef = useRef(isEditMode)
+  const isLockedRef = useRef(isLocked)
 
   // 편집모드 상태를 ref로 관리 (클로저 문제 방지)
   useEffect(() => {
     isEditModeRef.current = isEditMode
   }, [isEditMode])
+
+  useEffect(() => {
+    isLockedRef.current = isLocked
+  }, [isLocked])
 
   useEffect(() => {
     const channel = supabaseClient.channel('line-process-sync')
@@ -37,8 +44,8 @@ const useLineDataSync = ({
       changeTimeout = setTimeout(async () => {
         console.log(`🔄 ${type} 데이터 변경 완료 - 일괄 처리됨`)
 
-        // 편집모드가 아닐 때만 데이터 동기화 (성능 최적화)
-        if (!isEditModeRef.current) {
+        // 편집모드가 아니고 락이 걸리지 않았을 때만 데이터 동기화 (성능 최적화)
+        if (!isEditModeRef.current && !isLockedRef.current) {
           setSaveProgress(30)
           try {
             const { data } = await getLineWithProcess()

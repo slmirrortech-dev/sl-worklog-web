@@ -204,16 +204,17 @@ export const useDragAndDrop = (
       })),
     }))
 
-    // 강제 리렌더링을 위해 새로운 배열 참조 생성
-    setLines([...newLines])
+    // 화면 업데이트
+    setLines(newLines)
 
     try {
-      await swapWaitingWorKerApi(
+      const { data } = await swapWaitingWorKerApi(
         draggedProcessId,
         draggedItem.shiftType,
         targetProcessId,
         targetItem.shiftType,
       )
+      setLines(data)
     } catch (e) {
       console.error(e)
     }

@@ -10,6 +10,7 @@ import { ShiftType } from '@prisma/client'
 
 const LineRow = ({
   isEditMode,
+  isLocked,
   data,
   setLineWithProcess,
   dragAndDropControl,
@@ -17,6 +18,7 @@ const LineRow = ({
   editLineControl,
 }: {
   isEditMode: boolean
+  isLocked: boolean
   data: LineResponseDto[]
   setLineWithProcess: any
   dragAndDropControl: any
@@ -71,6 +73,7 @@ const LineRow = ({
                       return (
                         <ContainerWaitingWorker
                           isEditMode={isEditMode}
+                          isLocked={isLocked}
                           key={process.id}
                           process={process}
                           shiftType={type}

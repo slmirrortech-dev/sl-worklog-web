@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { LineResponseDto, ProcessResponseDto } from '@/types/line-with-process'
 import { leftTableShiftHead } from '@/app/admin/(main)/setting-line/_component/SettingProcess'
 import { ShiftType } from '@prisma/client'
@@ -11,6 +11,7 @@ import { deleteWaitingWorKerApi } from '@/lib/api/wating-worker-api'
 
 const ContainerWaitingWorker = ({
   isEditMode,
+  isLocked,
   process,
   shiftType = 'DAY',
   setLineWithProcess,
@@ -22,6 +23,7 @@ const ContainerWaitingWorker = ({
   dragState,
 }: {
   isEditMode: boolean
+  isLocked: boolean
   process: ProcessResponseDto
   shiftType: ShiftType
   setLineWithProcess: any
@@ -66,7 +68,15 @@ const ContainerWaitingWorker = ({
     }
   }
 
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpenInfo, setIsOpenInfo] = useState(false)
+  const [isOpenNoInfo, setIsOpenNoInfo] = useState(false)
+
+  useEffect(() => {
+    if (isLocked || isEditMode) {
+      setIsOpenInfo(false)
+      setIsOpenInfo(false)
+    }
+  }, [isLocked, isEditMode])
 
   return (
     <div key={process.id} className={`${leftTableShiftHead} px-2 py-1`}>
@@ -83,75 +93,77 @@ const ContainerWaitingWorker = ({
         onDragEnd={onDragEnd}
       >
         {waitingWorker ? (
-          <Popover open={isEditMode ? false : undefined}>
+          <Popover open={isOpenInfo} onOpenChange={setIsOpenInfo}>
             <PopoverTrigger className={`${isEditMode ? '!cursor-not-allowed' : 'cursor-pointer'}`}>
               <div className={`w-full h-full flex items-center justify-center`}>
                 <CardWaitingWorker waitingWorker={waitingWorker} />
               </div>
             </PopoverTrigger>
-            <PopoverContent className="w-80">
-              <div className="space-y-4">
-                <div className="text-center border-b pb-3">
-                  <h3 className="text-lg font-semibold text-gray-900">{waitingWorker.name}</h3>
-                  <p className="text-sm text-gray-600">작업자 정보</p>
-                </div>
+            {!isLocked && !isEditMode && isOpenInfo && (
+              <PopoverContent className="w-80">
+                <div className="space-y-4">
+                  <div className="text-center border-b pb-3">
+                    <h3 className="text-lg font-semibold text-gray-900">{waitingWorker.name}</h3>
+                    <p className="text-sm text-gray-600">작업자 정보</p>
+                  </div>
 
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <User className="w-4 h-4 text-blue-600" />
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">사번</p>
-                      <p className="text-sm text-gray-600">{waitingWorker.userId}</p>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <User className="w-4 h-4 text-blue-600" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">사번</p>
+                        <p className="text-sm text-gray-600">{waitingWorker.userId}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <MapPin className="w-4 h-4 text-green-600" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">현재 위치</p>
+                        <p className="text-sm text-gray-600">
+                          {process.name} ({shiftType === 'DAY' ? '주간' : '야간'})
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <Clock className="w-4 h-4 text-orange-600" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">근무 시간</p>
+                        <p className="text-sm text-gray-600">14시간 36분</p>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3">
-                    <MapPin className="w-4 h-4 text-green-600" />
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">현재 위치</p>
-                      <p className="text-sm text-gray-600">
-                        {process.name} ({shiftType === 'DAY' ? '주간' : '야간'})
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <Clock className="w-4 h-4 text-orange-600" />
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">근무 시간</p>
-                      <p className="text-sm text-gray-600">14시간 36분</p>
-                    </div>
+                  <div className="pt-3 border-t">
+                    <button
+                      disabled={isEditMode}
+                      onClick={async () => {
+                        try {
+                          const {
+                            data,
+                          }: ApiResponse<{
+                            deleted: any
+                            updated: LineResponseDto[]
+                          }> = await deleteWaitingWorKerApi(process.id, shiftType)
+                          setLineWithProcess(data.updated)
+                        } catch (error) {
+                          alert('선택한 작업자 대기열에서 삭제 오류')
+                        }
+                      }}
+                      className={`w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors`}
+                    >
+                      <Settings className="w-4 h-4" />
+                      작업자 대기열에서 제외
+                    </button>
                   </div>
                 </div>
-
-                <div className="pt-3 border-t">
-                  <button
-                    disabled={isEditMode}
-                    onClick={async () => {
-                      try {
-                        const {
-                          data,
-                        }: ApiResponse<{
-                          deleted: any
-                          updated: LineResponseDto[]
-                        }> = await deleteWaitingWorKerApi(process.id, shiftType)
-                        setLineWithProcess(data.updated)
-                      } catch (error) {
-                        alert('선택한 작업자 대기열에서 삭제 오류')
-                      }
-                    }}
-                    className={`w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors`}
-                  >
-                    <Settings className="w-4 h-4" />
-                    작업자 대기열에서 제외
-                  </button>
-                </div>
-              </div>
-            </PopoverContent>
+              </PopoverContent>
+            )}
           </Popover>
         ) : (
           // 등록이 안된 칸
-          <Popover open={isOpen} onOpenChange={setIsOpen}>
+          <Popover open={isOpenNoInfo} onOpenChange={setIsOpenNoInfo}>
             <PopoverTrigger
               asChild
               disabled={isEditMode}
@@ -164,10 +176,10 @@ const ContainerWaitingWorker = ({
                 <span className="text-xs font-medium">대기</span>
               </div>
             </PopoverTrigger>
-            {!isEditMode && isOpen && (
+            {!isLocked && !isEditMode && isOpenNoInfo && (
               <PopoverContentAdd
                 setLineWithProcess={setLineWithProcess}
-                setIsOpen={setIsOpen}
+                setIsOpen={setIsOpenNoInfo}
                 process={process}
                 shiftType={shiftType}
               />

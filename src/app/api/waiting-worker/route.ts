@@ -48,6 +48,7 @@ export async function addWaitingWorker(request: NextRequest) {
   const lines = await prisma.line.findMany({
     include: {
       processes: {
+        orderBy: { order: 'asc' },
         include: {
           shifts: {
             include: {
@@ -59,6 +60,7 @@ export async function addWaitingWorker(request: NextRequest) {
         },
       },
     },
+    orderBy: { order: 'asc' },
   })
 
   // 확장 데이터 추가
@@ -103,6 +105,7 @@ export async function deleteWaitingWorker(request: NextRequest) {
   const lines = await prisma.line.findMany({
     include: {
       processes: {
+        orderBy: { order: 'asc' },
         include: {
           shifts: {
             include: {
@@ -114,6 +117,7 @@ export async function deleteWaitingWorker(request: NextRequest) {
         },
       },
     },
+    orderBy: { order: 'asc' },
   })
 
   // 확장 데이터 추가
@@ -195,6 +199,7 @@ export async function swapWaitingWorker(request: NextRequest) {
   const lines = await prisma.line.findMany({
     include: {
       processes: {
+        orderBy: { order: 'asc' },
         include: {
           shifts: {
             include: {
@@ -206,6 +211,7 @@ export async function swapWaitingWorker(request: NextRequest) {
         },
       },
     },
+    orderBy: { order: 'asc' },
   })
 
   // 확장 데이터 추가

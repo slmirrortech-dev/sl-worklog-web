@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAdmin } from '@/lib/utils/auth-guards'
+import { requireAdmin, requireManagerOrAdmin } from '@/lib/utils/auth-guards'
 import { withErrorHandler } from '@/lib/core/api-handler'
 import prisma from '@/lib/core/prisma'
 import { UserResponseDto } from '@/types/user'
@@ -13,7 +13,7 @@ export const runtime = 'nodejs'
  **/
 export async function getUsers(request: NextRequest) {
   // 관리자 권한 확인
-  await requireAdmin(request)
+  await requireManagerOrAdmin(request)
 
   // 쿼리 파라미터 확인
   const { searchParams } = new URL(request.url)
