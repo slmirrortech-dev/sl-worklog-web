@@ -4,10 +4,13 @@ import { withErrorHandler } from '@/lib/core/api-handler'
 import { ApiResponseFactory } from '@/lib/core/api-response-factory'
 import { LineResponseDto } from '@/types/line-with-process'
 import { getShiftStatus } from '@/lib/utils/line-status'
-import { requireManagerOrAdmin } from '@/lib/utils/auth-guards'
+import { requireManagerOrAdmin, requireUser } from '@/lib/utils/auth-guards'
 
 /** 라인과 프로세스 통합 조회 */
 export async function getLineWithProcess(req: NextRequest) {
+  // 로그인 여부 확인
+  await requireUser(req)
+
   const lines = await prisma.line.findMany({
     include: {
       processes: {
