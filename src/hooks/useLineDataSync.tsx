@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { supabaseClient } from '@/lib/supabase/client'
 import { getLineWithProcess } from '@/lib/api/line-with-process-api'
 import { LineResponseDto } from '@/types/line-with-process'
@@ -29,6 +29,28 @@ const useLineDataSync = ({
   useEffect(() => {
     isLockedRef.current = isLocked
   }, [isLocked])
+
+  // 편집모드나 잠금이 해제될 때 즉시 데이터 동기화
+  useEffect(() => {
+    if (!isEditMode && !isLocked) {
+      setSaveProgress(30)
+      const syncData = async () => {
+        try {
+          const { data } = await getLineWithProcess()
+          setSaveProgress(70)
+          onDataUpdate(data)
+        } catch (e) {
+          console.error('Failed to sync data on mode change:', e)
+        } finally {
+          setSaveProgress(100)
+          setTimeout(() => {
+            setSaveProgress(0)
+          }, 500)
+        }
+      }
+      syncData()
+    }
+  }, [isEditMode, isLocked])
 
   useEffect(() => {
     const channel = supabaseClient.channel('line-process-sync')
