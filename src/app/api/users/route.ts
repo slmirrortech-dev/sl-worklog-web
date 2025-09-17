@@ -6,6 +6,7 @@ import { UserResponseDto } from '@/types/user'
 import { Role } from '@prisma/client'
 import { ApiError } from '@/lib/core/errors'
 import { ApiResponseFactory } from '@/lib/core/api-response-factory'
+import bcrypt from 'bcryptjs'
 export const runtime = 'nodejs'
 
 /**
@@ -152,7 +153,7 @@ async function createUsers(req: NextRequest) {
 
   for (const item of uniqueItems) {
     const existing = existingUsers.find((u) => u.userId === item.userId)
-    const password = item.birthday.slice(2) // 초기 비밀번호
+    const password = await bcrypt.hash(item.birthday.slice(2), 10) // 초기 비밀번호
 
     // 이미 있고 활성화 상태 : skip
     if (existing && existing.isActive) {

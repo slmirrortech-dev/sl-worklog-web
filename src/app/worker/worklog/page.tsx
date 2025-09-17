@@ -6,7 +6,6 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
-import { useAuthCheck } from '@/lib/auth-utils'
 
 const WorklogPage = () => {
   // 세션 기반 인증 확인 (작업자와 관리자 모두 접근 가능)

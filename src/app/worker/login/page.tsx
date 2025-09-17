@@ -3,50 +3,30 @@
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
+import { loginWorkerApi } from '@/lib/api/auth-api'
+import { AlertCircle } from 'lucide-react'
 
 export default function WorkerLoginPage() {
-  const [id, setId] = useState('')
+  const [userId, setUserId] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [errorMsg, setErrorMsg] = useState<string>('')
   const router = useRouter()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setErrorMsg('')
 
     try {
-      const response = await fetch('/api/auth/login/worker', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ id, password }),
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        // 작업자 정보를 localStorage에 저장 (호환성을 위해)
-        localStorage.setItem(
-          'worker-info',
-          JSON.stringify({
-            employeeId: data.user.loginId,
-            name: data.user.name,
-          }),
-        )
-        // 인증 컨텍스트에도 저장
-        localStorage.setItem('user', JSON.stringify(data.user))
-        router.push('/worker/worklog')
-      } else {
-        const errorData = await response.json()
-        alert(errorData.error || '사번 또는 비밀번호가 올바르지 않습니다.')
-      }
-    } catch (error) {
+      await loginWorkerApi({ userId: userId, password: password })
+      router.push('/worker/worklog')
+    } catch (error: any) {
       console.error('Login error:', error)
-      alert('로그인 중 오류가 발생했습니다.')
+      setErrorMsg(error?.message || '로그인 중 오류가 발생했습니다.')
+    } finally {
+      setIsLoading(false)
     }
-
-    setIsLoading(false)
   }
 
   return (
@@ -70,14 +50,14 @@ export default function WorkerLoginPage() {
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <label htmlFor="id" className="block text-lg font-medium text-gray-700 mb-2">
+            <label htmlFor="userId" className="block text-lg font-medium text-gray-700 mb-2">
               사번
             </label>
             <input
               type="id"
-              id="id"
-              value={id}
-              onChange={(e) => setId(e.target.value)}
+              id="userId"
+              value={userId}
+              onChange={(e) => setUserId(e.target.value)}
               className="w-full px-4 py-4 text-lg border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               placeholder="사번을 입력하세요"
               required
@@ -97,6 +77,12 @@ export default function WorkerLoginPage() {
               required
             />
           </div>
+          {errorMsg && (
+            <div className="flex items-center gap-2 text-red-600 bg-red-50 p-3 rounded-lg">
+              <AlertCircle className="w-5 h-5" />
+              <span className="text-sm">{errorMsg}</span>
+            </div>
+          )}
 
           <button
             type="submit"
