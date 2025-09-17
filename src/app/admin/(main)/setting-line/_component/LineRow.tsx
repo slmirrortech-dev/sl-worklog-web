@@ -64,6 +64,7 @@ const LineRow = ({
               return (
                 <tr key={type}>
                   <ShiftTypeCell
+                    isEditMode={isEditMode}
                     shiftType={type}
                     line={line}
                     setLineWithProcess={setLineWithProcess}

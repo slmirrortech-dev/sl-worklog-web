@@ -45,6 +45,7 @@ export async function updateLineStatus(request: NextRequest) {
   const lines = await prisma.line.findMany({
     include: {
       processes: {
+        orderBy: { order: 'asc' },
         include: {
           shifts: {
             include: {
@@ -56,6 +57,7 @@ export async function updateLineStatus(request: NextRequest) {
         },
       },
     },
+    orderBy: { order: 'asc' },
   })
 
   // 확장 데이터 추가

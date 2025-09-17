@@ -5,10 +5,12 @@ import ShiftStatusLabel from '@/components/admin/ShiftStatusLabel'
 import { updateLineStatusApi } from '@/lib/api/line-status-api'
 
 const ShiftTypeCell = ({
+  isEditMode,
   shiftType,
   line,
   setLineWithProcess,
 }: {
+  isEditMode: boolean
   shiftType: ShiftType
   line: any
   setLineWithProcess: any
@@ -52,27 +54,31 @@ const ShiftTypeCell = ({
         className={`flex items-center justify-between ${leftTableShiftHead} px-4 py-3 ${bgColor}`}
       >
         <span className="font-semibold text-base text-gray-700">{shiftTypeName}</span>
-        {editingShift?.lineId === line.id && editingShift?.shiftType === shiftType ? (
-          <select
-            value={value}
-            onChange={(e) =>
-              handleChangeShiftStatus(line.id, shiftType, e.target.value as WorkStatus)
-            }
-            onBlur={() => setEditingShift(null)}
-            className="text-sm px-3 py-1 font-medium border border-blue-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-            autoFocus
-          >
-            <option value="NORMAL">정상</option>
-            <option value="OVERTIME">잔업</option>
-            <option value="EXTENDED">연장</option>
-          </select>
-        ) : (
-          <div
-            className="cursor-pointer"
-            onClick={() => setEditingShift({ lineId: line.id, shiftType: shiftType })}
-          >
-            <ShiftStatusLabel status={value} size="sm" />
-          </div>
+        {!isEditMode && (
+          <>
+            {editingShift?.lineId === line.id && editingShift?.shiftType === shiftType ? (
+              <select
+                value={value}
+                onChange={(e) =>
+                  handleChangeShiftStatus(line.id, shiftType, e.target.value as WorkStatus)
+                }
+                onBlur={() => setEditingShift(null)}
+                className="text-sm px-3 py-1 font-medium border border-blue-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                autoFocus
+              >
+                <option value="NORMAL">정상</option>
+                <option value="OVERTIME">잔업</option>
+                <option value="EXTENDED">연장</option>
+              </select>
+            ) : (
+              <div
+                className="cursor-pointer"
+                onClick={() => setEditingShift({ lineId: line.id, shiftType: shiftType })}
+              >
+                <ShiftStatusLabel status={value} size="sm" />
+              </div>
+            )}
+          </>
         )}
       </div>
     </td>
