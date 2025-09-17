@@ -157,7 +157,7 @@ export async function swapWaitingWorker(request: NextRequest) {
 
   await prisma.$transaction(async (tx) => {
     // 기준 정보 가져오기
-    const source = await tx.processShift.findUniqueOrThrow({
+    const source = await tx.processShift.findUnique({
       where: {
         processId_type: {
           processId: sourceProcessId,
@@ -170,8 +170,12 @@ export async function swapWaitingWorker(request: NextRequest) {
       },
     })
 
+    if (!source) {
+      throw new ApiError(`Source processShift not found: processId=${sourceProcessId}, type=${sourceShiftType}`)
+    }
+
     // 타켓 정보 가져오기
-    const target = await tx.processShift.findUniqueOrThrow({
+    const target = await tx.processShift.findUnique({
       where: {
         processId_type: {
           processId: targetProcessId,
@@ -183,6 +187,10 @@ export async function swapWaitingWorker(request: NextRequest) {
         waitingWorkerId: true,
       },
     })
+
+    if (!target) {
+      throw new ApiError(`Target processShift not found: processId=${targetProcessId}, type=${targetShiftType}`)
+    }
 
     // 대기자 정보 스왑
     await tx.processShift.update({
