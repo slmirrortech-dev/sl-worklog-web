@@ -4,7 +4,7 @@ import { ApiResponseFactory } from '@/lib/core/api-response-factory'
 import { requireUser } from '@/lib/utils/auth-guards'
 import prisma from '@/lib/core/prisma'
 import { ApiError } from '@/lib/core/errors'
-import { addWorkLogResponseModel } from '@/types/work-log'
+import { WorkLogResponseDto } from '@/types/work-log'
 
 /** 작업 기록 */
 async function addWorkLog(req: NextRequest) {
@@ -66,7 +66,7 @@ async function addWorkLog(req: NextRequest) {
       startedAt: startedAt,
       processShiftId: processShiftId,
     },
-  })) as addWorkLogResponseModel
+  })) as WorkLogResponseDto
 
   return ApiResponseFactory.success(result, '작업자 작업 기록을 추가했습니다.')
 }

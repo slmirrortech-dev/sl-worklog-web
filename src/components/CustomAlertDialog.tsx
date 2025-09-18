@@ -45,7 +45,7 @@ const CustomAlertDialog = ({
         {btnConfirm && (
           <AlertDialogFooter>
             <AlertDialogAction
-              className={'text-lg h-12 bg-primary-900'}
+              className={'text-lg h-12 bg-primary-900 bg-white'}
               onClick={() => {
                 setIsOpen(true)
                 btnConfirm.fn && btnConfirm.fn()

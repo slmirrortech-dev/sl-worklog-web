@@ -1,0 +1,17 @@
+import React from 'react'
+import { ShiftType, WorkStatus } from '@prisma/client'
+import { colorShiftType, displayShiftType } from '@/lib/utils/shift-type'
+
+const ShiftStatusLabel = ({ shiftType, size }: { shiftType: ShiftType; size: 'sm' | 'lg' }) => {
+  return (
+    <span
+      className={`inline-flex items-center rounded-full ${size === 'sm' ? 'text-sm px-3 py-1' : 'text-base px-4 py-1.5'} font-medium ${colorShiftType(
+        shiftType,
+      )}`}
+    >
+      {displayShiftType(shiftType)}
+    </span>
+  )
+}
+
+export default ShiftStatusLabel
