@@ -28,7 +28,7 @@ const HistoryContents = ({
               >
                 <div>
                   <p className="text-xl font-semibold">{format(item.startedAt, 'yyyy-MM-dd')}</p>
-                  <div className="flex gap-1 text-base text-gray-500">
+                  <div className="flex gap-1 text-base text-gray-500 flex-wrap">
                     <p>{format(item.startedAt, 'HH:mm:ss')}</p>~
                     <p>
                       <span>
