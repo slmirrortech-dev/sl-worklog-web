@@ -12,9 +12,11 @@ const HistoryContents = ({
     <section className="px-6 py-6">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">최근 작업 기록</h2>
-        <button className="flex items-center px-3 py-1 border border-gray-400 text-gray-600 text-sm font-medium rounded-full">
-          더 보기
-        </button>
+        {userFinishedWorkLogs && (
+          <button className="flex items-center px-3 py-1 border border-gray-400 text-gray-600 text-sm font-medium rounded-full">
+            더 보기
+          </button>
+        )}
       </div>
       {userFinishedWorkLogs && userFinishedWorkLogs.length > 0 ? (
         <ul className="space-y-4">

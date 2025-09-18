@@ -1,5 +1,5 @@
 import React from 'react'
-import Lines from '@/app/worker/start/_component/Lines'
+import Lines from '@/app/worker/(sub)/start/_component/Lines'
 import prisma from '@/lib/core/prisma'
 
 const StartPage = async () => {
@@ -15,10 +15,8 @@ const StartPage = async () => {
     orderBy: { order: 'asc' },
   })
 
-  console.log('lines', lines)
-
   return (
-    <div className="min-h-screen flex justify-center bg-gray-100">
+    <div className="min-h-screen flex justify-center">
       <div className="w-full max-w-sm bg-white px-4 py-6">
         <section className="mb-8">
           <h1 className="text-2xl font-bold">작업 시작하기</h1>

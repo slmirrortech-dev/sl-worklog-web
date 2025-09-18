@@ -11,5 +11,6 @@ export const ROUTES = {
     LOGIN: '/worker/login',
     HOME: '/worker/home',
     START: '/worker/start',
+    MY_PAGE: '/worker/my-page',
   },
 }

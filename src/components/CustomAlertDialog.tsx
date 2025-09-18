@@ -42,19 +42,17 @@ const CustomAlertDialog = ({
             ))}
           </AlertDialogDescription>
         </AlertDialogHeader>
-        {btnConfirm && (
-          <AlertDialogFooter>
-            <AlertDialogAction
-              className={'text-lg h-12 bg-primary-900 bg-white'}
-              onClick={() => {
-                setIsOpen(true)
-                btnConfirm.fn && btnConfirm.fn()
-              }}
-            >
-              확인
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        )}
+        <AlertDialogFooter>
+          <AlertDialogAction
+            className={'text-lg h-12 bg-primary-900 text-white'}
+            onClick={() => {
+              setIsOpen(false)
+              btnConfirm.fn && btnConfirm.fn()
+            }}
+          >
+            {btnConfirm.btnText || '확인'}
+          </AlertDialogAction>
+        </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
   )

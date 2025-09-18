@@ -1,5 +1,5 @@
 import React from 'react'
-import SubHeader from '@/app/worker/start/_component/SubHeader'
+import SubHeader from '@/components/worker/SubHeader'
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
