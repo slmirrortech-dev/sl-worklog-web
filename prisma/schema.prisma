@@ -107,12 +107,11 @@ model WorkLog {
   userId          String?                         // FK (User.id), User 삭제 시 NULL
   userUserId      String                          // 사번 (스냅샷)
   userName        String                          // 이름 (스냅샷)
-  userBirthday    String                          // 생년월일 (스냅샷)
 
   // 작업 시간
   startedAt       DateTime @default(now())        // 작업 시작 시각
   endedAt         DateTime?                       // 종료 시각
-  durationMinutes Int                             // 작업 시간(분)
+  durationMinutes Int?                            // 작업 시간(분)
 
   // Relations
   user    User?    @relation(fields: [userId], references: [id], onDelete: SetNull)

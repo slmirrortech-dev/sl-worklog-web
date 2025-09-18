@@ -1,3 +1,5 @@
+import { ApiErrorResponse } from '@/types/common'
+
 export async function apiFetch<T>(url: string, options: RequestInit = {}): Promise<T> {
   const isFormData = options.body instanceof FormData
 
@@ -11,15 +13,13 @@ export async function apiFetch<T>(url: string, options: RequestInit = {}): Promi
     ...options,
   })
 
-  if (!res.ok) {
-    let message = `API Error: ${res.status}`
-    const data = await res.json()
-    if (typeof data.message === 'string') {
-      message = data.message
-    }
+  const data = await res.json()
 
-    throw new Error(message)
+  if (!res.ok) {
+    // 서버에서 내려준 응답(JSON)을 그대로 throw
+    throw data as ApiErrorResponse
   }
 
-  return (await res.json()) as Promise<T>
+  // 성공 케이스는 기존 코드 그대로
+  return data as T
 }

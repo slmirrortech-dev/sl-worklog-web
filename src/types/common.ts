@@ -3,3 +3,9 @@ export interface ApiResponse<T> {
   message: string
   data: T
 }
+
+export interface ApiErrorResponse {
+  success: boolean
+  message: string
+  code: string
+}
