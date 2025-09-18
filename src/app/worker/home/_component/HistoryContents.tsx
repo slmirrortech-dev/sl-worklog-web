@@ -1,19 +1,28 @@
+'use client'
+
 import React from 'react'
 import { workLogResponseModel } from '@/types/work-log'
 import { format } from 'date-fns'
-import { AlertCircle, ArrowRightIcon, ChevronRight, Plus } from 'lucide-react'
+import { AlertCircle, ChevronRight } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { ROUTES } from '@/lib/constants/routes'
 
 const HistoryContents = ({
   userFinishedWorkLogs,
 }: {
   userFinishedWorkLogs: workLogResponseModel[] | null
 }) => {
+  const router = useRouter()
+
   return (
     <section className="px-6 py-6">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">최근 작업 기록</h2>
         {userFinishedWorkLogs && (
-          <button className="flex items-center px-3 py-1 border border-gray-400 text-gray-600 text-sm font-medium rounded-full">
+          <button
+            onClick={() => router.push(ROUTES.WORKER.HISTORY)}
+            className="flex items-center px-3 py-1 border border-gray-400 text-gray-600 text-sm font-medium rounded-full"
+          >
             더 보기
           </button>
         )}

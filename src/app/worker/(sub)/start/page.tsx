@@ -18,11 +18,13 @@ const StartPage = async () => {
   return (
     <div className="min-h-screen flex justify-center">
       <div className="w-full max-w-sm bg-white px-4 py-6">
-        <section className="mb-8">
-          <h1 className="text-2xl font-bold">작업 시작하기</h1>
-          <p className="text-base text-gray-500">배정 받은 작업을 선택해주세요.</p>
+        <section>
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold">작업 시작하기</h1>
+            <p className="text-base text-gray-500">배정 받은 작업을 선택해주세요.</p>
+          </div>
+          <Lines lines={lines} />
         </section>
-        <Lines lines={lines} />
       </div>
     </div>
   )

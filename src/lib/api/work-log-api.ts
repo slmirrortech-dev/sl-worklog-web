@@ -25,3 +25,10 @@ export async function endWorkLogApi(payload: endWorkLogRequestModel) {
     body: JSON.stringify(payload),
   })
 }
+
+/**
+ * 날짜별 내 작업 기록 조회
+ */
+export async function getMyDailyWorkLogApi(searchDate: string) {
+  return await apiFetch<ApiResponse<WorkLogResponseDto[]>>(`/api/work-log/me?date=${searchDate}`)
+}
