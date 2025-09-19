@@ -1,15 +1,30 @@
 'use client'
 
-import React from 'react'
+import React, { useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { BarChart3, Users, Settings, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ROUTES } from '@/lib/constants/routes'
+import { useLoading } from '@/contexts/LoadingContext'
 
 const AdminHeader = ({ name, userId }: { name: string; userId: string }) => {
+  const { showLoading } = useLoading()
   const pathname = usePathname()
+  const router = useRouter()
+
+  const handleNavClick = (href: string) => {
+    if (pathname !== href) {
+      showLoading()
+    }
+  }
+
+  const handleMyPageClick = () => {
+    if (pathname !== ROUTES.ADMIN.MY_PAGE) {
+      showLoading()
+    }
+  }
 
   const navItems = [
     {
@@ -56,7 +71,12 @@ const AdminHeader = ({ name, userId }: { name: string; userId: string }) => {
             {navItems.map((item) => {
               const isActive = pathname.startsWith(item.href)
               return (
-                <Link key={item.name} href={item.href} className="group">
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className="group"
+                  onClick={() => handleNavClick(item.href)}
+                >
                   <Button
                     variant="ghost"
                     className={`flex items-center gap-2 px-3 py-2 h-9 transition-colors ${
@@ -79,6 +99,7 @@ const AdminHeader = ({ name, userId }: { name: string; userId: string }) => {
             <Link
               href={ROUTES.ADMIN.MY_PAGE}
               className="hidden sm:flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-lg cursor-pointer transition-colors group"
+              onClick={handleMyPageClick}
             >
               <User className="w-4 h-4 text-gray-600 transition-colors" />
               <div className="text-right">
@@ -108,7 +129,7 @@ const AdminHeader = ({ name, userId }: { name: string; userId: string }) => {
           {navItems.map((item) => {
             const isActive = pathname.startsWith(item.href)
             return (
-              <Link key={item.name} href={item.href} className="flex-shrink-0">
+              <Link key={item.name} href={item.href} className="flex-shrink-0" onClick={() => handleNavClick(item.href)}>
                 <Button
                   variant="ghost"
                   size="sm"

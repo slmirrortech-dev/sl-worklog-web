@@ -12,6 +12,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import RoleLabel from '@/components/admin/RoleLabel'
 import ButtonLicense from '@/components/admin/ButtonLicense'
 import { SessionUser } from '@/lib/core/session'
+import { useLoading } from '@/contexts/LoadingContext'
 
 /** 사용자 테이블 */
 const UsersDataTable = ({
@@ -29,6 +30,7 @@ const UsersDataTable = ({
   take: number
   totalCount: number
 }) => {
+  const { showLoading } = useLoading()
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -193,6 +195,7 @@ const UsersDataTable = ({
               variant="outline"
               size="default"
               onClick={() => {
+                showLoading()
                 saveScrollPosition()
                 router.push(`/admin/users/${user.id}`)
               }}
