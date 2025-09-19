@@ -47,7 +47,7 @@ const CardActiveWorkLog = ({
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary-500"></span>
             </span>
             <span className="text-lg text-gray-600 text-right">
-              {format(startAt, 'MM-dd HH:mm:ss', { locale: ko })}
+              {format(startAt, 'MM-dd HH:mm', { locale: ko })}
             </span>
           </div>
         </div>

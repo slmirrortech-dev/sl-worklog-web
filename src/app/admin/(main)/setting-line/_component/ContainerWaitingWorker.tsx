@@ -8,6 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import PopoverContentAdd from '@/app/admin/(main)/setting-line/_component/PopoverContentAdd'
 import { ApiResponse } from '@/types/common'
 import { deleteWaitingWorKerApi } from '@/lib/api/wating-worker-api'
+import useActiveWorkLog from '@/hooks/useActiveWorkLog'
 
 const ContainerWaitingWorker = ({
   isEditMode,
@@ -36,6 +37,11 @@ const ContainerWaitingWorker = ({
 }) => {
   const shift = process.shifts.filter(({ type }) => type === shiftType)?.[0]
   const waitingWorker = shift?.waitingWorker
+  const processShiftId = shift?.id || ''
+
+  // 실시간 작업 활성 상태 확인
+  const { isActive, startedAt } = useActiveWorkLog(processShiftId, waitingWorker?.id)
+
 
   // 현재 셀이 드래그 중인지 확인
   const isCurrentlyDragged =
@@ -56,13 +62,16 @@ const ContainerWaitingWorker = ({
     const shiftBgColor = shiftType === 'DAY' ? 'bg-gray-50' : 'bg-gray-100'
     const shiftHoverColor = shiftType === 'DAY' ? 'hover:bg-gray-100' : 'hover:bg-gray-200'
 
+    // 작업 시작 여부에 따라 배경색 설정
+    const waitingBgColor = isActive ? 'bg-blue-100 border-blue-300' : 'bg-white border-gray-200'
+
     // 드래그 상태별 스타일
     if (isCurrentlyDragged) {
       return `${baseClass} bg-gray-200 border-gray-400 opacity-70 scale-95`
     } else if (isDroppable) {
       return `${baseClass} ${shiftBgColor} border-gray-300 ${!isEditMode && shiftHoverColor} ${!isEditMode && 'hover:shadow-md'}`
     } else if (waitingWorker) {
-      return `${baseClass} bg-white border-gray-200  ${!isEditMode && 'hover:bg-gray-50 hover:shadow-md'}`
+      return `${baseClass} ${waitingBgColor} ${!isEditMode && 'hover:bg-gray-50 hover:shadow-md'}`
     } else {
       return `${baseClass} ${shiftBgColor} border-gray-200 ${!isEditMode && shiftHoverColor} border-dashed`
     }
@@ -96,7 +105,11 @@ const ContainerWaitingWorker = ({
           <Popover open={isOpenInfo} onOpenChange={setIsOpenInfo}>
             <PopoverTrigger className={`${isEditMode ? '!cursor-not-allowed' : 'cursor-pointer'}`}>
               <div className={`w-full h-full flex items-center justify-center`}>
-                <CardWaitingWorker waitingWorker={waitingWorker} />
+                <CardWaitingWorker
+                  waitingWorker={waitingWorker}
+                  isActive={isActive}
+                  startedAt={startedAt}
+                />
               </div>
             </PopoverTrigger>
             {!isLocked && !isEditMode && isOpenInfo && (
