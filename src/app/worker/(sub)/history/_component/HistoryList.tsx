@@ -34,7 +34,7 @@ const HistoryList = () => {
       <div className="mt-4">
         {isLoading ? (
           <div className="space-y-4">
-            {[...Array(5)].map((_, index) => (
+            {[...Array(3)].map((_, index) => (
               <div key={index} className="bg-white rounded-xl p-4 shadow-sm border">
                 <div className="h-6 bg-gray-200 rounded w-24 mb-2 animate-pulse"></div>
                 <div className="h-4 bg-gray-200 rounded w-3/4 mb-2 animate-pulse"></div>
