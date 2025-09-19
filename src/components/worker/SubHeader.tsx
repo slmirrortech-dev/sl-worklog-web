@@ -3,7 +3,6 @@
 import React from 'react'
 import { ArrowLeftIcon } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useLoading } from '@/contexts/LoadingContext'
 
 const SubHeader = () => {
   const router = useRouter()
@@ -13,9 +12,7 @@ const SubHeader = () => {
       <button
         type="button"
         className="w-14 h-14 flex justify-center items-center"
-        onClick={() => {
-          router.back()
-        }}
+        onClick={() => router.back()}
       >
         <ArrowLeftIcon />
       </button>

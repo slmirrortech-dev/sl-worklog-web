@@ -7,7 +7,6 @@ import { ROUTES } from '@/lib/constants/routes'
 import { useRouter } from 'next/navigation'
 import CardActiveWorkLog from '@/app/worker/home/_component/CardActiveWorkLog'
 import { workLogResponseModel } from '@/types/work-log'
-import { useLoading } from '@/contexts/LoadingContext'
 
 const TopContents = ({
   currentUser,

@@ -6,8 +6,14 @@ import { workLogResponseModel } from '@/types/work-log'
 import { AlertCircle, ChevronRight } from 'lucide-react'
 import { format } from 'date-fns'
 import { getMyDailyWorkLogApi } from '@/lib/api/work-log-api'
+import { useRouter } from 'next/navigation'
+import { ROUTES } from '@/lib/constants/routes'
+import { useLoading } from '@/contexts/LoadingContext'
 
 const HistoryList = () => {
+  const router = useRouter()
+  const { showLoading } = useLoading()
+
   const [historyData, setHistoryData] = useState<workLogResponseModel[]>([])
   const [startDate, setStartDate] = useState<Date>(new Date())
   const [isLoading, setIsLoading] = useState<boolean>()
@@ -48,6 +54,10 @@ const HistoryList = () => {
               <ul className="space-y-4">
                 {historyData.map((item: workLogResponseModel) => (
                   <li
+                    onClick={() => {
+                      showLoading()
+                      router.push(`${ROUTES.WORKER.HISTORY}/${item.id}`)
+                    }}
                     key={item.id}
                     className="flex justify-between items-center rounded-xl ring-1 ring-gray-200 bg-white px-4 py-3 mb-4 drop-shadow-md drop-shadow-gray-100"
                   >

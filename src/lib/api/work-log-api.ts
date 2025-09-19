@@ -33,3 +33,10 @@ export async function endWorkLogApi(payload: endWorkLogRequestModel) {
 export async function getMyDailyWorkLogApi(searchDate: string) {
   return await apiFetch<ApiResponse<workLogResponseModel[]>>(`/api/work-log/me?date=${searchDate}`)
 }
+
+/**
+ * 개별 작업 기록 조회
+ */
+export async function getWorkLogByIdApi(id: string) {
+  return await apiFetch<ApiResponse<workLogResponseModel>>(`/api/work-log/${id}`)
+}
