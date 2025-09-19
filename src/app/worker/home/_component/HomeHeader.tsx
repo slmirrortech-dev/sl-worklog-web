@@ -11,7 +11,7 @@ const HomeHeader = () => {
 
   return (
     <header className="px-6 py-6 bg-primary-50 flex items-center justify-between">
-      <Image src="/logo.png" alt="회사 로고" width={94} height={42} />
+      <Image src="/logo.webp" alt="회사 로고" width={94} height={22} priority />
       <button
         onClick={() => router.push(ROUTES.WORKER.MY_PAGE)}
         className="p-2 bg-white rounded-full shadow-sm hover:shadow-md transition-shadow"
