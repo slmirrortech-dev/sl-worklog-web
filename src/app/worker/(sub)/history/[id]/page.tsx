@@ -2,6 +2,8 @@ import React from 'react'
 import prisma from '@/lib/core/prisma'
 import { workLogResponseModel } from '@/types/work-log'
 import { format } from 'date-fns'
+import ShiftStatusLabel from '@/components/admin/ShiftStatusLabel'
+import ShiftTypeLabel from '@/components/admin/ShiftTypeLabel'
 
 const DetailHistoryPage = async ({ params }: { params: Promise<{ id: string }> }) => {
   const { id } = await params
@@ -24,30 +26,52 @@ const DetailHistoryPage = async ({ params }: { params: Promise<{ id: string }> }
   console.log(workLog)
 
   return (
-    <div className="min-h-screen flex justify-center">
-      <div className="w-full max-w-sm bg-white px-4 py-6">
-        <section>
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold">{format(workLog.startedAt, 'yyyy-MM-dd')}</h1>
-            <p className="text-base text-gray-500">배정 받은 작업을 선택해주세요.</p>
+    <div className="min-h-[calc(100vh-60px)] flex justify-center bg-gray-50">
+      <div className="w-full max-w-sm px-6 py-6 flex flex-col">
+        {/* 작업 기록 정보 */}
+        <div className="flex-1">
+          <h1 className="text-xl font-bold mb-4">작업 기록 상세</h1>
+          <div className="space-y-4">
+            <div className="flex justify-between">
+              <span className="text-gray-600 text-lg">시작일시</span>
+              <span className="font-medium text-lg">
+                {format(workLog.startedAt, 'yyyy-MM-dd HH:mm')}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600 text-lg">종료일시</span>
+              <span className="font-medium text-lg">
+                {format(workLog.endedAt!, 'yyyy-MM-dd HH:mm')}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600 text-lg">총 작업시간</span>
+              <span className="font-medium text-lg">{workLog.durationMinutes}분</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600 text-lg">시간대</span>
+              <ShiftTypeLabel shiftType={workLog.processShift.type} size="sm" />
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600 text-lg">상태</span>
+              <ShiftStatusLabel status={workLog.processShift.status} size="sm" />
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600 text-lg">라인</span>
+              <span className="font-medium text-lg">{workLog.processShift.process.line.name}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600 text-lg">반</span>
+              <span className="font-medium text-lg">
+                {workLog.processShift.process.line.classNo}반
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600 text-lg">공정</span>
+              <span className="font-medium text-lg">{workLog.processShift.process.name}</span>
+            </div>
           </div>
-          <strong>시작시간</strong>
-          <p>{format(workLog.startedAt, 'yyyy-MM-dd HH:mm')}</p>
-          <strong>종료시간</strong>
-          <p>{format(workLog.endedAt!, 'yyyy-MM-dd HH:mm')}</p>
-          <strong>총 작업시간</strong>
-          <p>{workLog.durationMinutes}분</p>
-          <strong>라인</strong>
-          <p>{workLog.processShift.process.line.name}</p>
-          <strong>반</strong>
-          <p>{workLog.processShift.process.line.classNo}</p>
-          <strong>공정</strong>
-          <p>{workLog.processShift.process.name}</p>
-          <strong>시간대</strong>
-          <p>{workLog.processShift.type}</p>
-          <strong>상태</strong>
-          <p>{workLog.processShift.status}</p>
-        </section>
+        </div>
       </div>
     </div>
   )

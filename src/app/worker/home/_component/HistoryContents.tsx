@@ -40,6 +40,10 @@ const HistoryContents = ({
             return (
               <li
                 key={item.id}
+                onClick={() => {
+                  showLoading()
+                  router.push(`${ROUTES.WORKER.HISTORY}/${item.id}`)
+                }}
                 className="flex justify-between items-center rounded-xl ring-1 ring-gray-200 bg-white px-4 py-3 mb-4 drop-shadow-md drop-shadow-gray-100"
               >
                 <div>
