@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import React from 'react'
+import { LoadingProvider } from '@/contexts/LoadingContext'
+import LoadingOverlay from '@/components/common/LoadingOverlay'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -45,7 +47,12 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="SL미러텍 작업일지" />
         <link rel="apple-touch-icon" href="/icon-192x192.png" />
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>{children}</body>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <LoadingProvider>
+          {children}
+          <LoadingOverlay />
+        </LoadingProvider>
+      </body>
     </html>
   )
 }
