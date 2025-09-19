@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import HeadText from '@/app/worker/home/_component/HeadText'
 import { SessionUser } from '@/lib/core/session'
 import { ROUTES } from '@/lib/constants/routes'
@@ -16,6 +16,12 @@ const TopContents = ({
   userActiveWorkLog: workLogResponseModel | null
 }) => {
   const router = useRouter()
+  const [isNavigating, setIsNavigating] = useState(false)
+
+  const handleStartWork = () => {
+    setIsNavigating(true)
+    router.push(ROUTES.WORKER.START)
+  }
 
   return (
     <section className="px-6 pb-6 bg-primary-50">
@@ -34,11 +40,19 @@ const TopContents = ({
         />
       ) : (
         <button
-          onClick={() => router.push(ROUTES.WORKER.START)}
+          onClick={handleStartWork}
+          disabled={isNavigating}
           type="button"
-          className="w-full bg-primary-900 text-white py-4 px-6 text-2xl font-medium rounded-xl focus:outline-none transition-colors"
+          className="w-full bg-primary-900 text-white py-4 px-6 text-2xl font-medium rounded-xl focus:outline-none transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
         >
-          작업 시작하기
+          {isNavigating ? (
+            <div className="flex items-center justify-center gap-2">
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              이동 중...
+            </div>
+          ) : (
+            '작업 시작하기'
+          )}
         </button>
       )}
     </section>
