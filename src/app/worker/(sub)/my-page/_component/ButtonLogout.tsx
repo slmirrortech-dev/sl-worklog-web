@@ -6,8 +6,10 @@ import { logoutApi } from '@/lib/api/auth-api'
 import { ROUTES } from '@/lib/constants/routes'
 import { useRouter } from 'next/navigation'
 import CustomAlertDialog from '@/components/CustomAlertDialog'
+import { useLoading } from '@/contexts/LoadingContext'
 
 const ButtonLogout = () => {
+  const { showLoading } = useLoading()
   const router = useRouter()
   const [isAlertDialogOpen, setIsAlertDialogOpen] = useState(false)
 
@@ -16,6 +18,7 @@ const ButtonLogout = () => {
       <button
         className="w-full bg-white border border-red-300 text-red-600 py-4 px-6 text-lg font-medium rounded-xl hover:bg-red-50 transition-colors flex items-center justify-center mt-8"
         onClick={async () => {
+          showLoading()
           setIsAlertDialogOpen(false)
           try {
             await logoutApi()

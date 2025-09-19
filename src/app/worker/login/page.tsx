@@ -31,8 +31,8 @@ export default function WorkerLoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6">
-      <div className="w-full max-w-sm">
+    <div className="min-h-screen flex justify-center bg-white">
+      <div className="flex flex-col justify-center  w-full max-w-sm bg-white px-4 py-6 border">
         {/* 회사 로고 */}
         <div className="text-center mb-8">
           <div className="mb-6">
