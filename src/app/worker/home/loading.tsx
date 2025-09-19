@@ -3,12 +3,6 @@ import React from 'react'
 const Loading = () => {
   return (
     <>
-      {/* HomeHeader 스켈레톤 */}
-      <header className="px-6 py-6 bg-primary-50 flex items-center justify-between">
-        <div className="w-24 h-10 bg-gray-200 rounded animate-pulse"></div>
-        <div className="w-9 h-9 bg-gray-200 rounded-full animate-pulse"></div>
-      </header>
-
       {/* TopContents 스켈레톤 */}
       <section className="px-6 pb-6 bg-primary-50">
         {/* HeadText 스켈레톤 */}
