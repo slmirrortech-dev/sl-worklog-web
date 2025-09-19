@@ -4,6 +4,7 @@ import {
   addWorkLogRequestModel,
   WorkLogResponseDto,
   endWorkLogRequestModel,
+  workLogResponseModel,
 } from '@/types/work-log'
 
 /**
@@ -30,5 +31,5 @@ export async function endWorkLogApi(payload: endWorkLogRequestModel) {
  * 날짜별 내 작업 기록 조회
  */
 export async function getMyDailyWorkLogApi(searchDate: string) {
-  return await apiFetch<ApiResponse<WorkLogResponseDto[]>>(`/api/work-log/me?date=${searchDate}`)
+  return await apiFetch<ApiResponse<workLogResponseModel[]>>(`/api/work-log/me?date=${searchDate}`)
 }

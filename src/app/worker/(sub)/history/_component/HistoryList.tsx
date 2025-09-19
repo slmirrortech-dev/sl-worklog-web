@@ -6,8 +6,6 @@ import { workLogResponseModel } from '@/types/work-log'
 import { AlertCircle, ChevronRight } from 'lucide-react'
 import { format } from 'date-fns'
 import { getMyDailyWorkLogApi } from '@/lib/api/work-log-api'
-import ShiftTypeLabel from '@/components/admin/ShiftTypeLabel'
-import ShiftStatusLabel from '@/components/admin/ShiftStatusLabel'
 
 const HistoryList = () => {
   const [historyData, setHistoryData] = useState<workLogResponseModel[]>([])
