@@ -1,5 +1,5 @@
 // seedLines.ts
-import { PrismaClient, ShiftType } from '@prisma/client'
+import { PrismaClient, ShiftType, WorkStatus } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
@@ -346,26 +346,72 @@ const initialLines = [
 ]
 
 export async function seedLines() {
-  for (const line of initialLines) {
-    await prisma.line.create({
-      data: {
-        name: line.name,
-        order: line.order,
-        classNo: line.classNo,
-        processes: {
-          create: line.processes.map((p) => ({
-            name: p.name,
-            order: p.order,
-            shifts: {
-              create: [
-                { type: ShiftType.DAY }, // 주간
-                { type: ShiftType.NIGHT }, // 야간
-              ],
+  console.log(`📋 Creating ${initialLines.length} lines...`)
+
+  // 작은 배치로 나누어 처리
+  const batchSize = 5
+
+  for (let batchStart = 0; batchStart < initialLines.length; batchStart += batchSize) {
+    const batch = initialLines.slice(batchStart, batchStart + batchSize)
+    console.log(`📦 Processing batch ${Math.floor(batchStart/batchSize) + 1}/${Math.ceil(initialLines.length/batchSize)}`)
+
+    for (let i = 0; i < batch.length; i++) {
+      const line = batch[i]
+      const globalIndex = batchStart + i + 1
+      console.log(`📋 Creating line ${globalIndex}/${initialLines.length}: ${line.name}`)
+
+      try {
+        // 라인 생성
+        const createdLine = await prisma.line.create({
+          data: {
+            name: line.name,
+            order: line.order,
+            classNo: line.classNo,
+          },
+        })
+
+        // 프로세스를 하나씩 생성
+        for (let j = 0; j < line.processes.length; j++) {
+          const process = line.processes[j]
+
+          const createdProcess = await prisma.process.create({
+            data: {
+              name: process.name,
+              order: process.order,
+              lineId: createdLine.id,
             },
-          })),
-        },
-      },
-    })
+          })
+
+          // 시프트를 별도로 생성
+          await prisma.processShift.create({
+            data: {
+              processId: createdProcess.id,
+              type: ShiftType.DAY,
+              status: WorkStatus.NORMAL
+            }
+          })
+
+          await prisma.processShift.create({
+            data: {
+              processId: createdProcess.id,
+              type: ShiftType.NIGHT,
+              status: WorkStatus.NORMAL
+            }
+          })
+
+          // 작은 지연 추가
+          await new Promise(resolve => setTimeout(resolve, 10))
+        }
+
+        console.log(`✅ Line ${line.name} created successfully`)
+
+        // 배치 간 지연
+        await new Promise(resolve => setTimeout(resolve, 50))
+      } catch (error) {
+        console.error(`❌ Error creating line ${line.name}:`, error)
+        throw error
+      }
+    }
   }
 
   console.log(

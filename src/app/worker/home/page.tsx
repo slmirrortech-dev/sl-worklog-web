@@ -2,7 +2,7 @@ import React from 'react'
 import { getServerSession } from '@/lib/utils/auth-guards'
 import TopContents from '@/app/worker/home/_component/TopContents'
 import prisma from '@/lib/core/prisma'
-import { workLogResponseModel } from '@/types/work-log'
+import { WorkLogResponseModel } from '@/types/work-log'
 import HistoryContents from '@/app/worker/home/_component/HistoryContents'
 
 /** 홈 페이지 */
@@ -30,7 +30,7 @@ const HomePage = async () => {
         },
       },
     },
-  })) as workLogResponseModel
+  })) as WorkLogResponseModel
 
   const userFinishedWorkLogs = (await prisma.workLog.findMany({
     where: {
@@ -51,7 +51,7 @@ const HomePage = async () => {
     },
     take: 5,
     orderBy: { endedAt: 'desc' },
-  })) as workLogResponseModel[]
+  })) as WorkLogResponseModel[]
 
   return (
     <>
@@ -63,7 +63,9 @@ const HomePage = async () => {
             : null
         }
       />
-      <HistoryContents userFinishedWorkLogs={userFinishedWorkLogs.length > 0 ? userFinishedWorkLogs : null} />
+      <HistoryContents
+        userFinishedWorkLogs={userFinishedWorkLogs.length > 0 ? userFinishedWorkLogs : null}
+      />
     </>
   )
 }

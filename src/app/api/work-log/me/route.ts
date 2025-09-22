@@ -9,7 +9,7 @@ import { fromZonedTime } from 'date-fns-tz'
 import { ApiError } from '@/lib/core/errors'
 
 /** 로그인한 작업자의 작업 기록 조회 */
-async function getWorkLog(req: NextRequest) {
+async function getMyWorkLog(req: NextRequest) {
   // 로그인한 사용자인지 확인
   const currentUser = await requireUser(req)
 
@@ -56,4 +56,4 @@ async function getWorkLog(req: NextRequest) {
   return ApiResponseFactory.success<WorkLogResponseDto[]>(workLogs, '작업 기록을 조회했습니다.')
 }
 
-export const GET = withErrorHandler(getWorkLog)
+export const GET = withErrorHandler(getMyWorkLog)

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import DatePickerSection from '@/app/worker/(sub)/history/_component/DatePickerSection'
-import { workLogResponseModel } from '@/types/work-log'
+import { WorkLogResponseModel } from '@/types/work-log'
 import { AlertCircle } from 'lucide-react'
 import { format } from 'date-fns'
 import { getMyDailyWorkLogApi } from '@/lib/api/work-log-api'
@@ -14,7 +14,7 @@ const HistoryList = () => {
   const router = useRouter()
   const { showLoading } = useLoading()
 
-  const [historyData, setHistoryData] = useState<workLogResponseModel[]>([])
+  const [historyData, setHistoryData] = useState<WorkLogResponseModel[]>([])
   const [startDate, setStartDate] = useState<Date>(new Date())
   const [isLoading, setIsLoading] = useState<boolean>()
 
@@ -52,7 +52,7 @@ const HistoryList = () => {
           <>
             {historyData.length > 0 ? (
               <ul className="space-y-4">
-                {historyData.map((item: workLogResponseModel) => (
+                {historyData.map((item: WorkLogResponseModel) => (
                   <CardWorkLog key={item.id} worklog={item} />
                 ))}
               </ul>

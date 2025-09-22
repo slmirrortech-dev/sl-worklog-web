@@ -33,7 +33,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 
-export function CustomDataTable({
+export function WorkLogTable({
   id = '',
   data,
   columns,
@@ -177,7 +177,7 @@ export function CustomDataTable({
                   return (
                     <TableHead
                       key={header.id}
-                      className="py-3 md:py-4 px-3 md:px-6 text-left font-medium text-gray-700 text-sm md:text-base"
+                      className="py-3 md:py-4 px-3 md:px-6 font-medium text-gray-700 text-sm md:text-base text-center"
                     >
                       {header.isPlaceholder
                         ? null
@@ -210,7 +210,7 @@ export function CustomDataTable({
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
                       key={cell.id}
-                      className="py-3 md:py-4 px-3 md:px-6 text-gray-900 text-sm md:text-base"
+                      className="py-3 md:py-4 px-2 md:px-3 text-gray-900 text-sm md:text-base text-center"
                     >
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>

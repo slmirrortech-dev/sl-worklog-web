@@ -3,7 +3,7 @@ import { withErrorHandler } from '@/lib/core/api-handler'
 import { ApiResponseFactory } from '@/lib/core/api-response-factory'
 import { requireUser } from '@/lib/utils/auth-guards'
 import prisma from '@/lib/core/prisma'
-import { endWorkLogRequestModel, workLogResponseModel } from '@/types/work-log'
+import { endWorkLogRequestModel, WorkLogResponseModel } from '@/types/work-log'
 import { differenceInMinutes } from 'date-fns'
 
 /** 작업 기록 */
@@ -34,7 +34,7 @@ async function endWorkLog(req: NextRequest) {
       endedAt: endedAt,
       durationMinutes: durationMinutes,
     },
-  })) as workLogResponseModel
+  })) as WorkLogResponseModel
 
   return ApiResponseFactory.success(result, '작업의 종료시간을 기록했습니다.')
 }

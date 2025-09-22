@@ -113,10 +113,20 @@ model WorkLog {
   endedAt         DateTime?                       // 종료 시각
   durationMinutes Int?                            // 작업 시간(분)
 
+  // 불량 여부
+  isDefective     Boolean @default(false)
+
   // Relations
   user    User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   processShiftId String?        // FK (ProcessShift.id)
   processShift   ProcessShift?  @relation(fields: [processShiftId], references: [id], onDelete: SetNull)
+
+  // Process/Line 스냅샷
+  processName     String    // 공정 이름 (스냅샷)
+  lineName        String    // 라인 이름 (스냅샷)
+  lineClassNo     Int       // 라인 반 번호 (스냅샷)
+  shiftType       ShiftType // 교대조 타입 (스냅샷)
+  workStatus      WorkStatus // 상태 (스냅샷)
 
   histories  WorkLogHistory[]
 
