@@ -4,6 +4,7 @@ import { ApiResponseFactory } from '@/lib/core/api-response-factory'
 import { requireUser } from '@/lib/utils/auth-guards'
 import prisma from '@/lib/core/prisma'
 import { endWorkLogRequestModel, workLogResponseModel } from '@/types/work-log'
+import { differenceInMinutes } from 'date-fns'
 
 /** 작업 기록 */
 async function endWorkLog(req: NextRequest) {
@@ -22,9 +23,7 @@ async function endWorkLog(req: NextRequest) {
   })
 
   // duration 계산 (분 단위)
-  const durationMinutes = Math.floor(
-    (new Date(endedAt).getTime() - new Date(workLog.startedAt).getTime()) / 1000 / 60,
-  )
+  const durationMinutes = differenceInMinutes(new Date(endedAt), new Date(workLog.startedAt))
 
   const result = (await prisma.workLog.update({
     where: {

@@ -2,11 +2,11 @@
 
 import React from 'react'
 import { workLogResponseModel } from '@/types/work-log'
-import { format } from 'date-fns'
-import { AlertCircle, ChevronRight } from 'lucide-react'
+import { AlertCircle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { ROUTES } from '@/lib/constants/routes'
 import { useLoading } from '@/contexts/LoadingContext'
+import CardWorkLog from '@/components/worker/CardWorkLog'
 
 const HistoryContents = ({
   userFinishedWorkLogs,
@@ -37,43 +37,7 @@ const HistoryContents = ({
       {userFinishedWorkLogs && userFinishedWorkLogs.length > 0 ? (
         <ul className="space-y-4">
           {userFinishedWorkLogs.map((item: workLogResponseModel) => {
-            return (
-              <li
-                key={item.id}
-                onClick={() => {
-                  showLoading()
-                  router.push(`${ROUTES.WORKER.HISTORY}/${item.id}`)
-                }}
-                className="flex justify-between items-center rounded-xl ring-1 ring-gray-200 bg-white px-4 py-3 mb-4 drop-shadow-md drop-shadow-gray-100"
-              >
-                <div>
-                  <p className="text-xl font-semibold">{format(item.startedAt, 'yyyy-MM-dd')}</p>
-                  <div className="flex gap-1 text-base text-gray-500 flex-wrap">
-                    <p>{format(item.startedAt, 'HH:mm:ss')}</p>~
-                    <p>
-                      <span>
-                        {format(item.startedAt, 'yyyy-MM-dd') !==
-                          format(item.endedAt!, 'yyyy-MM-dd') && '다음날 '}
-                      </span>
-                      {format(item.endedAt!, 'HH:mm:ss')}
-                    </p>
-                    | {item.durationMinutes}분
-                  </div>
-                  <p className="flex gap-4 mt-2">
-                    <span className="flex gap-1 text-lg text-primary-500 font-semibold">
-                      {item.processShift.process.line.name}
-                      <span className="text-lg text-gray-600 font-normal">
-                        {item.processShift.process.line.classNo}반
-                      </span>
-                    </span>
-                    <span className="text-lg text-gray-600 font-semibold">
-                      {item.processShift.process.name}
-                    </span>
-                  </p>
-                </div>
-                <ChevronRight className="w-6 h-6 text-gray-300" />
-              </li>
-            )
+            return <CardWorkLog key={item.id} worklog={item} />
           })}
         </ul>
       ) : (

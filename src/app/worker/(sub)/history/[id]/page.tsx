@@ -4,6 +4,7 @@ import { workLogResponseModel } from '@/types/work-log'
 import { format } from 'date-fns'
 import ShiftStatusLabel from '@/components/admin/ShiftStatusLabel'
 import ShiftTypeLabel from '@/components/admin/ShiftTypeLabel'
+import { displayMinutes } from '@/lib/utils/time'
 
 const DetailHistoryPage = async ({ params }: { params: Promise<{ id: string }> }) => {
   const { id } = await params
@@ -46,7 +47,9 @@ const DetailHistoryPage = async ({ params }: { params: Promise<{ id: string }> }
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600 text-lg">총 작업시간</span>
-              <span className="font-medium text-lg">{workLog.durationMinutes}분</span>
+              <span className="font-medium text-lg">
+                {displayMinutes(workLog?.durationMinutes || 0)}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600 text-lg">시간대</span>

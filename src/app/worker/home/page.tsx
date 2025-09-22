@@ -9,10 +9,15 @@ import HistoryContents from '@/app/worker/home/_component/HistoryContents'
 const HomePage = async () => {
   const session = await getServerSession()
 
+  if (!session) {
+    return null
+  }
+
   const userActiveWorkLog = (await prisma.workLog.findFirst({
     where: {
-      userId: session?.id,
+      userId: session.id,
       endedAt: null,
+      processShift: { isNot: null },
     },
     include: {
       processShift: {
@@ -29,8 +34,9 @@ const HomePage = async () => {
 
   const userFinishedWorkLogs = (await prisma.workLog.findMany({
     where: {
-      userId: session?.id,
+      userId: session.id,
       endedAt: { not: null },
+      processShift: { isNot: null },
     },
     include: {
       processShift: {

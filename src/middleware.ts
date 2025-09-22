@@ -33,7 +33,7 @@ export async function middleware(req: NextRequest) {
   if (pathname.startsWith('/worker')) {
     if (pathname === ROUTES.WORKER.LOGIN) {
       if (await isValidSession(req)) {
-        return NextResponse.redirect(new URL(ROUTES.WORKER.WORK_LOG, req.url))
+        return NextResponse.redirect(new URL(ROUTES.WORKER.HOME, req.url))
       }
       return NextResponse.next()
     }
