@@ -34,24 +34,6 @@ const DetailHistoryPage = async ({ params }: { params: Promise<{ id: string }> }
           <h1 className="text-xl font-bold mb-4">작업 기록 상세</h1>
           <div className="space-y-4">
             <div className="flex justify-between">
-              <span className="text-gray-600 text-lg">시작일시</span>
-              <span className="font-medium text-lg">
-                {format(workLog.startedAt, 'yyyy-MM-dd HH:mm')}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600 text-lg">종료일시</span>
-              <span className="font-medium text-lg">
-                {format(workLog.endedAt!, 'yyyy-MM-dd HH:mm')}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600 text-lg">총 작업시간</span>
-              <span className="font-medium text-lg">
-                {displayMinutes(workLog?.durationMinutes || 0)}
-              </span>
-            </div>
-            <div className="flex justify-between">
               <span className="text-gray-600 text-lg">시간대</span>
               <ShiftTypeLabel shiftType={workLog.processShift.type} size="sm" />
             </div>
@@ -72,6 +54,24 @@ const DetailHistoryPage = async ({ params }: { params: Promise<{ id: string }> }
             <div className="flex justify-between">
               <span className="text-gray-600 text-lg">공정</span>
               <span className="font-medium text-lg">{workLog.processShift.process.name}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600 text-lg">시작일시</span>
+              <span className="font-medium text-lg">
+                {format(workLog.startedAt, 'yyyy-MM-dd HH:mm')}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600 text-lg">종료일시</span>
+              <span className="font-medium text-lg">
+                {format(workLog.endedAt!, 'yyyy-MM-dd HH:mm')}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600 text-lg">총 작업시간</span>
+              <span className="font-medium text-lg">
+                {displayMinutes(workLog?.durationMinutes || 0)}
+              </span>
             </div>
           </div>
         </div>
