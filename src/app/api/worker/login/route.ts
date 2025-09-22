@@ -12,12 +12,12 @@
 //
 //   const user = await prisma.user.findUnique({ where: { userId } })
 //   if (!user) {
-//     return NextResponse.json({ error: '사용자를 찾을 수 없습니다.' }, { status: 404 })
+//     return NextResponse.json({ (error): '사용자를 찾을 수 없습니다.' }, { status: 404 })
 //   }
 //
 //   const valid = await bcrypt.compare(password, user.password)
 //   if (!valid) {
-//     return NextResponse.json({ error: '비밀번호가 틀렸습니다.' }, { status: 401 })
+//     return NextResponse.json({ (error): '비밀번호가 틀렸습니다.' }, { status: 401 })
 //   }
 //
 //   // 세션 생성

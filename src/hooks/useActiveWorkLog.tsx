@@ -38,7 +38,9 @@ const useActiveWorkLog = (processShiftId: string, waitingWorkerId?: string) => {
       setActiveInfo({
         isActive: !!data,
         workLogId: data?.id,
-        startedAt: data?.startedAt ? new Date(new Date(data.startedAt).getTime() + 9 * 60 * 60 * 1000) : undefined,
+        startedAt: data?.startedAt
+          ? new Date(new Date(data.startedAt).getTime() + 9 * 60 * 60 * 1000)
+          : undefined,
       })
     } catch (error) {
       console.error('Error checking active work log:', error)

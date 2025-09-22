@@ -6,7 +6,7 @@ import { ArrowLeft } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 // interface ErrorPageProps {
-//   error: Error
+//   (error): Error
 //   reset: () => void
 // }
 

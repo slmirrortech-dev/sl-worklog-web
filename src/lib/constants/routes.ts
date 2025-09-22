@@ -14,4 +14,7 @@ export const ROUTES = {
     HISTORY: '/worker/history',
     MY_PAGE: '/worker/my-page',
   },
+  ERROR: {
+    403: '/403',
+  },
 }

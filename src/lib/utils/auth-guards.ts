@@ -5,9 +5,15 @@ import { sessionOptions, SessionUser } from '@/lib/core/session'
 import { ApiError } from '@/lib/core/errors'
 
 /** 세션 읽기 */
-async function getSessionUser(req: NextRequest) {
+export async function getSessionUser(req: NextRequest): Promise<SessionUser | null> {
   const res = new NextResponse()
-  return await getIronSession<SessionUser>(req, res, sessionOptions)
+  const session = await getIronSession<SessionUser>(req, res, sessionOptions)
+
+  if (!session?.userId) {
+    return null
+  }
+
+  return session
 }
 
 /** 로그인만 돼 있으면 허용 */
@@ -24,10 +30,10 @@ export async function requireAdmin(req: NextRequest) {
   const session = await getSessionUser(req)
 
   if (!session) {
-    throw new ApiError('로그인이 필요합니다', 401)
+    throw new ApiError('로그인이 필요합니다', 401, 'UNAUTHORIZED')
   }
 
-  if (!session || session.role !== 'ADMIN') {
+  if (session.role !== 'ADMIN') {
     throw new ApiError('관리자 권한이 필요합니다.', 403, 'FORBIDDEN')
   }
   return session
@@ -37,7 +43,11 @@ export async function requireAdmin(req: NextRequest) {
 export async function requireManagerOrAdmin(req: NextRequest) {
   const session = await getSessionUser(req)
 
-  if (!session || (session.role !== 'ADMIN' && session.role !== 'MANAGER')) {
+  if (!session) {
+    throw new ApiError('로그인이 필요합니다', 401, 'UNAUTHORIZED')
+  }
+
+  if (session.role !== 'ADMIN' && session.role !== 'MANAGER') {
     throw new ApiError('관리자 또는 반장 권한이 필요합니다.', 403, 'FORBIDDEN')
   }
   return session

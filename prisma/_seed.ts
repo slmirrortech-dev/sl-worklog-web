@@ -239,7 +239,7 @@
 //
 // main()
 //   .catch((e) => {
-//     console.error(e)
+//     console.(error)(e)
 //     line-with-process.exit(1)
 //   })
 //   .finally(async () => {

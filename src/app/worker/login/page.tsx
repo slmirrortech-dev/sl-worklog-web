@@ -23,7 +23,7 @@ export default function WorkerLoginPage() {
       await loginWorkerApi({ userId: userId, password: password })
       router.push(ROUTES.WORKER.HOME)
     } catch (error: any) {
-      console.error('Login error:', error)
+      console.error('Login (error):', error)
       setErrorMsg(error?.message || '로그인 중 오류가 발생했습니다.')
     } finally {
       setIsLoading(false)
