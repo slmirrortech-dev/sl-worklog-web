@@ -18,7 +18,9 @@ export async function getLineWithProcess(req: NextRequest) {
         include: {
           shifts: {
             include: {
-              waitingWorker: { select: { id: true, userId: true, name: true } },
+              waitingWorker: {
+                select: { id: true, userId: true, name: true, licensePhotoUrl: true },
+              },
             },
           },
         },
@@ -127,7 +129,9 @@ export async function updateLineWithProcess(req: NextRequest) {
           include: {
             shifts: {
               include: {
-                waitingWorker: { select: { id: true, userId: true, name: true } },
+                waitingWorker: {
+                  select: { id: true, userId: true, name: true, licensePhotoUrl: true },
+                },
               },
             },
           },

@@ -28,7 +28,7 @@ const CustomConfirmDialog = ({
 }) => {
   return (
     <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
-      <AlertDialogContent>
+      <AlertDialogContent onClick={(e) => e.stopPropagation()}>
         <AlertDialogHeader>
           <div className="flex flex-col items-center space-y-4">
             <div className="w-14 h-14 bg-primary-50 rounded-full flex items-center justify-center">
@@ -70,7 +70,7 @@ const CustomConfirmDialog = ({
                 btnConfirm.fn && btnConfirm.fn()
               }}
             >
-              {isLoading ? '종료 중...' : btnConfirm.btnText}
+              {isLoading ? '로딩 중...' : btnConfirm.btnText}
             </button>
           )}
         </AlertDialogFooter>

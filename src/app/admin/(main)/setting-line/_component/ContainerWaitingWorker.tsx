@@ -3,14 +3,19 @@ import { LineResponseDto, ProcessResponseDto } from '@/types/line-with-process'
 import { leftTableShiftHead } from '@/app/admin/(main)/setting-line/_component/SettingProcess'
 import { ShiftType } from '@prisma/client'
 import CardWaitingWorker from '@/app/admin/(main)/setting-line/_component/CardWaitingWorker'
-import { Plus, User, Clock, MapPin, Settings } from 'lucide-react'
+import { Plus, User, Clock, MapPin, Settings, Trash2 } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import PopoverContentAdd from '@/app/admin/(main)/setting-line/_component/PopoverContentAdd'
 import { ApiResponse } from '@/types/common'
 import { deleteWaitingWorKerApi } from '@/lib/api/wating-worker-api'
 import useActiveWorkLog from '@/hooks/useActiveWorkLog'
+import CustomConfirmDialog from '@/components/CustomConfirmDialog'
+import { displayShiftType } from '@/lib/utils/shift-type'
+import BoxLicense from '@/components/admin/BoxLicense'
+import CardLicense from '@/components/admin/CardLicense'
 
 const ContainerWaitingWorker = ({
+  data,
   isEditMode,
   isLocked,
   process,
@@ -23,6 +28,7 @@ const ContainerWaitingWorker = ({
   isDragging,
   dragState,
 }: {
+  data: LineResponseDto[]
   isEditMode: boolean
   isLocked: boolean
   process: ProcessResponseDto
@@ -41,7 +47,6 @@ const ContainerWaitingWorker = ({
 
   // 실시간 작업 활성 상태 확인
   const { isActive, startedAt } = useActiveWorkLog(processShiftId, waitingWorker?.id)
-
 
   // 현재 셀이 드래그 중인지 확인
   const isCurrentlyDragged =
@@ -79,6 +84,10 @@ const ContainerWaitingWorker = ({
 
   const [isOpenInfo, setIsOpenInfo] = useState(false)
   const [isOpenNoInfo, setIsOpenNoInfo] = useState(false)
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false)
+  const [confirmMsg, setConfirmMsg] = useState('')
+  const [confirmAction, setConfirmAction] = useState<(() => Promise<void>) | null>(null)
+  const [confirmLoading, setConfirmLoading] = useState(false)
 
   useEffect(() => {
     if (isLocked || isEditMode) {
@@ -117,36 +126,10 @@ const ContainerWaitingWorker = ({
                 <div className="space-y-4">
                   <div className="text-center border-b pb-3">
                     <h3 className="text-lg font-semibold text-gray-900">{waitingWorker.name}</h3>
-                    <p className="text-sm text-gray-600">작업자 정보</p>
+                    <p className="text-sm text-gray-600">사번 : {waitingWorker.userId}</p>
                   </div>
 
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <User className="w-4 h-4 text-blue-600" />
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">사번</p>
-                        <p className="text-sm text-gray-600">{waitingWorker.userId}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <MapPin className="w-4 h-4 text-green-600" />
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">현재 위치</p>
-                        <p className="text-sm text-gray-600">
-                          {process.name} ({shiftType === 'DAY' ? '주간' : '야간'})
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <Clock className="w-4 h-4 text-orange-600" />
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">근무 시간</p>
-                        <p className="text-sm text-gray-600">14시간 36분</p>
-                      </div>
-                    </div>
-                  </div>
+                  <CardLicense licensePhotoUrl={waitingWorker?.licensePhotoUrl} />
 
                   <div className="pt-3 border-t">
                     <button
@@ -164,10 +147,10 @@ const ContainerWaitingWorker = ({
                           alert('선택한 작업자 대기열에서 삭제 오류')
                         }
                       }}
-                      className={`w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors`}
+                      className={`w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white text-base font-medium rounded-lg hover:bg-red-700 transition-colors`}
                     >
-                      <Settings className="w-4 h-4" />
-                      작업자 대기열에서 제외
+                      <Trash2 className="w-4 h-4" />
+                      대기열에서 제외
                     </button>
                   </div>
                 </div>
@@ -191,15 +174,39 @@ const ContainerWaitingWorker = ({
             </PopoverTrigger>
             {!isLocked && !isEditMode && isOpenNoInfo && (
               <PopoverContentAdd
+                data={data}
                 setLineWithProcess={setLineWithProcess}
                 setIsOpen={setIsOpenNoInfo}
                 process={process}
                 shiftType={shiftType}
+                setConfirmLoading={setConfirmLoading}
+                onShowConfirmDialog={(message, onConfirm) => {
+                  setConfirmMsg(message)
+                  setConfirmAction(() => onConfirm)
+                  setIsConfirmDialogOpen(true)
+                }}
               />
             )}
           </Popover>
         )}
       </div>
+      <CustomConfirmDialog
+        isOpen={isConfirmDialogOpen}
+        setIsOpen={setIsConfirmDialogOpen}
+        isLoading={confirmLoading}
+        title={'작업자 대기열 중복 확인'}
+        desc={confirmMsg}
+        btnConfirm={{
+          btnText: '이동하기',
+          fn: async () => {
+            if (confirmAction) {
+              await confirmAction()
+              setConfirmAction(null)
+            }
+            setIsConfirmDialogOpen(false)
+          },
+        }}
+      />
     </div>
   )
 }

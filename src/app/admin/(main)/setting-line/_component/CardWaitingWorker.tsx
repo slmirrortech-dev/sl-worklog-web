@@ -15,7 +15,9 @@ const CardWaitingWorker = ({
 }) => {
   return (
     <div className="text-center flex flex-col items-center gap-0.5">
-      <span className="flex items-center justify-center gap-1 text-base font-medium text-blue-900">
+      <span
+        className={`flex items-center justify-center gap-1 text-base font-medium ${isActive ? 'text-blue-900' : 'text-gray-900'}`}
+      >
         {isActive ? (
           <span className="relative flex h-2.5 w-2.5 mr-1">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
@@ -26,13 +28,16 @@ const CardWaitingWorker = ({
         )}
         {waitingWorker.name}
       </span>
-      <span className="text-sm text-blue-600">사번 : {waitingWorker.userId}</span>
+      <span className={`text-sm ${isActive ? 'text-blue-600' : 'text-gray-600'}`}>
+        사번 : {waitingWorker.userId}
+      </span>
       {isActive && startedAt && (
         <span className="flex items-center justify-center gap-1 text-xs text-blue-600">
           <Clock className="w-3 h-3" />
           {format(startedAt, 'MM-dd HH:mm', { locale: ko })}
         </span>
       )}
+      {!isActive && <span className="text-xs text-gray-500">대기 중</span>}
     </div>
   )
 }

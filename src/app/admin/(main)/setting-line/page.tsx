@@ -19,7 +19,7 @@ const ProcessPage = async () => {
             shifts: {
               include: {
                 waitingWorker: {
-                  select: { id: true, userId: true, name: true },
+                  select: { id: true, userId: true, name: true, licensePhotoUrl: true },
                 },
               },
             },
