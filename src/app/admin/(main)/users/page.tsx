@@ -64,12 +64,6 @@ const AdminUsersPage = async () => {
     <div className="flex flex-col space-y-6">
       {/* 사용자 정보 */}
       <UsersSummary
-        currentUser={{
-          id: session!.id,
-          userId: session!.userId,
-          name: session!.name,
-          role: session!.role
-        }}
         totalCount={totalCount}
         adminTotalCount={adminTotalCount}
         managerTotalCount={managerTotalCount}
@@ -84,7 +78,7 @@ const AdminUsersPage = async () => {
             id: session!.id,
             userId: session!.userId,
             name: session!.name,
-            role: session!.role
+            role: session!.role,
           }}
           initialData={admins}
           skip={INITIAL_SKIP}
@@ -102,7 +96,7 @@ const AdminUsersPage = async () => {
             id: session!.id,
             userId: session!.userId,
             name: session!.name,
-            role: session!.role
+            role: session!.role,
           }}
           initialData={workers}
           skip={INITIAL_SKIP}

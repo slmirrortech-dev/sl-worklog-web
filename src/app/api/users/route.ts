@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAdmin, requireManagerOrAdmin } from '@/lib/utils/auth-guards'
+import { requireManagerOrAdmin } from '@/lib/utils/auth-guards'
 import { withErrorHandler } from '@/lib/core/api-handler'
 import prisma from '@/lib/core/prisma'
 import { UserResponseDto } from '@/types/user'
@@ -109,7 +109,7 @@ export const GET = withErrorHandler(getUsers)
  */
 async function createUsers(req: NextRequest) {
   // 관리자 권한 확인
-  await requireAdmin(req)
+  await requireManagerOrAdmin(req)
 
   const body = await req.json()
   const items: Array<{

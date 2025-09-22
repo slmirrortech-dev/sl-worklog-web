@@ -20,6 +20,7 @@ import { deleteUserApi, updateUserApi } from '@/lib/api/user-api'
 import { Role } from '@prisma/client'
 import { useRouter } from 'next/navigation'
 import { ROUTES } from '@/lib/constants/routes'
+import { SessionUser } from '@/lib/core/session'
 
 /** 기본 정보 */
 const UserProfile = ({
@@ -27,7 +28,7 @@ const UserProfile = ({
   currentUser,
 }: {
   user: UserResponseDto
-  currentUser: UserResponseDto
+  currentUser: SessionUser
 }) => {
   const router = useRouter()
   const [freshUser, setFreshUser] = useState<UserResponseDto>(user)
@@ -35,6 +36,19 @@ const UserProfile = ({
   const [editName, setEditName] = useState<string>(freshUser.name)
   const [editRole, setEditRole] = useState<Role>(freshUser.role)
   const [isSaving, setIsSaving] = useState<boolean>(false)
+
+  const canEdit = () => {
+    // 관리자인 경우 수정 가능 (본인의 역할은 수정 불가)
+    if (currentUser.role === 'ADMIN') {
+      return true
+    }
+    // 작업반장인 경우 관리자 수정 불가
+    else if (currentUser.role === 'MANAGER' && freshUser.role !== 'ADMIN') {
+      return true
+    }
+
+    return false
+  }
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
@@ -44,7 +58,7 @@ const UserProfile = ({
             <User className="w-5 h-5 mr-2 text-gray-600" />
             기본 정보
           </h2>
-          {currentUser && currentUser.role === 'ADMIN' && (
+          {canEdit() && (
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
@@ -65,7 +79,7 @@ const UserProfile = ({
                       `사용자를 삭제하시겠습니까?\n삭제 후에도 1년 이내 동일 사번으로 재등록하면 기존 데이터가 복구됩니다.`,
                     )
                     if (!confirmed) return
-                    
+
                     const res = await deleteUserApi(freshUser.id)
                     alert(res.message)
                     router.replace(ROUTES.ADMIN.USERS)
@@ -86,11 +100,7 @@ const UserProfile = ({
           {/* 공정면허증 */}
           <div className="lg:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-3">공정면허증</label>
-            <BoxLicense
-              targetUser={freshUser}
-              setFreshUser={setFreshUser}
-              canEdit={currentUser?.role === 'ADMIN'}
-            />
+            <BoxLicense targetUser={freshUser} setFreshUser={setFreshUser} canEdit={canEdit()} />
           </div>
 
           {/* 기본 정보 */}
@@ -143,9 +153,11 @@ const UserProfile = ({
                     <SelectItem value="MANAGER">
                       <div className="flex items-center text-lg">작업반장</div>
                     </SelectItem>
-                    <SelectItem value="ADMIN">
-                      <div className="flex items-center text-lg">관리자</div>
-                    </SelectItem>
+                    {currentUser.role === 'ADMIN' && (
+                      <SelectItem value="ADMIN">
+                        <div className="flex items-center text-lg">관리자</div>
+                      </SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
               ) : (

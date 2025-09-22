@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server'
 import { withErrorHandler } from '@/lib/core/api-handler'
 import { findUserOrThrow } from '@/lib/service/user.servie'
 import { ApiResponseFactory } from '@/lib/core/api-response-factory'
-import { requireAdmin } from '@/lib/utils/auth-guards'
+import { requireManagerOrAdmin } from '@/lib/utils/auth-guards'
 import { ApiError } from '@/lib/core/errors'
 import prisma from '@/lib/core/prisma'
 import { updateUserRequestModel, UserResponseDto } from '@/types/user'
@@ -12,7 +12,7 @@ import { updateUserRequestModel, UserResponseDto } from '@/types/user'
  **/
 
 async function updateUser(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const currentUser = await requireAdmin(req)
+  const currentUser = await requireManagerOrAdmin(req)
   const { id } = await params
   await findUserOrThrow(id)
 
@@ -56,7 +56,7 @@ export const PATCH = withErrorHandler(updateUser)
  * (소프트 삭제)
  **/
 async function deleteUser(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const currentUser = await requireAdmin(req)
+  const currentUser = await requireManagerOrAdmin(req)
   const { id } = await params
   await findUserOrThrow(id)
 

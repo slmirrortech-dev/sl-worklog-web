@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Trash2, Upload, User, FileImage } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -15,7 +15,7 @@ import {
 import { Role } from '@prisma/client'
 import { ROUTES } from '@/lib/constants/routes'
 import { isValidBirthday } from '@/lib/utils/is-valid'
-import { uploadLicenseApi } from '@/lib/api/user-api'
+import { getCurrentUserApi, uploadLicenseApi } from '@/lib/api/user-api'
 
 interface NewEmployee {
   userId: string
@@ -28,6 +28,8 @@ interface NewEmployee {
 
 /** 신규 직원 등록 */
 const NewUsersPage = () => {
+  const [currentUserRole, setCurrentUserRole] = useState('MANAGER')
+
   const router = useRouter()
   const [employee, setEmployee] = useState<NewEmployee>({
     userId: '',
@@ -38,6 +40,14 @@ const NewUsersPage = () => {
     licensePreviewUrl: null,
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const fetchUserRole = async () => {
+    const { data } = await getCurrentUserApi()
+    setCurrentUserRole(data.role)
+  }
+  useEffect(() => {
+    fetchUserRole().then()
+  }, [])
 
   const updateEmployee = (
     field: keyof Omit<NewEmployee, 'licensePhotoFile' | 'licensePreviewUrl'>,
@@ -255,7 +265,7 @@ const NewUsersPage = () => {
                   {/* 생년월일 */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      생년월일 *
+                      생년월일 (ex.19970426) *
                     </label>
                     <Input
                       type="text"
@@ -283,9 +293,11 @@ const NewUsersPage = () => {
                         <SelectItem value="MANAGER">
                           <div className="flex items-center text-lg ">작업반장</div>
                         </SelectItem>
-                        <SelectItem value="ADMIN">
-                          <div className="flex items-center text-lg ">관리자</div>
-                        </SelectItem>
+                        {currentUserRole === 'ADMIN' && (
+                          <SelectItem value="ADMIN">
+                            <div className="flex items-center text-lg ">관리자</div>
+                          </SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
