@@ -108,7 +108,7 @@ const WorkLogPage = () => {
       accessorKey: 'processShift.process.line.name',
       header: '라인',
       cell: ({ row }) => (
-        <div className="text-base">
+        <div>
           {row.original.lineName} ({row.original.lineClassNo}반)
         </div>
       ),
@@ -116,13 +116,13 @@ const WorkLogPage = () => {
     {
       accessorKey: 'processShift.process.name',
       header: '공정',
-      cell: ({ row }) => <div className="text-base">{row.original.processName}</div>,
+      cell: ({ row }) => <div>{row.original.processName}</div>,
     },
     {
       accessorKey: 'user.name',
       header: '작업자',
       cell: ({ row }) => (
-        <div className="text-base">
+        <div>
           {row.original.userName}
           <br />({row.original.userUserId})
         </div>
@@ -132,7 +132,7 @@ const WorkLogPage = () => {
       accessorKey: 'startedAt',
       header: '시작 시간',
       cell: ({ row }) => (
-        <div className="text-base">
+        <div>
           {format(row.original.startedAt, 'yyyy-MM-dd', { locale: ko })}
           <br />
           {format(row.original.startedAt, 'HH:mm', { locale: ko })}
@@ -143,7 +143,7 @@ const WorkLogPage = () => {
       accessorKey: 'endedAt',
       header: '종료 시간',
       cell: ({ row }) => (
-        <div className="text-base">
+        <div>
           {row.original.endedAt ? (
             <>
               {format(row.original.endedAt, 'yyyy-MM-dd', { locale: ko })}
@@ -160,18 +160,14 @@ const WorkLogPage = () => {
       accessorKey: 'durationMinutes',
       header: '작업 시간',
       cell: ({ row }) => {
-        return (
-          <div className="text-base font-medium">
-            {displayMinutes(row.original.durationMinutes || 0)}
-          </div>
-        )
+        return <div>{displayMinutes(row.original.durationMinutes || 0)}</div>
       },
     },
     {
       id: 'actions',
       header: () => <div className="text-center font-semibold text-gray-700 text-base"></div>,
       cell: ({ row }) => (
-        <div className="text-center">
+        <div>
           <Button
             variant="outline"
             size="default"
