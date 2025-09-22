@@ -24,14 +24,6 @@ const ModalEditLock = ({
                   <p className="sm:text-xs md:text-lg text-black text-center">
                     편집 모드를 해제하면 변경사항이 자동 저장됩니다.
                   </p>
-                  {handleCancelEdit && (
-                    <button
-                      className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-sm rounded-md transition-colors"
-                      onClick={handleCancelEdit}
-                    >
-                      편집취소
-                    </button>
-                  )}
                 </div>
               </div>
             </div>

@@ -13,6 +13,7 @@ import useEditLineWithProcess from '@/hooks/useEditLineWithProcess'
 import LineTable from '@/app/admin/(main)/setting-line/_component/LineTable'
 import LineRow from '@/app/admin/(main)/setting-line/_component/LineRow'
 import { Progress } from '@/components/ui/progress'
+import { RefreshCw } from 'lucide-react'
 
 export const leftTableHead = `min-w-[170px] min-h-[60px]`
 export const leftTableShiftHead = `min-w-[170px] min-h-[100px]`
@@ -99,7 +100,7 @@ const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
       </div>
       {/* 편집 모드 토글 */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
             <h3 className="text-2xl font-bold text-gray-900">작업장 관리</h3>
             <p className="text-sm text-gray-600 mt-2">
@@ -110,6 +111,16 @@ const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
           </div>
 
           <div className="flex items-center gap-3">
+            {lockInfo.isEditMode && (
+              <button
+                onClick={handleCancelEdit}
+                className="border px-3 py-1 rounded-full flex items-center gap-2"
+              >
+                <RefreshCw className="w-4 h-4" />
+                초기화
+              </button>
+            )}
+
             <span
               className={`text-base font-medium ${lockInfo.isEditMode ? 'text-blue-600' : 'text-gray-600'}`}
             >
