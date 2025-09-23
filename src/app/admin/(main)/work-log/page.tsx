@@ -68,9 +68,7 @@ const WorkLogPage = () => {
       header: '작업자',
       cell: ({ row }) => (
         <div>
-          <span className="font-semibold">{row.original.userName}</span>
-          <br />
-          <span className="text-gray-500">{row.original.userUserId}</span>
+          {row.original.userName} <span className="text-gray-500">({row.original.userUserId})</span>
         </div>
       ),
     },

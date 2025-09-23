@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { subDays, set } from 'date-fns'
+import { subDays } from 'date-fns'
 import { ShiftType, WorkStatus } from '@prisma/client'
 import { useQuery } from '@tanstack/react-query'
 import { getWorkLogApi } from '@/lib/api/work-log-api'
