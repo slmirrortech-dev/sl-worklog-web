@@ -13,21 +13,22 @@ import {
  * 작업 기록 조회
  */
 export async function getWorkLogApi({
-  startDate = new Date().toISOString().slice(0, 10), // 기본: 오늘 날짜 (YYYY-MM-DD)
-  endDate = new Date().toISOString().slice(0, 10), // 기본: 오늘 날짜
+  startDate = new Date(),
+  endDate = new Date(),
   shiftType,
   workStatus,
   lineName,
-  classNo,
+  lineClassNo,
   processName,
   isDefective,
   searchName,
+  progress,
   skip = 0, // 기본값 0
   take = 50, // 기본값 50
 }: getWorkLogRequestModel) {
   const params = new URLSearchParams({
-    startDate,
-    endDate,
+    startDate: startDate.toISOString(),
+    endDate: endDate.toISOString(),
     skip: skip.toString(),
     take: take.toString(),
   })
@@ -35,10 +36,11 @@ export async function getWorkLogApi({
   if (shiftType) params.append('shiftType', shiftType)
   if (workStatus) params.append('workStatus', workStatus)
   if (lineName) params.append('lineName', lineName)
-  if (classNo !== undefined) params.append('classNo', classNo)
+  if (lineClassNo !== undefined) params.append('lineClassNo', lineClassNo)
   if (processName) params.append('processName', processName)
   if (isDefective !== undefined) params.append('isDefective', String(isDefective))
   if (searchName) params.append('searchName', searchName)
+  if (progress) params.append('progress', progress)
 
   return await apiFetch<
     ApiResponse<{ workLogs: WorkLogSnapshotResponseModel[]; totalCount: number }>

@@ -222,7 +222,7 @@ export function WorkLogTable({
                 <TableCell colSpan={columns.length} className="h-32 text-center py-12">
                   <div className="flex flex-col items-center justify-center text-gray-500">
                     <div className="text-base md:text-lg font-medium mb-2">데이터가 없습니다</div>
-                    <div className="text-sm">직원을 등록해주세요.</div>
+                    <div className="text-sm">검색 조건을 변경해주세요</div>
                   </div>
                 </TableCell>
               </TableRow>

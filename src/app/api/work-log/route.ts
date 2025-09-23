@@ -6,7 +6,7 @@ import prisma from '@/lib/core/prisma'
 import { ApiError } from '@/lib/core/errors'
 import { WorkLogSnapshotResponseModel } from '@/types/work-log'
 import { fromZonedTime } from 'date-fns-tz'
-import { endOfDay, startOfDay } from 'date-fns'
+import { endOfDay, isToday, startOfDay } from 'date-fns'
 
 /** 전체 작업 기록 조회 */
 async function getWorkLog(req: NextRequest) {
@@ -15,37 +15,44 @@ async function getWorkLog(req: NextRequest) {
   const { searchParams } = req.nextUrl
 
   // 쿼리 파라미터
-  const startDate = searchParams.get('startDate') || new Date().toISOString().slice(0, 10)
-  const endDate = searchParams.get('endDate') || new Date().toISOString().slice(0, 10)
+  const startDateParam = searchParams.get('startDate')
+  const endDateParam = searchParams.get('endDate')
   const shiftType = searchParams.get('shiftType')
   const workStatus = searchParams.get('workStatus')
   const lineName = searchParams.get('lineName')
-  const classNo = searchParams.get('classNo')
+  const lineClassNo = searchParams.get('lineClassNo')
   const processName = searchParams.get('processName')
   const isDefective = searchParams.get('isDefective')
   const searchName = searchParams.get('searchName')
+  const progress = searchParams.get('progress')
   const skip = parseInt(searchParams.get('skip') || '0', 10)
   const take = parseInt(searchParams.get('take') || '10', 10)
 
-  // 한국시간(KST) → UTC 변환
+  // 한국시간(KST) - UTC 변환
   const timeZone = 'Asia/Seoul'
-  const startKST = startOfDay(new Date(startDate))
-  const endKST = endOfDay(new Date(endDate))
+  const startKST = startOfDay(new Date(startDateParam!))
+  const endKST = endOfDay(new Date(endDateParam!))
+
+  // UTC 변환
   const startUTC = fromZonedTime(startKST, timeZone)
   const endUTC = fromZonedTime(endKST, timeZone)
 
-  // Prisma WHERE 조건
   const where: any = {
-    OR: [
-      { startedAt: { gte: startUTC, lte: endUTC } },
-      { endedAt: { gte: startUTC, lte: endUTC } },
-    ],
+    startedAt: { lte: endUTC },
+    OR: [{ endedAt: null }, { endedAt: { gte: startUTC } }],
+  }
+
+  if (progress === 'END') {
+    where.AND = { endedAt: { not: null } }
+  }
+  if (progress === 'NOT_END') {
+    where.AND = { endedAt: null }
   }
 
   if (shiftType) where.shiftType = shiftType
   if (workStatus) where.workStatus = workStatus
   if (lineName) where.lineName = { contains: lineName, mode: 'insensitive' }
-  if (classNo) where.classNo = parseInt(classNo, 10)
+  if (lineClassNo) where.lineClassNo = parseInt(lineClassNo, 10)
   if (processName) where.processName = { contains: processName, mode: 'insensitive' }
   if (isDefective !== null) where.isDefective = isDefective === 'true'
   if (searchName) {

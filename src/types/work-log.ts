@@ -39,15 +39,16 @@ export type WorkLogSnapshotResponseModel = {
 }
 
 export type getWorkLogRequestModel = {
-  startDate: string
-  endDate: string
+  startDate: Date
+  endDate: Date
   shiftType?: ShiftType
   workStatus?: WorkStatus
   lineName?: string
-  classNo?: string
+  lineClassNo?: string
   processName?: string
   isDefective?: boolean
   searchName?: string
+  progress?: 'END' | 'NOT_END'
   skip: number
   take: number
 }
