@@ -132,7 +132,11 @@ const WorkLogPage = () => {
 
   return (
     <div className="flex flex-col space-y-6">
-      <SearchBarWorkLog searchStates={searchStates} resetFilters={resetFilters} />
+      <SearchBarWorkLog
+        searchStates={searchStates}
+        resetFilters={resetFilters}
+        workLogData={workLogQuery.data?.data.workLogs || []}
+      />
 
       {/* 데이터 테이블 */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">

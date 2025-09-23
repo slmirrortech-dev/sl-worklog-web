@@ -93,7 +93,6 @@ const useSearchWorkLog = () => {
 
   // 상태 변경 함수들 (URL 업데이트 포함)
   const updateStartDate = (value: Date) => {
-    console.log('start')
     setStartDate(value)
     updateURL({ startDate: value }, true)
   }

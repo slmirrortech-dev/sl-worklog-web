@@ -17,15 +17,19 @@ import { SearchStatesType } from '@/app/admin/(main)/work-log/_hooks/useSearchWo
 import { CustomDatePicker } from '@/components/CustomDatePicker'
 import { displayWorkStatus } from '@/lib/utils/shift-status'
 import { subDays, subMonths } from 'date-fns'
+import { useExcelDownload } from '@/hooks/useExcelDownload'
+import { WorkLogSnapshotResponseModel } from '@/types/work-log'
 
 const DATA_RANGE = ['오늘', '1주일', '1개월']
 
 const SearchBarWorkLog = ({
   searchStates,
   resetFilters,
+  workLogData = [],
 }: {
   searchStates: SearchStatesType
   resetFilters: () => void
+  workLogData?: WorkLogSnapshotResponseModel[]
 }) => {
   const {
     startDate,
@@ -50,6 +54,9 @@ const SearchBarWorkLog = ({
 
   // 활성화 된 기간
   const [activeRange, setActiveRange] = useState<(typeof DATA_RANGE)[number]>(DATA_RANGE[0])
+
+  // 엑셀 다운로드 훅
+  const { downloadWorkLogExcel, isDownloading } = useExcelDownload()
 
   // 기간 변경에 따라 검색일 변경
   const handleDateRange = (index: number) => {
@@ -101,6 +108,19 @@ const SearchBarWorkLog = ({
     // 어떤 범위에도 해당하지 않으면 activeRange 초기화
     setActiveRange('')
   }, [startDate, endDate])
+
+  // 엑셀 다운로드 처리
+  const handleExcelDownload = async () => {
+    try {
+      if (workLogData.length === 0) {
+        alert('다운로드할 데이터가 없습니다.')
+        return
+      }
+      await downloadWorkLogExcel(workLogData, '작업기록')
+    } catch (error) {
+      alert('엑셀 다운로드 중 오류가 발생했습니다.')
+    }
+  }
 
   return (
     <>
@@ -248,9 +268,11 @@ const SearchBarWorkLog = ({
           <Button
             variant="outline"
             className="bg-green-700 text-white hover:bg-green-800 hover:text-white"
+            onClick={handleExcelDownload}
+            disabled={isDownloading || workLogData.length === 0}
           >
             <Download className="w-4 h-4" />
-            Excel 다운로드
+            {isDownloading ? '다운로드 중...' : 'Excel 다운로드'}
           </Button>
           <Button variant="outline" onClick={resetFilters}>
             <RotateCcw className="w-4 h-4" />
