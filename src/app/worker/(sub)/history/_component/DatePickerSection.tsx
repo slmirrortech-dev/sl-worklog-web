@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import { format, addDays, subDays } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react'
@@ -14,6 +14,7 @@ const DatePickerSection = ({
   startDate: Date
   setStartDate: (value: Date) => void
 }) => {
+  const [isOpen, setIsOpen] = useState(false)
   return (
     <div className="flex justify-between items-center">
       <button
@@ -21,12 +22,12 @@ const DatePickerSection = ({
         className="p-2"
         onClick={() => {
           const previousDay = subDays(startDate, 1)
-          setStartDate(format(previousDay, 'yyyy-MM-dd'))
+          setStartDate(previousDay)
         }}
       >
         <ChevronLeft className="w-7 h-8 text-gray-900" />
       </button>
-      <Popover>
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
           <button
             className="flex-grow-1 text-xl font-semibold flex justify-center items-center gap-2"
@@ -42,7 +43,8 @@ const DatePickerSection = ({
             selected={startDate ? startDate : undefined}
             onSelect={(date) => {
               if (date) {
-                setStartDate(format(date, 'yyyy-MM-dd'))
+                setIsOpen(false)
+                setStartDate(date)
               }
             }}
             disabled={(date) => date > new Date()}
@@ -53,11 +55,11 @@ const DatePickerSection = ({
 
       <button
         title="다음"
-        disabled={startDate === format(new Date(), 'yyyy-MM-dd')}
+        disabled={startDate === new Date()}
         className={`p-2 disabled:opacity-10`}
         onClick={() => {
           const nextDay = addDays(startDate, 1)
-          setStartDate(format(nextDay, 'yyyy-MM-dd'))
+          setStartDate(nextDay)
         }}
       >
         <ChevronRight className="w-7 h-8 text-gray-900" />
