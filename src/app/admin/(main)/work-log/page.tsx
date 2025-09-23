@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from 'react'
+import React from 'react'
 import { ColumnDef } from '@tanstack/react-table'
 import { Button } from '@/components/ui/button'
 import { ChevronRight } from 'lucide-react'
@@ -14,15 +14,23 @@ import { WorkLogTable } from '@/app/admin/(main)/work-log/_component/WorkLogTabl
 import { useLoading } from '@/contexts/LoadingContext'
 import SearchBarWorkLog from '@/app/admin/(main)/work-log/_component/SearchBarWorkLog'
 import useSearchWorkLog from '@/app/admin/(main)/work-log/_hooks/useSearchWorkLog'
+import { ROUTES } from '@/lib/constants/routes'
 
 const WorkLogPage = () => {
   const { showLoading } = useLoading()
   const router = useRouter()
 
   // 개별 상태 관리
-  const { searchStates, workLogQuery, resetFilters } = useSearchWorkLog()
-  const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState(50)
+  const {
+    searchStates,
+    workLogQuery,
+    resetFilters,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    totalCount,
+  } = useSearchWorkLog()
 
   // 테이블 컬럼 정의
   const columns: ColumnDef<WorkLogSnapshotResponseModel>[] = [
@@ -41,32 +49,33 @@ const WorkLogPage = () => {
       },
     },
     {
-      accessorKey: 'processShift.process.line.classNo',
+      id: 'lineClassNo',
       header: '반',
       cell: ({ row }) => <div>{row.original.lineClassNo}</div>,
     },
     {
-      accessorKey: 'processShift.process.line.name',
+      id: 'lineName',
       header: '라인',
       cell: ({ row }) => <div>{row.original.lineName}</div>,
     },
     {
-      accessorKey: 'processShift.process.name',
+      id: 'processName',
       header: '공정',
       cell: ({ row }) => <div>{row.original.processName}</div>,
     },
     {
-      accessorKey: 'user.name',
+      id: 'userName',
       header: '작업자',
       cell: ({ row }) => (
         <div>
-          {row.original.userName}
-          <br />({row.original.userUserId})
+          <span className="font-semibold">{row.original.userName}</span>
+          <br />
+          <span className="text-gray-500">{row.original.userUserId}</span>
         </div>
       ),
     },
     {
-      accessorKey: 'startedAt',
+      id: 'startedAt',
       header: '시작 시간',
       cell: ({ row }) => (
         <div>
@@ -77,7 +86,7 @@ const WorkLogPage = () => {
       ),
     },
     {
-      accessorKey: 'endedAt',
+      id: 'endedAt',
       header: '종료 시간',
       cell: ({ row }) => (
         <div>
@@ -94,7 +103,7 @@ const WorkLogPage = () => {
       ),
     },
     {
-      accessorKey: 'durationMinutes',
+      id: 'durationMinutes',
       header: '작업 시간',
       cell: ({ row }) => {
         return (
@@ -112,7 +121,7 @@ const WorkLogPage = () => {
             size="default"
             onClick={() => {
               showLoading()
-              router.push(`/admin/work-log/${row.original.id}`)
+              router.push(`${ROUTES.ADMIN.WORK_LOG}/${row.original.id}`)
             }}
           >
             상세 보기
@@ -135,14 +144,10 @@ const WorkLogPage = () => {
           columns={columns}
           page={page}
           pageSize={pageSize}
-          totalCount={workLogQuery.data?.data.totalCount || 0}
-          totalPages={Math.ceil((workLogQuery.data?.data.totalCount || 0) / pageSize)}
+          totalCount={totalCount}
           loading={workLogQuery.isLoading}
-          searchInput=""
           setPage={setPage}
           setPageSize={setPageSize}
-          setSearchInput={() => {}}
-          onSearch={() => {}}
         />
       </div>
     </div>

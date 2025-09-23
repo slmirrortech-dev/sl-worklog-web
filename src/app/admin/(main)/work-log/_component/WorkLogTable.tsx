@@ -1,6 +1,6 @@
 'use client'
 
-import * as React from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -12,7 +12,7 @@ import {
   useReactTable,
   VisibilityState,
 } from '@tanstack/react-table'
-import { ChevronLeft, ChevronRight, Search } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 
@@ -41,52 +41,61 @@ export function WorkLogTable({
   page,
   pageSize,
   totalCount,
-  totalPages,
   loading = false,
-  searchInput,
   setPage,
   setPageSize,
-  setSearchInput,
-  onSearch,
 }: {
   id: string
   data: any[]
   columns: ColumnDef<any>[]
-  showCheckboxes?: boolean
   onRowClick?: any
   page: number
   pageSize: number
   totalCount: number
-  totalPages: number
   loading?: boolean
-  searchInput?: string
   setPage: any
   setPageSize: any
-  setSearchInput?: any
-  onSearch?: any
 }) {
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-  const [globalFilter, setGlobalFilter] = React.useState('')
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
-  const [rowSelection, setRowSelection] = React.useState({})
-  const [isMobile, setIsMobile] = React.useState(false)
+  const [sorting, setSorting] = useState<SortingState>([])
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+  const [globalFilter, setGlobalFilter] = useState('')
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+  const [rowSelection, setRowSelection] = useState({})
+  const [isMobile, setIsMobile] = useState(false)
+
+  const totalPages = useMemo(() => {
+    return Math.ceil(totalCount / pageSize)
+  }, [totalCount, pageSize])
 
   // 페이지 크기 옵션 생성 (총 데이터 수와 성능 고려)
-  const getPageSizeOptions = (totalCount: number) => {
+  const getPageSizeOptions = (totalCount: number, currentPageSize: number) => {
     const baseOptions = [5, 10, 20, 50]
-    const validOptions = baseOptions.filter((size) => size < totalCount)
+    let validOptions = baseOptions.filter((size) => size < totalCount)
 
     // 100개 이하일 때만 "전체" 옵션 추가
     if (totalCount <= 100 && totalCount > 0) {
       validOptions.push(totalCount)
     }
 
+    // 현재 pageSize가 totalCount보다 크면 totalCount를 사용
+    const effectivePageSize = currentPageSize > totalCount ? totalCount : currentPageSize
+
+    // 현재 pageSize가 옵션에 없으면 추가
+    if (!validOptions.includes(effectivePageSize)) {
+      validOptions.push(effectivePageSize)
+      validOptions.sort((a, b) => a - b)
+    }
+
     return validOptions
   }
 
+  // 현재 pageSize가 totalCount보다 큰 경우 표시용 값 조정
+  const getDisplayPageSize = (currentPageSize: number, totalCount: number) => {
+    return currentPageSize > totalCount ? totalCount : currentPageSize
+  }
+
   // 클라이언트에서 화면 크기 감지
-  React.useEffect(() => {
+  useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768)
     }
@@ -136,34 +145,6 @@ export function WorkLogTable({
               {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, totalCount)} 표시 중
             </span>
           </div>
-
-          {id !== 'worklog' && (
-            <div className="flex items-center gap-2">
-              <Input
-                placeholder="사번 또는 이름으로 검색"
-                value={searchInput ?? ''}
-                onChange={(event) => {
-                  const value = event.target.value
-                  setSearchInput?.(value)
-                }}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter') {
-                    onSearch?.()
-                  }
-                }}
-                className="w-full md:max-w-xs h-10 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-              />
-              <Button
-                variant="outline"
-                size="default"
-                onClick={onSearch}
-                disabled={loading}
-                className="px-3 h-10"
-              >
-                <Search className="w-4 h-4" />
-              </Button>
-            </div>
-          )}
         </div>
       </div>
 
@@ -238,17 +219,18 @@ export function WorkLogTable({
           <div className="flex items-center gap-2 text-sm">
             <span className="text-gray-600 whitespace-nowrap">페이지당</span>
             <Select
-              value={pageSize.toString()}
+              value={getDisplayPageSize(pageSize, totalCount).toString()}
               onValueChange={(value) => {
+                setPage(1)
                 setPageSize(Number(value))
               }}
-              disabled={getPageSizeOptions(totalCount).length <= 1}
+              disabled={getPageSizeOptions(totalCount, pageSize).length <= 1}
             >
               <SelectTrigger className="w-20 h-8">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {getPageSizeOptions(totalCount).map((size) => (
+                {getPageSizeOptions(totalCount, pageSize).map((size) => (
                   <SelectItem key={size} value={size.toString()}>
                     {size === totalCount ? '전체' : size.toString()}
                   </SelectItem>

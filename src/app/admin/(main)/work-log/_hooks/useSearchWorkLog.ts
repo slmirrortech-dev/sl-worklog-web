@@ -40,6 +40,9 @@ const useSearchWorkLog = () => {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(50)
 
+  // 데이터 조회 결과
+  const [totalCount, setTotalCount] = useState<number>(0)
+
   // 필터 초기화
   const resetFilters = () => {
     setStartDate(subDays(new Date(), 7))
@@ -92,7 +95,9 @@ const useSearchWorkLog = () => {
 
   useEffect(() => {
     if (workLogQuery.data) {
-      console.log(workLogQuery.data.data.workLogs)
+      setTotalCount(workLogQuery.data.data.totalCount)
+    } else {
+      setTotalCount(0)
     }
   }, [workLogQuery.data])
 
@@ -119,6 +124,11 @@ const useSearchWorkLog = () => {
     } as SearchStatesType,
     resetFilters,
     workLogQuery,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    totalCount,
   }
 }
 
