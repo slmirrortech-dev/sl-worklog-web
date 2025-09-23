@@ -100,7 +100,7 @@ export const useExcelDownload = () => {
       XLSX.utils.book_append_sheet(workbook, worksheet, '작업기록')
 
       // 파일명 생성 (현재 날짜 포함)
-      const currentDate = format(new Date(), 'yyyy-MM-dd', { locale: ko })
+      const currentDate = format(new Date(), 'yyyyMMdd_HHmmss', { locale: ko })
       const finalFilename = `${filename}_${currentDate}.xlsx`
 
       // 엑셀 파일 다운로드
