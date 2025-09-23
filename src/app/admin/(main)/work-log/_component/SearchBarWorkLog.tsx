@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Label } from '@/components/ui/label'
 import {
   Select,
@@ -54,21 +54,53 @@ const SearchBarWorkLog = ({
   // 기간 변경에 따라 검색일 변경
   const handleDateRange = (index: number) => {
     setActiveRange(DATA_RANGE[index])
+    const today = new Date()
 
     if (DATA_RANGE[index] === '오늘') {
-      setStartDate(new Date())
-      setEndDate(new Date())
+      setEndDate(today)
+      setStartDate(today)
     }
 
     if (DATA_RANGE[index] === '1주일') {
-      setStartDate(subDays(new Date(), 7))
-      setEndDate(new Date())
+      setEndDate(today)
+      setStartDate(subDays(today, 7))
     }
     if (DATA_RANGE[index] === '1개월') {
-      setStartDate(subMonths(new Date(), 1))
-      setEndDate(new Date())
+      setEndDate(today)
+      setStartDate(subMonths(today, 1))
     }
   }
+
+  // 날짜 범위가 변경되면 activeRange 자동 업데이트
+  useEffect(() => {
+    const today = new Date()
+    const todayStr = today.toDateString()
+    const startStr = startDate.toDateString()
+    const endStr = endDate.toDateString()
+
+    // 오늘인지 확인
+    if (startStr === todayStr && endStr === todayStr) {
+      setActiveRange('오늘')
+      return
+    }
+
+    // 1주일인지 확인 (시작일이 7일 전, 종료일이 오늘)
+    const oneWeekAgo = subDays(today, 7)
+    if (startStr === oneWeekAgo.toDateString() && endStr === todayStr) {
+      setActiveRange('1주일')
+      return
+    }
+
+    // 1개월인지 확인 (시작일이 1개월 전, 종료일이 오늘)
+    const oneMonthAgo = subMonths(today, 1)
+    if (startStr === oneMonthAgo.toDateString() && endStr === todayStr) {
+      setActiveRange('1개월')
+      return
+    }
+
+    // 어떤 범위에도 해당하지 않으면 activeRange 초기화
+    setActiveRange('')
+  }, [startDate, endDate])
 
   return (
     <>
@@ -92,7 +124,7 @@ const SearchBarWorkLog = ({
               label="검색 시작일"
               date={startDate}
               onChangeAction={setStartDate}
-              max={endDate}
+              max={startDate <= endDate ? endDate : undefined}
             />
             <CustomDatePicker
               label="검색 종료일"
