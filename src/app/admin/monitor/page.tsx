@@ -5,16 +5,20 @@ import { useQuery } from '@tanstack/react-query'
 import { getLineWithProcess } from '@/lib/api/line-with-process-api'
 import Image from 'next/image'
 import { Maximize, Minimize } from 'lucide-react'
-import ShiftStatusLabel from '@/components/admin/ShiftStatusLabel'
 import { colorWorkStatus, displayWorkStatus } from '@/lib/utils/shift-status'
+import { ShiftType } from '@prisma/client'
 
 const MonitorPage = () => {
+  const [isActive, setIsActive] = useState(false)
+  const [viewType, setViewType] = useState<ShiftType>('DAY')
+  const [viewClassNo, setViewClassNo] = useState<number>(1)
+
   const [maxLength, setMaxLength] = useState<number>(0)
   const { data } = useQuery({
-    queryKey: ['monitor'],
+    queryKey: ['monitor', viewClassNo],
     queryFn: getLineWithProcess,
     select: (response) => {
-      return response.data.filter((item) => item.classNo === 2)
+      return response.data.filter((item) => item.classNo === viewClassNo)
     },
   })
 
@@ -66,10 +70,55 @@ const MonitorPage = () => {
             height={40}
             className="object-contain"
           />
-          <nav>
-            <button>1반</button>
-            <button>2반</button>
-          </nav>
+          <div className="flex items-center gap-4">
+            {/* 1반/2반 스위치 */}
+            <div className="flex bg-gray-200 rounded-full p-1">
+              <button
+                onClick={() => setViewClassNo(1)}
+                className={`px-5 py-1 rounded-full text-lg font-semibold transition-all ${
+                  viewClassNo === 1
+                    ? 'bg-black text-white shadow-sm'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                1반
+              </button>
+              <button
+                onClick={() => setViewClassNo(2)}
+                className={`px-5 py-1 rounded-full text-lg font-semibold transition-all ${
+                  viewClassNo === 2
+                    ? 'bg-black text-white shadow-sm'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                2반
+              </button>
+            </div>
+
+            {/* 야간/주간 스위치 */}
+            <div className="flex bg-gray-200 rounded-full p-1">
+              <button
+                onClick={() => setViewType('DAY')}
+                className={`px-4 py-1 rounded-full text-lg font-semibold transition-all ${
+                  viewType === 'DAY'
+                    ? 'bg-orange-600 text-white shadow-sm'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                주간
+              </button>
+              <button
+                onClick={() => setViewType('NIGHT')}
+                className={`px-4 py-1 rounded-full text-lg font-semibold transition-all ${
+                  viewType === 'NIGHT'
+                    ? 'bg-violet-600 text-white shadow-sm'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                야간
+              </button>
+            </div>
+          </div>
           <div>
             <button
               onClick={toggleFullScreen}
@@ -99,52 +148,57 @@ const MonitorPage = () => {
                   <span className="break-all overflow-wrap-anywhere leading-none">{line.name}</span>
                 </div>
                 <div
-                  className={`w-[60px] px-2 ${colorWorkStatus(line.dayStatus)} border flex items-center justify-center flex-shrink-0`}
+                  className={`w-[60px] px-2 ${colorWorkStatus(viewType === 'DAY' ? line.dayStatus : line.nightStatus)} border flex items-center justify-center flex-shrink-0`}
                 >
-                  <span className="text-2xl">{displayWorkStatus(line.dayStatus)}</span>
+                  <span className="text-2xl">
+                    {displayWorkStatus(viewType === 'DAY' ? line.dayStatus : line.nightStatus)}
+                  </span>
                 </div>
               </div>
 
               {/* 공정 칸 */}
               {Array.from({ length: maxLength }, (_, index) => {
                 const proc = line.processes[index]
+                const targetShift = proc?.shifts.filter((item) => item.type === viewType)[0]
+
+                console.log(proc, proc?.name)
+
                 return (
-                  <div key={proc?.id || `empty-${line.id}-${index}`} className="flex text-xl">
-                    {proc ? (
+                  <div key={'process' + index} className="flex">
+                    {proc && targetShift ? (
                       <div className="flex flex-1 justify-between">
+                        {/* 공정 이름 */}
                         <div className="w-[90px] flex justify-center items-center bg-slate-100 border-b-2 border-gray-200 text-center">
                           <span className="text-2xl font-bold text-black">{proc.name}</span>
                         </div>
                         <div className="flex-grow-1 flex flex-col justify-center items-center border-b-2 border-gray-200">
                           <div className="w-full flex-1 flex flex-col justify-center items-center border-gray-200 bg-white">
                             {/* 대기자 */}
-                            <div className="flex items-center gap-4">
-                              <span className="relative flex h-3 w-3">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
-                              </span>
-                              <div>
-                                <p className="text-3xl font-semibold text-black leading-none">
-                                  김영애
-                                </p>
-                                <span className="text-xl font-normal text-gray-500 leading-none">
-                                  (394823)
-                                </span>
+                            {targetShift.waitingWorker ? (
+                              <div className="flex items-center gap-4">
+                                {/* 활성화 된 사용자 */}
+                                {isActive && (
+                                  <>
+                                    <span className="relative flex h-3 w-3">
+                                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                                      <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
+                                    </span>
+                                  </>
+                                )}
+
+                                <div>
+                                  <p className="text-3xl font-semibold text-black leading-none">
+                                    {targetShift.waitingWorker.name}
+                                  </p>
+                                  <span className="text-lg font-normal text-gray-500 leading-none">
+                                    ({targetShift.waitingWorker.userId})
+                                  </span>
+                                </div>
                               </div>
-                            </div>
+                            ) : (
+                              <>-</>
+                            )}
                           </div>
-                          {/*<div className="w-full flex-1 flex justify-center items-center bg-slate-100">*/}
-                          {/*  /!* 야간 대기자 *!/*/}
-                          {/*  <span className="flex items-center gap-2">*/}
-                          {/*    <span className="relative flex h-2 w-2">*/}
-                          {/*      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>*/}
-                          {/*      <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>*/}
-                          {/*    </span>*/}
-                          {/*    <span className="text-2xl font-semibold text-black">*/}
-                          {/*      김영애 <span className="font-normal text-gray-500">(394823)</span>*/}
-                          {/*    </span>*/}
-                          {/*  </span>*/}
-                          {/*</div>*/}
                         </div>
                       </div>
                     ) : (
