@@ -93,16 +93,16 @@ const MonitorPage = () => {
               }}
             >
               {/* 라인명 */}
-              <div className="flex bg-blue-100 border-b border-white">
+              <div className="flex bg-slate-200 border-b-2 border-white">
                 <div className="flex-1 flex items-center justify-center font-bold text-lg border-r border-white px-2 text-center">
                   {line.name}
                 </div>
-                <div className="flex-1 flex flex-col items-center justify-center">
-                  <div className="w-full flex-1 flex gap-2 items-center justify-center border-b border-gray-200 bg-white">
+                <div className="flex-1 flex flex-col items-center justify-center border-b-2 border-gray-200 ">
+                  <div className="w-full flex-1 flex gap-2 items-center justify-center border-gray-200 bg-white">
                     <span className="text-base font-semibold">주간</span>
                     <ShiftStatusLabel status={line.dayStatus} size={'sm'} />
                   </div>
-                  <div className="w-full flex-1 flex gap-2 items-center justify-center border-b border-gray-200 bg-slate-100">
+                  <div className="w-full flex-1 flex gap-2 items-center justify-center bg-slate-100">
                     <span className="text-base font-semibold">야간</span>
                     <ShiftStatusLabel status={line.nightStatus} size={'sm'} />
                   </div>
@@ -116,11 +116,11 @@ const MonitorPage = () => {
                   <div key={proc?.id || `empty-${line.id}-${index}`} className="flex text-xl">
                     {proc ? (
                       <div className="flex flex-1 justify-between">
-                        <div className="flex-1 flex justify-center items-center bg-gray-50 border-b border-gray-200">
-                          <span className="text-lg font-semibold text-blue-600">{proc.name}</span>
+                        <div className="flex-1 flex justify-center items-center bg-slate-100 border-b-2 border-gray-200">
+                          <span className="text-lg font-semibold text-gray-700">{proc.name}</span>
                         </div>
-                        <div className="flex-2 flex flex-col justify-center items-center border-b border-gray-200">
-                          <div className="w-full flex-1 flex justify-center items-center border-b border-gray-200 bg-white">
+                        <div className="flex-2 flex flex-col justify-center items-center border-b-2 border-gray-200">
+                          <div className="w-full flex-1 flex justify-center items-center border-gray-200 bg-white">
                             {/* 주간 대기자 */}
                             <span className="flex items-center gap-2">
                               <span className="relative flex h-2 w-2">
