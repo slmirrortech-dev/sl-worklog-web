@@ -1,6 +1,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { ROUTES } from '@/lib/constants/routes'
+import LogoutButton from '@/app/(error)/403/_component/LogoutButton'
 
 const Page403 = () => {
   return (
@@ -16,12 +17,7 @@ const Page403 = () => {
           작업자 계정 로그아웃 후 관리자 계정으로 다시 로그인해 주세요.
         </p>
         <div className="mt-10 flex items-center justify-center gap-x-6">
-          <Link
-            href={ROUTES.WORKER.MY_PAGE}
-            className="rounded-md bg-blue-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-blue-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
-          >
-            로그아웃
-          </Link>
+          <LogoutButton />
           <Link href="/" className="text-base font-semibold text-gray-900">
             메인으로 이동 <span aria-hidden="true">&rarr;</span>
           </Link>
