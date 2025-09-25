@@ -35,7 +35,7 @@ const AreaWaitingWorker = ({
     <>
       {waitingWorker ? (
         <button
-          className="flex items-center gap-4"
+          className="flex-1 w-full  flex items-center justify-center gap-4"
           onClick={() => {
             if (waitingWorker.licensePhotoUrl) {
               setIsShowLicense(!isShowLicense)

@@ -37,9 +37,9 @@ export default function Home() {
             </div>
             <h3 className="text-2xl font-bold text-gray-800 mb-2 md:mb-4">작업자</h3>
             <p className="text-gray-600 mb-4 md:mb-6">
-              작업 시작/종료,
+              작업 시작/종료, 기록 조회
               <br />
-              작업 이력 조회
+              <span>(모바일에 최적화)</span>
             </p>
             <div className="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold">
               작업자 모드
@@ -78,9 +78,9 @@ export default function Home() {
             </div>
             <h3 className="text-2xl font-bold text-gray-800 mb-2 md:mb-4">모니터</h3>
             <p className="text-gray-600 mb-4 md:mb-6">
-              실시간 작업 상태,
+              실시간 작업 현황 모니터링
               <br />
-              작업 현황 모니터링
+              <span>(TV/데스크톱에 최적화)</span>
             </p>
             <div className="bg-orange-600 text-white px-6 py-3 rounded-lg font-semibold">
               모니터 모드

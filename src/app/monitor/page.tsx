@@ -89,7 +89,7 @@ const MonitorPage = () => {
         `}</style>
       )}
       <main className={`${!isFullscreen && 'pb-24'}`}>
-        <div className="w-screen h-screen bg-white overflow-hidden">
+        <div className="min-w-[1600px] w-screen h-screen bg-white overflow-hidden">
           {data &&
             data.length > 0 &&
             data.map((line, lineIndex) => (
