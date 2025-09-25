@@ -6,6 +6,7 @@ import { getLineWithProcess } from '@/lib/api/line-with-process-api'
 import Image from 'next/image'
 import { Maximize, Minimize } from 'lucide-react'
 import ShiftStatusLabel from '@/components/admin/ShiftStatusLabel'
+import { colorWorkStatus, displayWorkStatus } from '@/lib/utils/shift-status'
 
 const MonitorPage = () => {
   const [maxLength, setMaxLength] = useState<number>(0)
@@ -13,7 +14,7 @@ const MonitorPage = () => {
     queryKey: ['monitor'],
     queryFn: getLineWithProcess,
     select: (response) => {
-      return response.data.filter((item) => item.classNo === 1)
+      return response.data.filter((item) => item.classNo === 2)
     },
   })
 
@@ -88,24 +89,19 @@ const MonitorPage = () => {
               key={line.id}
               className="grid"
               style={{
-                gridTemplateColumns: `240px repeat(${maxLength}, 1fr)`,
+                gridTemplateColumns: `300px repeat(${maxLength}, 1fr)`,
                 height: `calc(100vh / ${data.length})`,
               }}
             >
               {/* 라인명 */}
-              <div className="flex bg-slate-200 border-b-2 border-white">
-                <div className="flex-1 flex items-center justify-center font-bold text-lg border-r border-white px-2 text-center">
-                  {line.name}
+              <div className="flex bg-slate-200 border-white">
+                <div className="flex-1 flex gap-2 items-center justify-center font-bold text-3xl border-b-2 border-white px-2 text-center min-w-0">
+                  <span className="break-all overflow-wrap-anywhere leading-none">{line.name}</span>
                 </div>
-                <div className="flex-1 flex flex-col items-center justify-center border-b-2 border-gray-200 ">
-                  <div className="w-full flex-1 flex gap-2 items-center justify-center border-gray-200 bg-white">
-                    <span className="text-base font-semibold">주간</span>
-                    <ShiftStatusLabel status={line.dayStatus} size={'sm'} />
-                  </div>
-                  <div className="w-full flex-1 flex gap-2 items-center justify-center bg-slate-100">
-                    <span className="text-base font-semibold">야간</span>
-                    <ShiftStatusLabel status={line.nightStatus} size={'sm'} />
-                  </div>
+                <div
+                  className={`w-[60px] px-2 ${colorWorkStatus(line.dayStatus)} border flex items-center justify-center flex-shrink-0`}
+                >
+                  <span className="text-2xl">{displayWorkStatus(line.dayStatus)}</span>
                 </div>
               </div>
 
@@ -116,40 +112,43 @@ const MonitorPage = () => {
                   <div key={proc?.id || `empty-${line.id}-${index}`} className="flex text-xl">
                     {proc ? (
                       <div className="flex flex-1 justify-between">
-                        <div className="flex-1 flex justify-center items-center bg-slate-100 border-b-2 border-gray-200">
-                          <span className="text-lg font-semibold text-gray-700">{proc.name}</span>
+                        <div className="w-[90px] flex justify-center items-center bg-slate-100 border-b-2 border-gray-200 text-center">
+                          <span className="text-2xl font-bold text-black">{proc.name}</span>
                         </div>
-                        <div className="flex-2 flex flex-col justify-center items-center border-b-2 border-gray-200">
-                          <div className="w-full flex-1 flex justify-center items-center border-gray-200 bg-white">
-                            {/* 주간 대기자 */}
-                            <span className="flex items-center gap-2">
-                              <span className="relative flex h-2 w-2">
+                        <div className="flex-grow-1 flex flex-col justify-center items-center border-b-2 border-gray-200">
+                          <div className="w-full flex-1 flex flex-col justify-center items-center border-gray-200 bg-white">
+                            {/* 대기자 */}
+                            <div className="flex items-center gap-4">
+                              <span className="relative flex h-3 w-3">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                                <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
                               </span>
-                              <span className="text-base font-semibold text-black">
-                                김영애 <span className="font-normal text-gray-500">(394823)</span>
-                              </span>
-                            </span>
+                              <div>
+                                <p className="text-3xl font-semibold text-black leading-none">
+                                  김영애
+                                </p>
+                                <span className="text-xl font-normal text-gray-500 leading-none">
+                                  (394823)
+                                </span>
+                              </div>
+                            </div>
                           </div>
-                          <div className="w-full flex-1 flex justify-center items-center bg-slate-100">
-                            {/* 야간 대기자 */}
-                            <span className="flex items-center gap-2">
-                              <span className="relative flex h-2 w-2">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
-                              </span>
-                              <span className="text-base font-semibold text-black">
-                                김영애 <span className="font-normal text-gray-500">(394823)</span>
-                              </span>
-                            </span>
-                          </div>
+                          {/*<div className="w-full flex-1 flex justify-center items-center bg-slate-100">*/}
+                          {/*  /!* 야간 대기자 *!/*/}
+                          {/*  <span className="flex items-center gap-2">*/}
+                          {/*    <span className="relative flex h-2 w-2">*/}
+                          {/*      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>*/}
+                          {/*      <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>*/}
+                          {/*    </span>*/}
+                          {/*    <span className="text-2xl font-semibold text-black">*/}
+                          {/*      김영애 <span className="font-normal text-gray-500">(394823)</span>*/}
+                          {/*    </span>*/}
+                          {/*  </span>*/}
+                          {/*</div>*/}
                         </div>
                       </div>
                     ) : (
-                      <div className="flex-1 flex justify-center items-center border-b border-gray-200">
-                        <span className="text-gray-300">-</span>
-                      </div>
+                      <div className="flex-1 flex justify-center items-center border-b border-gray-200"></div>
                     )}
                   </div>
                 )
