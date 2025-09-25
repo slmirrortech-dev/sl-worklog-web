@@ -2,23 +2,22 @@
 
 import React, { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { getLineWithProcess } from '@/lib/api/line-with-process-api'
+import { getMonitorLineWithProcessApi } from '@/lib/api/line-with-process-api'
 import Image from 'next/image'
 import { Maximize, Minimize } from 'lucide-react'
 import { colorWorkStatus, displayWorkStatus } from '@/lib/utils/shift-status'
 import { ShiftType } from '@prisma/client'
-import AreaWaitingWorker from '@/app/admin/monitor/_component/AreaWaitingWorker'
+import AreaWaitingWorker from '@/app/monitor/_component/AreaWaitingWorker'
 import useMonitorLineDataSync from '@/hooks/useMonitorLineDataSync'
 
 const MonitorPage = () => {
-  const [isActive, setIsActive] = useState(false)
   const [viewType, setViewType] = useState<ShiftType>('DAY')
   const [viewClassNo, setViewClassNo] = useState<number>(1)
 
   const [maxLength, setMaxLength] = useState<number>(0)
   const { data, refetch } = useQuery({
     queryKey: ['monitor', viewClassNo],
-    queryFn: getLineWithProcess,
+    queryFn: getMonitorLineWithProcessApi,
     select: (response) => {
       return response.data.filter((item) => item.classNo === viewClassNo)
     },
