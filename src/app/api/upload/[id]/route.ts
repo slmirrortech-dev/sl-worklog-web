@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAdmin } from '@/lib/utils/auth-guards'
+import { requireManagerOrAdmin } from '@/lib/utils/auth-guards'
 import { findUserOrThrow } from '@/lib/service/user.servie'
 import prisma from '@/lib/core/prisma'
 import { supabaseServer } from '@/lib/supabase/server'
@@ -16,7 +16,7 @@ export async function uploadLicense(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  await requireAdmin(req)
+  await requireManagerOrAdmin(req)
   const { id } = await params
   await findUserOrThrow(id)
 
@@ -63,7 +63,7 @@ export const POST = withErrorHandler(uploadLicense)
 
 /** 사용자별 면허증 이미지 삭제 */
 async function deleteLicense(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  await requireAdmin(req)
+  await requireManagerOrAdmin(req)
   const { id } = await params
   const user = await findUserOrThrow(id)
 
