@@ -32,25 +32,27 @@ const useEditLineWithProcess = (
   const handleAddProcess = (lineId: string) => {
     const updatedLines = tempLineWithProcess.map((line) => {
       if (line.id === lineId) {
+        const timestamp = Date.now()
+        const newProcessId = `temp-process-${timestamp}`
         const newProcess = {
-          id: `temp-process-${Date.now()}`,
+          id: newProcessId,
           name: '공정 이름',
           order: line.processes.length + 1,
           lineId: lineId,
           shifts: [
             {
-              id: `temp-shift-day-${Date.now()}`,
+              id: `temp-shift-day-${timestamp}`,
               type: 'DAY' as const,
               status: 'NORMAL' as const,
-              processId: `temp-process-${Date.now()}`,
+              processId: newProcessId,
               waitingWorkerId: null,
               waitingWorker: null,
             },
             {
-              id: `temp-shift-night-${Date.now()}`,
+              id: `temp-shift-night-${timestamp}`,
               type: 'NIGHT' as const,
               status: 'NORMAL' as const,
-              processId: `temp-process-${Date.now()}`,
+              processId: newProcessId,
               waitingWorkerId: null,
               waitingWorker: null,
             },

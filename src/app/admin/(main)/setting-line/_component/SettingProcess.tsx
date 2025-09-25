@@ -23,7 +23,7 @@ interface SettingProcessProps {
   currentUser: SessionUser
 }
 
-/** 작업자 관리 */
+/** 작업장 관리 */
 const SettingProcess = ({ initialData, currentUser }: SettingProcessProps) => {
   const [lineWithProcess, setLineWithProcess] = useState<LineResponseDto[]>(initialData)
   const [tempLineWithProcess, setTempLineWithProcess] = useState<LineResponseDto[]>(lineWithProcess)

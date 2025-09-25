@@ -108,15 +108,54 @@ export async function updateLineWithProcess(req: NextRequest) {
 
       // 프로세스 저장/업데이트
       for (const proc of line.processes) {
+        let savedProcess
         if (!isTempId(proc.id)) {
-          await tx.process.update({
+          // 기존 프로세스 업데이트
+          savedProcess = await tx.process.update({
             where: { id: proc.id },
             data: { name: proc.name, order: proc.order, lineId: savedLine.id },
           })
+
+          // 기존 프로세스의 shift 업데이트
+          for (const shift of proc.shifts) {
+            if (!isTempId(shift.id)) {
+              await tx.processShift.update({
+                where: { id: shift.id },
+                data: {
+                  type: shift.type,
+                  status: shift.status,
+                  waitingWorkerId: shift.waitingWorkerId,
+                },
+              })
+            } else {
+              // 새로운 shift 생성 (기존 프로세스에 새 shift 추가되는 경우)
+              await tx.processShift.create({
+                data: {
+                  processId: savedProcess.id,
+                  type: shift.type,
+                  status: shift.status,
+                  waitingWorkerId: shift.waitingWorkerId,
+                },
+              })
+            }
+          }
         } else {
-          await tx.process.create({
+          // 새 프로세스 생성
+          savedProcess = await tx.process.create({
             data: { name: proc.name, order: proc.order, lineId: savedLine.id },
           })
+
+          // 새 프로세스에 대한 shift 생성
+          for (const shift of proc.shifts) {
+            await tx.processShift.create({
+              data: {
+                processId: savedProcess.id,
+                type: shift.type,
+                status: shift.status,
+                waitingWorkerId: shift.waitingWorkerId,
+              },
+            })
+          }
         }
       }
     }
