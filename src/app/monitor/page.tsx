@@ -9,19 +9,29 @@ import { colorWorkStatus, displayWorkStatus } from '@/lib/utils/shift-status'
 import { ShiftType } from '@prisma/client'
 import AreaWaitingWorker from '@/app/monitor/_component/AreaWaitingWorker'
 import useMonitorLineDataSync from '@/hooks/useMonitorLineDataSync'
+import { useLoading } from '@/contexts/LoadingContext'
 
 const MonitorPage = () => {
+  const { showLoading, hideLoading } = useLoading()
   const [viewType, setViewType] = useState<ShiftType>('DAY')
   const [viewClassNo, setViewClassNo] = useState<number>(1)
 
   const [maxLength, setMaxLength] = useState<number>(0)
-  const { data, refetch } = useQuery({
+  const { data, refetch, isPending } = useQuery({
     queryKey: ['monitor', viewClassNo],
     queryFn: getMonitorLineWithProcessApi,
     select: (response) => {
       return response.data.filter((item) => item.classNo === viewClassNo)
     },
   })
+
+  useEffect(() => {
+    if (isPending) {
+      showLoading()
+    } else {
+      hideLoading()
+    }
+  }, [isPending])
 
   // 실시간 데이터 동기화
   useMonitorLineDataSync(() => refetch())
