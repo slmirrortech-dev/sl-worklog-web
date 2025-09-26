@@ -16,6 +16,7 @@ async function getUniqueWorkLogHistory(req: NextRequest, { params }: { params: {
     where: {
       workLogId: idParam!,
     },
+    orderBy: { changedAt: 'desc' },
   })) as workLogHistoryResponseDto[]
 
   return ApiResponseFactory.success<workLogHistoryResponseDto[]>(
