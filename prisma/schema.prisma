@@ -118,6 +118,7 @@ model WorkLog {
   user    User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   // Process/Line 스냅샷
+  processShiftId  String?   // 활성화 여부 판단을 위해 존재
   processName     String    // 공정 이름 (스냅샷)
   lineName        String    // 라인 이름 (스냅샷)
   lineClassNo     Int       // 라인 반 번호 (스냅샷)

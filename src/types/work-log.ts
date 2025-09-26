@@ -1,4 +1,4 @@
-import { ShiftType, WorkLog, WorkStatus } from '@prisma/client'
+import { ShiftType, WorkLog, WorkLogHistory, WorkStatus } from '@prisma/client'
 
 export type addWorkLogRequestModel = {
   startedAt: Date
@@ -12,7 +12,6 @@ export type endWorkLogRequestModel = {
 
 export type WorkLogResponseDto = WorkLog
 
-// 관리자 화면에서 사용
 export type WorkLogResponseModel = {
   id: string
   userId: string | null
@@ -22,6 +21,7 @@ export type WorkLogResponseModel = {
   endedAt: Date
   durationMinutes: number
   isDefective: boolean
+  processShiftId: string | null
   processName: string
   lineName: string
   lineClassNo: number
@@ -45,3 +45,17 @@ export type getWorkLogRequestModel = {
   skip: number
   take: number
 }
+
+export type updateWorkLogRequestModel = {
+  shiftType: ShiftType
+  workStatus: WorkStatus
+  isDefective: boolean
+  startedAt: Date
+  endedAt: Date | null
+  lineName: string
+  lineClassNo: number
+  processName: string
+  memo: string
+}
+
+export type workLogHistoryResponseDto = WorkLogHistory

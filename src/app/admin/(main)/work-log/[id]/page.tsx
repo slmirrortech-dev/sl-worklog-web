@@ -1,8 +1,8 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
-import { useRouter, useParams } from 'next/navigation'
-import { Edit, User, FileText, Trash2 } from 'lucide-react'
+import React, { useState } from 'react'
+import { useParams, useRouter } from 'next/navigation'
+import { Edit, User, FileText, Trash2, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -16,7 +16,12 @@ import {
 import { differenceInMinutes, format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { useQuery } from '@tanstack/react-query'
-import { getWorkLogByIdApi } from '@/lib/api/work-log-api'
+import {
+  deleteWorkLogByIdApi,
+  getWorkLogByIdApi,
+  getWorkLogHistoryByIdApi,
+  updateWorkLogByIdApi,
+} from '@/lib/api/work-log-api'
 import ShiftTypeLabel from '@/components/admin/ShiftTypeLabel'
 import { ShiftType, WorkStatus } from '@prisma/client'
 import { displayWorkStatus } from '@/lib/utils/shift-status'
@@ -24,73 +29,23 @@ import ShiftStatusLabel from '@/components/admin/ShiftStatusLabel'
 import { displayShiftType } from '@/lib/utils/shift-type'
 import DefectiveLabel from '@/components/admin/DefectiveLabel'
 import { displayMinutes } from '@/lib/utils/time'
-
-// 타입 정의
-interface WorkLogDetail {
-  id: string
-  userId: string
-  processId: string
-  startedAt: Date
-  endedAt: Date | null
-  durationMinutes: number
-  shiftType: 'DAY_NORMAL' | 'DAY_OVERTIME' | 'NIGHT_NORMAL' | 'NIGHT_OVERTIME' | 'UNKNOWN'
-  isDefective: boolean
-  memo: string
-  user: {
-    id: string
-    name: string
-    loginId: string
-  }
-  process: {
-    id: string
-    name: string
-    line: {
-      id: string
-      name: string
-    }
-  }
-}
-
-interface WorkLogHistory {
-  id: string
-  field: string
-  oldValue: string | null
-  newValue: string | null
-  changedBy: string
-  changedAt: Date
-  admin: {
-    id: string
-    name: string
-    loginId: string
-  }
-}
-
-// 근무형태 표시
-const getShiftTypeInfo = (shiftType: string) => {
-  switch (shiftType) {
-    case 'DAY_NORMAL':
-      return { label: '주간정상', color: 'bg-blue-100 text-blue-800' }
-    case 'DAY_OVERTIME':
-      return { label: '주간잔업', color: 'bg-blue-200 text-blue-900' }
-    case 'NIGHT_NORMAL':
-      return { label: '야간정상', color: 'bg-purple-100 text-purple-800' }
-    case 'NIGHT_OVERTIME':
-      return { label: '야간잔업', color: 'bg-purple-200 text-purple-900' }
-    case 'UNKNOWN':
-      return { label: '미분류', color: 'bg-gray-100 text-gray-800' }
-    default:
-      return { label: '알 수 없음', color: 'bg-gray-100 text-gray-800' }
-  }
-}
+import { updateWorkLogRequestModel, workLogHistoryResponseDto } from '@/types/work-log'
+import { ROUTES } from '@/lib/constants/routes'
+import { useLoading } from '@/contexts/LoadingContext'
 
 // 필드명 한국어 변환
 const getFieldLabel = (field: string) => {
   const fieldLabels: Record<string, string> = {
+    startedAt: '시작 시간',
     endedAt: '종료 시간',
     durationMinutes: '작업 시간',
-    shiftType: '근무형태',
+    workStatus: '작업장 상태',
+    shiftType: '시간대',
     isDefective: '불량여부',
     memo: '메모',
+    lineName: '라인',
+    lineClassNo: '반',
+    processName: '공정',
   }
   return fieldLabels[field] || field
 }
@@ -100,196 +55,81 @@ const formatValue = (field: string, value: string | null) => {
   if (!value) return '-'
 
   switch (field) {
+    case 'startedAt':
+      return format(new Date(value), 'yyyy-MM-dd HH:mm', { locale: ko })
     case 'endedAt':
       return format(new Date(value), 'yyyy-MM-dd HH:mm', { locale: ko })
     case 'durationMinutes':
-      const minutes = parseInt(value)
-      const hours = Math.floor(minutes / 60)
-      const mins = minutes % 60
-      return hours > 0 ? `${hours}시간 ${mins}분` : `${mins}분`
+      return displayMinutes(Number(value))
+    case 'workStatus':
+      return displayWorkStatus(value as WorkStatus)
     case 'shiftType':
-      return getShiftTypeInfo(value).label
+      return displayShiftType(value as ShiftType)
     case 'isDefective':
       return value === 'true' ? '불량' : '정상'
+    case 'lineClassNo':
+      return value + '반'
     default:
       return value
   }
 }
 
-// 모의 데이터 - 다양한 케이스
-const mockWorkLogs: WorkLogDetail[] = [
-  // 주간 정상 근무 (기본)
-  {
-    id: '1',
-    userId: 'user1',
-    processId: '1-1',
-    startedAt: new Date('2024-01-15T09:00:00'),
-    endedAt: new Date('2024-01-15T17:00:00'),
-    durationMinutes: 480,
-    shiftType: 'DAY_NORMAL',
-    isDefective: false,
-    memo: '정상 작업 완료. 품질 이상 없음.',
-    user: { id: 'user1', name: '김철수', loginId: '2024001' },
-    process: { id: '1-1', name: 'P1', line: { id: '1', name: 'MV L/R' } },
-  },
-  // 주간 잔업
-  {
-    id: '2',
-    userId: 'user2',
-    processId: '2-3',
-    startedAt: new Date('2024-01-16T08:30:00'),
-    endedAt: new Date('2024-01-16T19:30:00'),
-    durationMinutes: 660,
-    shiftType: 'DAY_OVERTIME',
-    isDefective: false,
-    memo: '긴급 주문으로 인한 연장 근무. 총 11시간 작업.',
-    user: { id: 'user2', name: '이영희', loginId: '2024002' },
-    process: { id: '2-3', name: 'P3', line: { id: '2', name: 'MX5 LH' } },
-  },
-  // 야간 정상 근무
-  {
-    id: '3',
-    userId: 'user3',
-    processId: '25-2',
-    startedAt: new Date('2024-01-17T22:00:00'),
-    endedAt: new Date('2024-01-18T06:00:00'),
-    durationMinutes: 480,
-    shiftType: 'NIGHT_NORMAL',
-    isDefective: true,
-    memo: '야간 근무 중 불량품 3건 발생. 원인 분석 필요.',
-    user: { id: 'user3', name: '박민수', loginId: '2024003' },
-    process: { id: '25-2', name: '조립피더', line: { id: '25', name: '린지원' } },
-  },
-  // 야간 잔업
-  {
-    id: '4',
-    userId: 'user4',
-    processId: '1-5',
-    startedAt: new Date('2024-01-18T21:30:00'),
-    endedAt: new Date('2024-01-19T08:30:00'),
-    durationMinutes: 660,
-    shiftType: 'NIGHT_OVERTIME',
-    isDefective: false,
-    memo: '설비 점검 후 야간 연장 근무. 예방 정비 완료.',
-    user: { id: 'user4', name: '정현우', loginId: '2024004' },
-    process: { id: '1-5', name: 'P5', line: { id: '1', name: 'MV L/R' } },
-  },
-  // 진행 중인 작업 (종료시간 없음)
-  {
-    id: '5',
-    userId: 'user5',
-    processId: '2-1',
-    startedAt: new Date('2024-01-19T14:00:00'),
-    endedAt: null,
-    durationMinutes: 0,
-    shiftType: 'UNKNOWN',
-    isDefective: false,
-    memo: '현재 진행 중인 작업',
-    user: { id: 'user5', name: '최지은', loginId: '2024005' },
-    process: { id: '2-1', name: 'P1', line: { id: '2', name: 'MX5 LH' } },
-  },
-]
-
-// URL ID에 따라 다른 목업 데이터 선택하는 함수
-const getMockWorkLogById = (id: string): WorkLogDetail => {
-  const idNum = parseInt(id) || 1
-  const index = (idNum - 1) % mockWorkLogs.length
-  return mockWorkLogs[index]
+export type EditWorkLogForm = {
+  lineName: string
+  lineClassNo: string
+  processName: string
+  startedAt: Date
+  endedAt: Date | null
+  durationMinutes: number | null
+  shiftType: ShiftType
+  workStatus: WorkStatus
+  isDefective: string
 }
 
-const mockHistory: WorkLogHistory[] = [
-  {
-    id: '1',
-    field: 'memo',
-    oldValue: '작업 중',
-    newValue: '정상 작업 완료. 품질 이상 없음.',
-    changedBy: 'admin1',
-    changedAt: new Date('2024-01-15T17:30:00'),
-    admin: { id: 'admin1', name: '최승혁', loginId: '104880' },
-  },
-  {
-    id: '2',
-    field: 'endedAt',
-    oldValue: null,
-    newValue: '2024-01-15T17:00:00',
-    changedBy: 'admin1',
-    changedAt: new Date('2024-01-15T17:00:30'),
-    admin: { id: 'admin1', name: '최승혁', loginId: '104880' },
-  },
-  {
-    id: '3',
-    field: 'shiftType',
-    oldValue: 'UNKNOWN',
-    newValue: 'DAY_NORMAL',
-    changedBy: 'admin2',
-    changedAt: new Date('2024-01-15T16:45:00'),
-    admin: { id: 'admin2', name: '김관리', loginId: '105001' },
-  },
-  {
-    id: '4',
-    field: 'isDefective',
-    oldValue: 'true',
-    newValue: 'false',
-    changedBy: 'admin1',
-    changedAt: new Date('2024-01-15T16:30:00'),
-    admin: { id: 'admin1', name: '최승혁', loginId: '104880' },
-  },
-  {
-    id: '5',
-    field: 'durationMinutes',
-    oldValue: '475',
-    newValue: '480',
-    changedBy: 'admin2',
-    changedAt: new Date('2024-01-15T17:00:45'),
-    admin: { id: 'admin2', name: '김관리', loginId: '105001' },
-  },
-]
-
 const WorkLogDetailPage = () => {
+  const router = useRouter()
   const params = useParams()
   const workLogId = params.id as string
+  const { showLoading, hideLoading } = useLoading()
 
-  const [workLog, setWorkLog] = useState<WorkLogDetail>(getMockWorkLogById(workLogId))
-  const [history] = useState<WorkLogHistory[]>(mockHistory)
   const [isEditing, setIsEditing] = useState(false)
   const [isMemoEditing, setIsMemoEditing] = useState(false)
   const [loading, setLoading] = useState(false)
 
-  const { data } = useQuery({
+  const { data, refetch } = useQuery({
     queryKey: ['getWorkLogByIdApi', workLogId],
     queryFn: async () => await getWorkLogByIdApi(workLogId),
     select: (response) => response?.data?.workLogs || null,
   })
 
-  type EditForm = {
-    lineName: string
-    lineClassNo: string
-    processName: string
-    startedAt: Date
-    endedAt: Date | null
-    durationMinutes: number | null
-    shiftType: ShiftType
-    workState: WorkStatus
-    isDefective: string
-  }
+  const { data: historyData, refetch: historyRefetch } = useQuery({
+    queryKey: ['getWorkLogHistoryByIdApi', workLogId],
+    queryFn: async () => await getWorkLogHistoryByIdApi(workLogId),
+    select: (response) => {
+      if (response.data) {
+        return response.data
+      } else {
+        return []
+      }
+    },
+  })
 
   // 수정 폼 상태
-  const [editForm, setEditForm] = useState<EditForm>({
+  // TODO: 불필요한 초기 값 삭제하기
+  const [editForm, setEditForm] = useState<EditWorkLogForm>({
     lineName: '',
-    lineClassNo: '1',
+    lineClassNo: '',
     processName: '',
     startedAt: new Date(),
     endedAt: null,
     durationMinutes: null,
     shiftType: ShiftType.DAY,
-    workState: WorkStatus.NORMAL,
+    workStatus: WorkStatus.NORMAL,
     isDefective: '',
   })
 
   // 메모 수정 폼 상태
-  const [memoForm, setMemoForm] = useState({
-    memo: workLog.memo,
-  })
+  const [memo, setMemo] = useState('')
 
   // 수정 시작
   const handleEditStart = () => {
@@ -302,122 +142,153 @@ const WorkLogDetailPage = () => {
       endedAt: data.endedAt,
       durationMinutes: data.durationMinutes,
       shiftType: data.shiftType,
-      workState: data.workStatus,
+      workStatus: data.workStatus,
       isDefective: data.isDefective.toString(),
     })
     setIsEditing(true)
   }
 
-  // 메모 수정 시작
-  const handleMemoEditStart = () => {
-    setMemoForm({
-      memo: workLog.memo,
-    })
-    setIsMemoEditing(true)
-  }
-
   // 수정 취소
   const handleEditCancel = () => {
+    setIsEnd(false)
     setIsEditing(false)
   }
 
+  // 작업기록 삭제
+  const handleDelete = async () => {
+    if (
+      confirm(
+        `정말로 이 작업 기록을 삭제하시겠습니까?\n\n` +
+          `삭제된 데이터는 복구할 수 없습니다.\n` +
+          `관련 수정 히스토리도 함께 삭제됩니다.`,
+      )
+    ) {
+      showLoading()
+      try {
+        await deleteWorkLogByIdApi(data?.id || '')
+        hideLoading()
+        alert('삭제 완료했습니다.')
+        router.replace(ROUTES.ADMIN.WORK_LOG)
+      } catch (error) {
+        hideLoading()
+        alert('작업 기록 삭제에 실패했습니다. 다시 시도해주세요.')
+        refetch()
+        historyRefetch()
+      }
+    }
+  }
+
+  const [isEnd, setIsEnd] = useState(false)
+
+  // 수정 저장
+  const handleEditSave = async () => {
+    if (data && editForm) {
+      const newData: Partial<updateWorkLogRequestModel> = {}
+
+      if (isEnd && editForm.endedAt) {
+        newData.endedAt = editForm.endedAt
+
+        setLoading(true)
+        try {
+          await updateWorkLogByIdApi(data.id, newData)
+
+          setIsEditing(false)
+          setIsEnd(false)
+          refetch()
+          historyRefetch()
+        } catch (e) {
+          alert('작업 종료에 실패했습니다.')
+        } finally {
+          setLoading(false)
+        }
+
+        return
+      }
+
+      // 변경된 필드만 추가
+      if (editForm.workStatus !== data.workStatus) {
+        newData.workStatus = editForm.workStatus
+      }
+      if (editForm.shiftType !== data.shiftType) {
+        newData.shiftType = editForm.shiftType
+      }
+      if (JSON.parse(editForm.isDefective) !== data.isDefective) {
+        newData.isDefective = JSON.parse(editForm.isDefective)
+      }
+      if (
+        format(editForm.startedAt, 'yyyy-MM-ddTHH:mm') !==
+        format(data.startedAt, 'yyyy-MM-ddTHH:mm')
+      ) {
+        newData.startedAt = editForm.startedAt
+      }
+      if (
+        editForm.endedAt &&
+        format(editForm.endedAt, 'yyyy-MM-ddTHH:mm') !== format(data.endedAt, 'yyyy-MM-ddTHH:mm')
+      ) {
+        newData.endedAt = editForm.endedAt
+      }
+      if (editForm.lineName !== data.lineName) {
+        newData.lineName = editForm.lineName
+      }
+      if (Number(editForm.lineClassNo) !== data.lineClassNo) {
+        newData.lineClassNo = Number(editForm.lineClassNo)
+      }
+      if (editForm.processName !== data.processName) {
+        newData.processName = editForm.processName
+      }
+
+      // 변경된 필드가 있을 때만 API 호출
+      if (Object.keys(newData).length > 0) {
+        setLoading(true)
+        try {
+          await updateWorkLogByIdApi(data.id, newData)
+
+          setIsEditing(false)
+          setIsEnd(false)
+          refetch()
+          historyRefetch()
+        } catch (e) {
+          alert('작업 종료에 실패했습니다.')
+        } finally {
+          setLoading(false)
+        }
+      } else {
+        alert('변경된 데이터가 없습니다.')
+        refetch()
+        historyRefetch()
+        setIsEditing(false)
+        setIsEnd(false)
+      }
+    }
+  }
+
+  // 메모 수정 시작
+  const handleMemoEditStart = () => {
+    setMemo(data?.memo || '')
+    setIsMemoEditing(true)
+  }
   // 메모 수정 취소
   const handleMemoEditCancel = () => {
     setIsMemoEditing(false)
   }
 
-  // 작업기록 삭제
-  const handleDelete = async () => {
-    // if (
-    //   confirm(
-    //     `정말로 이 작업 기록을 삭제하시겠습니까?\n\n` +
-    //       `삭제된 데이터는 복구할 수 없습니다.\n` +
-    //       `관련 수정 히스토리도 함께 삭제됩니다.`,
-    //   )
-    // ) {
-    //   try {
-    //     // API 호출 로직
-    //     setLoading(true)
-    //     // const response = await fetch(`/api/worklog/${workLogId}`, {
-    //     //   method: 'DELETE',
-    //     //   headers: { 'Content-Type': 'application/json' },
-    //     // })
-    //     // if (response.ok) {
-    //     alert('삭제 완료되었습니다.')
-    //     router.push('/admin/work-log')
-    //     // } else {
-    //     //   throw new Error('삭제 실패')
-    //     // }
-    //   } catch (error) {
-    //     console.error('작업기록 삭제 실패:', error)
-    //     alert('삭제 중 오류가 발생했습니다.')
-    //   } finally {
-    //     setLoading(false)
-    //   }
-    // }
-  }
-
-  // 수정 저장
-  const handleEditSave = async () => {
-    console.log('edit', editForm)
-
-    // setLoading(true)
-    // try {
-    //   // 선택된 라인과 공정 찾기
-    //   const selectedLine = linesData.find((line) => line.id === editForm.lineId)
-    //   const selectedProcess = selectedLine?.processes.find(
-    //     (process) => process.id === editForm.processId,
-    //   )
-    //
-    //   if (!selectedLine || !selectedProcess) {
-    //     alert('라인과 공정을 올바르게 선택해주세요.')
-    //     return
-    //   }
-    //
-    //   // 작업 시간 자동 계산
-    //   const calculatedDuration = calculateDuration(editForm.startedAt, editForm.endedAt)
-    //
-    //   // API 호출 로직
-    //   const updatedWorkLog = {
-    //     ...workLog,
-    //     processId: editForm.processId,
-    //     startedAt: new Date(editForm.startedAt),
-    //     endedAt: editForm.endedAt ? new Date(editForm.endedAt) : null,
-    //     durationMinutes: calculatedDuration,
-    //     shiftType: editForm.shiftType as any,
-    //     isDefective: editForm.isDefective === 'true',
-    //     process: {
-    //       ...workLog.process,
-    //       id: editForm.processId,
-    //       name: selectedProcess.name,
-    //       line: {
-    //         id: selectedLine.id,
-    //         name: selectedLine.name,
-    //       },
-    //     },
-    //   }
-    //   setWorkLog(updatedWorkLog)
-    //   setIsEditing(false)
-    //   alert('수정이 완료되었습니다.')
-    // } catch (error) {
-    //   console.error('수정 실패:', error)
-    //   alert('수정 중 오류가 발생했습니다.')
-    // } finally {
-    //   setLoading(false)
-    // }
-  }
-
   // 메모 저장
   const handleMemoSave = async () => {
+    if (!memo || !data) {
+      setIsMemoEditing(false)
+      return
+    }
+
     setLoading(true)
     try {
-      // API 호출 로직
-      const updatedWorkLog = {
-        ...workLog,
-        memo: memoForm.memo,
-      }
-      setWorkLog(updatedWorkLog)
+      await updateWorkLogByIdApi(data.id, {
+        memo,
+      })
       setIsMemoEditing(false)
+      refetch().then((response) => {
+        setMemo(response?.data?.memo || '')
+      })
+      historyRefetch()
       alert('메모가 저장되었습니다.')
     } catch (error) {
       console.error('메모 저장 실패:', error)
@@ -439,28 +310,49 @@ const WorkLogDetailPage = () => {
                   <User className="w-5 h-5 mr-2 text-gray-600" />
                   작업 정보
                 </h2>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleEditStart}
-                    disabled={isEditing}
-                    className="border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-                  >
-                    <Edit className="w-4 h-4 mr-1" />
-                    수정
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleDelete}
-                    disabled={isEditing || loading}
-                    className="border-red-300 text-red-700 hover:bg-red-50 disabled:opacity-50"
-                  >
-                    <Trash2 className="w-4 h-4 mr-1" />
-                    삭제
-                  </Button>
-                </div>
+                {data.endedAt ? (
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleEditStart}
+                      disabled={isEditing || !data.endedAt}
+                      className="border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                    >
+                      <Edit className="w-4 h-4 mr-1" />
+                      수정
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleDelete}
+                      disabled={isEditing || loading || !data.endedAt}
+                      className="border-red-300 text-red-700 hover:bg-red-50 disabled:opacity-50"
+                    >
+                      <Trash2 className="w-4 h-4 mr-1" />
+                      삭제
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    {!isEnd && (
+                      <Button
+                        variant={'default'}
+                        size={'sm'}
+                        className="bg-red-600 hover:bg-red-700"
+                        onClick={() => {
+                          setIsEnd(true)
+                          setEditForm((prev) => ({
+                            ...prev,
+                            endedAt: new Date(),
+                          }))
+                        }}
+                      >
+                        강제 종료
+                      </Button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
             <div className="p-6">
@@ -472,7 +364,7 @@ const WorkLogDetailPage = () => {
                       <Select
                         value={editForm.shiftType ?? undefined}
                         onValueChange={(value: ShiftType) =>
-                          setEditForm((prev: EditForm) => {
+                          setEditForm((prev) => {
                             return {
                               ...prev,
                               shiftType: value,
@@ -503,9 +395,9 @@ const WorkLogDetailPage = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">상태</label>
                     {isEditing ? (
                       <Select
-                        value={editForm?.workState}
+                        value={editForm?.workStatus}
                         onValueChange={(value: WorkStatus) =>
-                          setEditForm((prev) => ({ ...prev, workState: value }))
+                          setEditForm((prev) => ({ ...prev, workStatus: value }))
                         }
                       >
                         <SelectTrigger
@@ -555,6 +447,28 @@ const WorkLogDetailPage = () => {
                         <DefectiveLabel value={data.isDefective} size={'lg'} />
                       </>
                     )}
+                  </div>
+
+                  {/* 직원 정보 */}
+                  <div className="md:hidden lg:col-span-1 lg:block"></div>
+                  <div className="col-span-1 md:col-span-3 lg:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">작업자</label>
+                    <div className="text-lg font-mono text-gray-900 bg-gray-50 px-4 py-2 rounded-lg flex justify-between">
+                      <div className="font-medium">
+                        {data.userName}({data.userUserId})
+                      </div>
+                      {data.userId !== null && (
+                        <Button
+                          variant={'default'}
+                          size={'sm'}
+                          onClick={() => {
+                            router.push(`${ROUTES.ADMIN.USERS}/${data.userId}`)
+                          }}
+                        >
+                          관리
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -663,7 +577,7 @@ const WorkLogDetailPage = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       종료 시간
                     </label>
-                    {isEditing ? (
+                    {isEditing || isEnd ? (
                       <Input
                         type="datetime-local"
                         value={
@@ -683,10 +597,14 @@ const WorkLogDetailPage = () => {
                         style={{ fontSize: '16px' }}
                       />
                     ) : (
-                      <div className="text-lg text-gray-900 bg-gray-50 px-4 py-2 rounded-lg">
-                        {data.endedAt
-                          ? format(data.endedAt, 'yyyy-MM-dd HH:mm', { locale: ko })
-                          : '진행 중'}
+                      <div className="text-lg text-gray-900 bg-gray-50 px-4 py-2 rounded-lg flex justify-between items-center">
+                        {data.endedAt ? (
+                          format(data.endedAt, 'yyyy-MM-dd HH:mm', { locale: ko })
+                        ) : (
+                          <>
+                            <span>진행 중</span>
+                          </>
+                        )}
                       </div>
                     )}
                   </div>
@@ -696,7 +614,7 @@ const WorkLogDetailPage = () => {
                       작업 시간
                     </label>
                     <div className="text-lg text-gray-900 bg-gray-100 px-4 py-2 rounded-lg border-gray-300">
-                      {isEditing ? (
+                      {isEnd || isEditing ? (
                         <>
                           {editForm.endedAt ? (
                             <>
@@ -708,31 +626,22 @@ const WorkLogDetailPage = () => {
                               )}
                             </>
                           ) : (
-                            '0분'
+                            '-'
                           )}
                         </>
                       ) : (
-                        <>{data.durationMinutes ? displayMinutes(data.durationMinutes) : '-'}</>
+                        <>
+                          {data.durationMinutes !== null
+                            ? displayMinutes(data.durationMinutes)
+                            : '-'}
+                        </>
                       )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* 직원 정보 */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  <div className="lg:col-span-1">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">작업자</label>
-                    <div className="text-lg font-mono text-gray-900 bg-gray-50 px-4 py-2 rounded-lg">
-                      <div className="font-medium">
-                        {data.userName}({data.userUserId})
-                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* 편집 모드일 때 저장/취소 버튼 */}
             {isEditing && (
               <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
                 <div className="flex justify-end gap-3">
@@ -751,6 +660,29 @@ const WorkLogDetailPage = () => {
                   >
                     <Edit className="w-4 h-4 mr-2" />
                     {loading ? '저장 중...' : '저장'}
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {isEnd && (
+              <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+                <div className="flex justify-end gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={handleEditCancel}
+                    disabled={loading}
+                    className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                  >
+                    취소
+                  </Button>
+                  <Button
+                    onClick={handleEditSave}
+                    disabled={loading}
+                    className="bg-red-600 text-white hover:bg-red-700"
+                  >
+                    <Check />
+                    {loading ? '종료 중...' : '종료'}
                   </Button>
                 </div>
               </div>
@@ -782,15 +714,15 @@ const WorkLogDetailPage = () => {
             <div className="p-6">
               {isMemoEditing ? (
                 <Textarea
-                  value={memoForm.memo}
-                  onChange={(e) => setMemoForm((prev) => ({ ...prev, memo: e.target.value }))}
+                  value={memo}
+                  onChange={(e) => setMemo(e.target.value)}
                   placeholder="메모를 입력하세요"
                   rows={6}
                   className="bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500 md:text-base text-base min-h-42"
                 />
               ) : (
                 <div className="text-gray-900 bg-gray-50 px-4 py-3 rounded-lg min-h-[150px] whitespace-pre-wrap">
-                  {workLog.memo || '메모가 없습니다.'}
+                  {data?.memo || '-'}
                 </div>
               )}
             </div>
@@ -821,66 +753,68 @@ const WorkLogDetailPage = () => {
           </div>
 
           {/* 수정 히스토리 */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-              <h2 className="text-lg font-medium text-gray-900 flex items-center">
-                <FileText className="w-5 h-5 mr-2 text-gray-600" />
-                관리자 수정 히스토리
-              </h2>
-            </div>
-            <div className="p-6">
-              <div className="space-y-4">
-                {history.length > 0 ? (
-                  history.map((item) => (
-                    <div
-                      key={item.id}
-                      className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded">
-                            {getFieldLabel(item.field)}
+          {historyData && (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                <h2 className="text-lg font-medium text-gray-900 flex items-center">
+                  <FileText className="w-5 h-5 mr-2 text-gray-600" />
+                  관리자 수정 히스토리
+                </h2>
+              </div>
+              <div className="p-6">
+                <div className="space-y-4">
+                  {historyData.length > 0 ? (
+                    historyData.map((item: workLogHistoryResponseDto) => (
+                      <div
+                        key={item.id}
+                        className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded">
+                              {getFieldLabel(item.field)}
+                            </span>
+                            <span className="text-sm text-gray-600">수정됨</span>
+                          </div>
+                          <span className="text-xs text-gray-500">
+                            {format(item.changedAt, 'yyyy-MM-dd HH:mm', { locale: ko })}
                           </span>
-                          <span className="text-sm text-gray-600">수정됨</span>
                         </div>
-                        <span className="text-xs text-gray-500">
-                          {format(item.changedAt, 'yyyy-MM-dd HH:mm', { locale: ko })}
-                        </span>
+                        <div className="space-y-1">
+                          <div className="flex items-start gap-2 text-sm">
+                            <span className="text-gray-500 min-w-[40px]">이전:</span>
+                            <span className="font-medium">
+                              {formatValue(item.field, item.oldValue)}
+                            </span>
+                          </div>
+                          <div className="flex items-start gap-2 text-sm">
+                            <span className="text-gray-500 min-w-[40px]">변경:</span>
+                            <span className="font-medium text-blue-600">
+                              {formatValue(item.field, item.newValue)}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="text-gray-500 min-w-[40px]">수정자:</span>
+                            <span className="font-medium">
+                              {item.changedByName} ({item.changedByUserId})
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                      <div className="space-y-1">
-                        <div className="flex items-start gap-2 text-sm">
-                          <span className="text-gray-500 min-w-[40px]">이전:</span>
-                          <span className="font-medium">
-                            {formatValue(item.field, item.oldValue)}
-                          </span>
-                        </div>
-                        <div className="flex items-start gap-2 text-sm">
-                          <span className="text-gray-500 min-w-[40px]">변경:</span>
-                          <span className="font-medium text-blue-600">
-                            {formatValue(item.field, item.newValue)}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <span className="text-gray-500 min-w-[40px]">수정자:</span>
-                          <span className="font-medium">
-                            {item.admin.name} ({item.admin.loginId})
-                          </span>
-                        </div>
-                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-12 text-gray-500">
+                      <FileText className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                      <p className="text-lg font-medium">수정 히스토리가 없습니다.</p>
+                      <p className="text-sm mt-1">
+                        작업 기록이 수정되면 여기에 히스토리가 표시됩니다.
+                      </p>
                     </div>
-                  ))
-                ) : (
-                  <div className="text-center py-12 text-gray-500">
-                    <FileText className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                    <p className="text-lg font-medium">수정 히스토리가 없습니다.</p>
-                    <p className="text-sm mt-1">
-                      작업 기록이 수정되면 여기에 히스토리가 표시됩니다.
-                    </p>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       )}
     </main>

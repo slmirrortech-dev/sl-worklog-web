@@ -6,6 +6,8 @@ import {
   endWorkLogRequestModel,
   getWorkLogRequestModel,
   WorkLogResponseModel,
+  updateWorkLogRequestModel,
+  workLogHistoryResponseDto,
 } from '@/types/work-log'
 
 /**
@@ -78,4 +80,37 @@ export async function getMyDailyWorkLogApi(searchDate: string) {
  */
 export async function getWorkLogByIdApi(id: string) {
   return await apiFetch<ApiResponse<{ workLogs: WorkLogResponseModel }>>(`/api/work-log/${id}`)
+}
+
+/**
+ * 특정 작업 기록 수정하기
+ */
+export async function updateWorkLogByIdApi(
+  id: string, // workLog id
+  newData: Partial<updateWorkLogRequestModel>,
+) {
+  return await apiFetch<ApiResponse<WorkLogResponseModel>>(`/api/work-log/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(newData),
+  })
+}
+
+/**
+ * 특정 작업 기록 삭제하기
+ */
+export async function deleteWorkLogByIdApi(
+  id: string, // workLog id
+) {
+  return await apiFetch<ApiResponse<any>>(`/api/work-log/${id}`, {
+    method: 'DELETE',
+  })
+}
+
+/**
+ * 특정 작업 변경 이력 조회하기
+ */
+export async function getWorkLogHistoryByIdApi(
+  id: string, // workLog id
+) {
+  return await apiFetch<ApiResponse<workLogHistoryResponseDto[]>>(`/api/work-log/${id}/history`)
 }

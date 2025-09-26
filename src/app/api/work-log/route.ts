@@ -149,6 +149,7 @@ async function addWorkLog(req: NextRequest) {
       userUserId: currentUser.userId,
       userName: currentUser.name,
       startedAt,
+      processShiftId,
       processName: processShift.process.name,
       lineName: processShift.process.line.name,
       lineClassNo: processShift.process.line.classNo,
