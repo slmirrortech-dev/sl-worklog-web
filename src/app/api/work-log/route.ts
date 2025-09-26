@@ -4,7 +4,7 @@ import { ApiResponseFactory } from '@/lib/core/api-response-factory'
 import { requireManagerOrAdmin, requireUser } from '@/lib/utils/auth-guards'
 import prisma from '@/lib/core/prisma'
 import { ApiError } from '@/lib/core/errors'
-import { WorkLogSnapshotResponseModel } from '@/types/work-log'
+import { WorkLogResponseModel } from '@/types/work-log'
 import { fromZonedTime } from 'date-fns-tz'
 import { endOfDay, startOfDay } from 'date-fns'
 
@@ -84,12 +84,12 @@ async function getWorkLog(req: NextRequest) {
       memo: true,
       histories: true,
     },
-  })) as WorkLogSnapshotResponseModel[]
+  })) as WorkLogResponseModel[]
 
   const totalCount = await prisma.workLog.count({ where })
 
   return ApiResponseFactory.success<{
-    workLogs: WorkLogSnapshotResponseModel[]
+    workLogs: WorkLogResponseModel[]
     totalCount: number
   }>({ workLogs: workLogs, totalCount }, '작업 기록을 조회했습니다.')
 }
@@ -130,9 +130,9 @@ async function addWorkLog(req: NextRequest) {
     )
   }
 
-  // 중복 작업 확인
+  // 중복 작업 방지
   const existing = await prisma.workLog.findFirst({
-    where: { userId: currentUser.id, processShiftId, endedAt: null },
+    where: { userId: currentUser.id, endedAt: null },
   })
   if (existing) {
     throw new ApiError(
@@ -149,7 +149,6 @@ async function addWorkLog(req: NextRequest) {
       userUserId: currentUser.userId,
       userName: currentUser.name,
       startedAt,
-      processShiftId,
       processName: processShift.process.name,
       lineName: processShift.process.line.name,
       lineClassNo: processShift.process.line.classNo,

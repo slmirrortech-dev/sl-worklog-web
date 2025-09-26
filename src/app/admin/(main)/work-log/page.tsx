@@ -6,7 +6,7 @@ import { ChevronRight } from 'lucide-react'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { useRouter } from 'next/navigation'
-import { WorkLogSnapshotResponseModel } from '@/types/work-log'
+import { WorkLogResponseModel } from '@/types/work-log'
 import { displayMinutes } from '@/lib/utils/time'
 import ShiftTypeLabel from '@/components/admin/ShiftTypeLabel'
 import ShiftStatusLabel from '@/components/admin/ShiftStatusLabel'
@@ -33,7 +33,7 @@ const WorkLogPage = () => {
   } = useSearchWorkLog()
 
   // 테이블 컬럼 정의
-  const columns: ColumnDef<WorkLogSnapshotResponseModel>[] = [
+  const columns: ColumnDef<WorkLogResponseModel>[] = [
     {
       id: 'shiftType',
       header: '시간대',

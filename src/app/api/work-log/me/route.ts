@@ -3,7 +3,7 @@ import { withErrorHandler } from '@/lib/core/api-handler'
 import { ApiResponseFactory } from '@/lib/core/api-response-factory'
 import { requireUser } from '@/lib/utils/auth-guards'
 import prisma from '@/lib/core/prisma'
-import { WorkLogResponseDto, WorkLogSnapshotResponseModel } from '@/types/work-log'
+import { WorkLogResponseDto, WorkLogResponseModel } from '@/types/work-log'
 import { startOfDay, endOfDay } from 'date-fns'
 import { fromZonedTime } from 'date-fns-tz'
 import { ApiError } from '@/lib/core/errors'
@@ -57,12 +57,9 @@ async function getMyWorkLog(req: NextRequest) {
       memo: true,
       histories: true,
     },
-  })) as WorkLogSnapshotResponseModel[]
+  })) as WorkLogResponseModel[]
 
-  return ApiResponseFactory.success<WorkLogSnapshotResponseModel[]>(
-    workLogs,
-    '작업 기록을 조회했습니다.',
-  )
+  return ApiResponseFactory.success<WorkLogResponseModel[]>(workLogs, '작업 기록을 조회했습니다.')
 }
 
 export const GET = withErrorHandler(getMyWorkLog)

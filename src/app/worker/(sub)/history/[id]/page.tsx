@@ -1,6 +1,6 @@
 import React from 'react'
 import prisma from '@/lib/core/prisma'
-import { WorkLogResponseModel, WorkLogSnapshotResponseModel } from '@/types/work-log'
+import { WorkLogResponseModel } from '@/types/work-log'
 import { format } from 'date-fns'
 import ShiftStatusLabel from '@/components/admin/ShiftStatusLabel'
 import ShiftTypeLabel from '@/components/admin/ShiftTypeLabel'
@@ -28,7 +28,7 @@ const DetailHistoryPage = async ({ params }: { params: Promise<{ id: string }> }
       memo: true,
       histories: true,
     },
-  })) as WorkLogSnapshotResponseModel
+  })) as WorkLogResponseModel
 
   return (
     <div className="min-h-[calc(100vh-60px)] flex justify-center bg-gray-50">

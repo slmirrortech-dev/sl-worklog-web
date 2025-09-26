@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { WorkLogSnapshotResponseModel } from '@/types/work-log'
+import { WorkLogResponseModel } from '@/types/work-log'
 import { AlertCircle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { ROUTES } from '@/lib/constants/routes'
@@ -11,7 +11,7 @@ import CardWorkLog from '@/components/worker/CardWorkLog'
 const HistoryContents = ({
   userFinishedWorkLogs,
 }: {
-  userFinishedWorkLogs: WorkLogSnapshotResponseModel[] | null
+  userFinishedWorkLogs: WorkLogResponseModel[] | null
 }) => {
   const router = useRouter()
   const { showLoading } = useLoading()
@@ -36,7 +36,7 @@ const HistoryContents = ({
       </div>
       {userFinishedWorkLogs && userFinishedWorkLogs.length > 0 ? (
         <ul className="space-y-4">
-          {userFinishedWorkLogs.map((item: WorkLogSnapshotResponseModel) => {
+          {userFinishedWorkLogs.map((item: WorkLogResponseModel) => {
             return <CardWorkLog key={item.id} worklog={item} />
           })}
         </ul>

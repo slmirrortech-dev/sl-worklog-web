@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import DatePickerSection from '@/app/worker/(sub)/history/_component/DatePickerSection'
-import { WorkLogSnapshotResponseModel } from '@/types/work-log'
+import { WorkLogResponseModel } from '@/types/work-log'
 import { AlertCircle } from 'lucide-react'
 import { format } from 'date-fns'
 import { getMyDailyWorkLogApi } from '@/lib/api/work-log-api'
@@ -17,7 +17,7 @@ const HistoryList = () => {
     queryFn: async () => await getMyDailyWorkLogApi(format(startDate, 'yyyy-MM-dd')),
     select: (response) => {
       if (response.data) {
-        return response.data as WorkLogSnapshotResponseModel[]
+        return response.data as WorkLogResponseModel[]
       } else {
         return []
       }
@@ -42,7 +42,7 @@ const HistoryList = () => {
           <>
             {data && data.length > 0 ? (
               <ul className="space-y-4">
-                {data.map((item: WorkLogSnapshotResponseModel) => {
+                {data.map((item: WorkLogResponseModel) => {
                   return <CardWorkLog key={item.id} worklog={item} />
                 })}
               </ul>

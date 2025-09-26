@@ -6,14 +6,14 @@ import { SessionUser } from '@/lib/core/session'
 import { ROUTES } from '@/lib/constants/routes'
 import { useRouter } from 'next/navigation'
 import CardActiveWorkLog from '@/app/worker/home/_component/CardActiveWorkLog'
-import { WorkLogSnapshotResponseModel } from '@/types/work-log'
+import { WorkLogResponseModel } from '@/types/work-log'
 
 const TopContents = ({
   currentUser,
   userActiveWorkLog,
 }: {
   currentUser: SessionUser | null
-  userActiveWorkLog: WorkLogSnapshotResponseModel | null
+  userActiveWorkLog: WorkLogResponseModel | null
 }) => {
   const router = useRouter()
   const [isNavigating, setIsNavigating] = useState(false)

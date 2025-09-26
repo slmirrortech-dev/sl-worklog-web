@@ -1,7 +1,7 @@
 import React from 'react'
 import AdminHeader from '@/components/admin/AdminHeader'
 import { getServerSession } from '@/lib/utils/auth-guards'
-import QueryProvider from './_components/QueryProvider'
+import QueryProvider from '../../../contexts/QueryProvider'
 
 const AdminLayout = async ({ children }: { children: React.ReactNode }) => {
   const session = await getServerSession()

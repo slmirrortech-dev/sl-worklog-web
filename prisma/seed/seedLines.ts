@@ -324,23 +324,59 @@ const initialLines = [
     order: 25,
     classNo: 1,
     processes: [
-      { name: '서열피더', order: 1 },
-      { name: '조립피더', order: 2 },
-      { name: '리워크', order: 3 },
-      { name: '폴리싱', order: 4 },
-      { name: '서열대차', order: 5 },
+      { name: '리워크', order: 1 },
+      { name: '폴리싱', order: 2 },
+      { name: '서열대차', order: 3 },
+    ],
+  },
+  {
+    name: '서열피더',
+    order: 26,
+    classNo: 1,
+    processes: [
+      { name: '1', order: 1 },
+      { name: '2', order: 2 },
+      { name: '3', order: 3 },
+    ],
+  },
+  {
+    name: '조립피더',
+    order: 27,
+    classNo: 1,
+    processes: [
+      { name: '1', order: 1 },
+      { name: '2', order: 2 },
+      { name: '3', order: 3 },
     ],
   },
   {
     name: '린지원',
-    order: 26,
+    order: 28,
     classNo: 2,
     processes: [
-      { name: '서열피더', order: 1 },
-      { name: '조립피더', order: 2 },
-      { name: '리워크', order: 3 },
-      { name: '폴리싱', order: 4 },
-      { name: '서열대차', order: 5 },
+      { name: '리워크', order: 1 },
+      { name: '폴리싱', order: 2 },
+      { name: '서열대차', order: 3 },
+    ],
+  },
+  {
+    name: '서열피더',
+    order: 29,
+    classNo: 2,
+    processes: [
+      { name: '1', order: 1 },
+      { name: '2', order: 2 },
+      { name: '3', order: 3 },
+    ],
+  },
+  {
+    name: '조립피더',
+    order: 30,
+    classNo: 2,
+    processes: [
+      { name: '1', order: 1 },
+      { name: '2', order: 2 },
+      { name: '3', order: 3 },
     ],
   },
 ]
@@ -353,7 +389,9 @@ export async function seedLines() {
 
   for (let batchStart = 0; batchStart < initialLines.length; batchStart += batchSize) {
     const batch = initialLines.slice(batchStart, batchStart + batchSize)
-    console.log(`📦 Processing batch ${Math.floor(batchStart/batchSize) + 1}/${Math.ceil(initialLines.length/batchSize)}`)
+    console.log(
+      `📦 Processing batch ${Math.floor(batchStart / batchSize) + 1}/${Math.ceil(initialLines.length / batchSize)}`,
+    )
 
     for (let i = 0; i < batch.length; i++) {
       const line = batch[i]
@@ -387,26 +425,26 @@ export async function seedLines() {
             data: {
               processId: createdProcess.id,
               type: ShiftType.DAY,
-              status: WorkStatus.NORMAL
-            }
+              status: WorkStatus.NORMAL,
+            },
           })
 
           await prisma.processShift.create({
             data: {
               processId: createdProcess.id,
               type: ShiftType.NIGHT,
-              status: WorkStatus.NORMAL
-            }
+              status: WorkStatus.NORMAL,
+            },
           })
 
           // 작은 지연 추가
-          await new Promise(resolve => setTimeout(resolve, 10))
+          await new Promise((resolve) => setTimeout(resolve, 10))
         }
 
         console.log(`✅ Line ${line.name} created successfully`)
 
         // 배치 간 지연
-        await new Promise(resolve => setTimeout(resolve, 50))
+        await new Promise((resolve) => setTimeout(resolve, 50))
       } catch (error) {
         console.error(`❌ Error creating line ${line.name}:`, error)
         throw error

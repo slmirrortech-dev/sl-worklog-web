@@ -2,12 +2,12 @@ import React from 'react'
 import { ROUTES } from '@/lib/constants/routes'
 import { format } from 'date-fns'
 import { ChevronRight } from 'lucide-react'
-import { WorkLogSnapshotResponseModel } from '@/types/work-log'
+import { WorkLogResponseModel } from '@/types/work-log'
 import { useLoading } from '@/contexts/LoadingContext'
 import { useRouter } from 'next/navigation'
 import ShiftTypeLabel from '@/components/admin/ShiftTypeLabel'
 
-const CardWorkLog = ({ worklog }: { worklog: WorkLogSnapshotResponseModel }) => {
+const CardWorkLog = ({ worklog }: { worklog: WorkLogResponseModel }) => {
   const router = useRouter()
   const { showLoading } = useLoading()
 

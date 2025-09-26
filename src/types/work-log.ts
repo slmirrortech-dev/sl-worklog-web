@@ -12,19 +12,10 @@ export type endWorkLogRequestModel = {
 
 export type WorkLogResponseDto = WorkLog
 
-// 작업자 화면에서 사용
-export type WorkLogResponseModel = WorkLog & {
-  processShift: ProcessShift & {
-    process: Process & {
-      line: Line
-    }
-  }
-}
-
 // 관리자 화면에서 사용
-export type WorkLogSnapshotResponseModel = {
+export type WorkLogResponseModel = {
   id: string
-  userId: string
+  userId: string | null
   userUserId: string
   userName: string
   startedAt: Date

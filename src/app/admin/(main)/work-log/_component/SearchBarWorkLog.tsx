@@ -18,7 +18,7 @@ import { CustomDatePicker } from '@/components/CustomDatePicker'
 import { displayWorkStatus } from '@/lib/utils/shift-status'
 import { subDays, subMonths } from 'date-fns'
 import { useExcelDownload } from '@/hooks/useExcelDownload'
-import { WorkLogSnapshotResponseModel } from '@/types/work-log'
+import { WorkLogResponseModel } from '@/types/work-log'
 
 const DATA_RANGE = ['오늘', '1주일', '1개월']
 
@@ -29,7 +29,7 @@ const SearchBarWorkLog = ({
 }: {
   searchStates: SearchStatesType
   resetFilters: () => void
-  workLogData?: WorkLogSnapshotResponseModel[]
+  workLogData?: WorkLogResponseModel[]
 }) => {
   const {
     startDate,

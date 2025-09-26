@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import * as XLSX from 'xlsx'
-import { WorkLogSnapshotResponseModel } from '@/types/work-log'
+import { WorkLogResponseModel } from '@/types/work-log'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 
@@ -8,7 +8,7 @@ export const useExcelDownload = () => {
   const [isDownloading, setIsDownloading] = useState(false)
 
   const downloadWorkLogExcel = async (
-    data: WorkLogSnapshotResponseModel[],
+    data: WorkLogResponseModel[],
     filename: string = '작업기록',
   ) => {
     try {

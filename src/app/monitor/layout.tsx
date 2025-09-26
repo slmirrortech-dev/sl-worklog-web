@@ -1,5 +1,5 @@
 import React from 'react'
-import QueryProvider from '@/app/admin/(main)/_components/QueryProvider'
+import QueryProvider from '@/contexts/QueryProvider'
 import { ToastProvider } from '@/contexts/ToastContext'
 
 const Layout = ({ children }: { children: React.ReactNode }) => {

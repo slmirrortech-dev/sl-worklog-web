@@ -90,8 +90,6 @@ model ProcessShift {
   waitingWorkerId String?
   waitingWorker   User? @relation("WaitingWorker", fields: [waitingWorkerId], references: [id], onDelete: SetNull)
 
-  workLogs WorkLog[]                        // 교대조에서 발생한 작업 기록들
-
   @@unique([processId, type])               // 한 공정에 대해 주간/야간은 유일해야 함
   @@map("process_shifts")
 }
@@ -118,8 +116,6 @@ model WorkLog {
 
   // Relations
   user    User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  processShiftId String?        // FK (ProcessShift.id)
-  processShift   ProcessShift?  @relation(fields: [processShiftId], references: [id], onDelete: SetNull)
 
   // Process/Line 스냅샷
   processName     String    // 공정 이름 (스냅샷)
@@ -128,10 +124,12 @@ model WorkLog {
   shiftType       ShiftType // 교대조 타입 (스냅샷)
   workStatus      WorkStatus // 상태 (스냅샷)
 
+  // 메모
+  memo            String?   // 작업 메모 (optional)
+
   histories  WorkLogHistory[]
 
   @@index([userId])
-  @@index([processShiftId])
   @@index([startedAt])
   @@map("work_log")
 }
