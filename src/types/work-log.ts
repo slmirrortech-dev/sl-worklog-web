@@ -1,4 +1,4 @@
-import { Line, Process, ProcessShift, ShiftType, WorkLog, WorkStatus } from '@prisma/client'
+import { ShiftType, WorkLog, WorkStatus } from '@prisma/client'
 
 export type addWorkLogRequestModel = {
   startedAt: Date
