@@ -3,7 +3,7 @@ import { withErrorHandler } from '@/lib/core/api-handler'
 import { ApiResponseFactory } from '@/lib/core/api-response-factory'
 import { requireUser } from '@/lib/utils/auth-guards'
 import prisma from '@/lib/core/prisma'
-import { WorkLogResponseDto } from '@/types/work-log'
+import { WorkLogResponseDto, WorkLogSnapshotResponseModel } from '@/types/work-log'
 import { startOfDay, endOfDay } from 'date-fns'
 import { fromZonedTime } from 'date-fns-tz'
 import { ApiError } from '@/lib/core/errors'
@@ -31,7 +31,7 @@ async function getMyWorkLog(req: NextRequest) {
   const startUTC = fromZonedTime(startKST, timeZone)
   const endUTC = fromZonedTime(endKST, timeZone)
 
-  const workLogs = await prisma.workLog.findMany({
+  const workLogs = (await prisma.workLog.findMany({
     where: {
       userId: currentUser.id,
       OR: [
@@ -39,21 +39,30 @@ async function getMyWorkLog(req: NextRequest) {
         { endedAt: { gte: startUTC, lte: endUTC } },
       ],
     },
-    include: {
-      processShift: {
-        include: {
-          process: {
-            include: {
-              line: true,
-            },
-          },
-        },
-      },
-    },
     orderBy: { startedAt: 'asc' },
-  })
+    select: {
+      id: true,
+      userId: true,
+      userUserId: true,
+      userName: true,
+      startedAt: true,
+      endedAt: true,
+      durationMinutes: true,
+      isDefective: true,
+      processName: true,
+      lineName: true,
+      lineClassNo: true,
+      shiftType: true,
+      workStatus: true,
+      memo: true,
+      histories: true,
+    },
+  })) as WorkLogSnapshotResponseModel[]
 
-  return ApiResponseFactory.success<WorkLogResponseDto[]>(workLogs, '작업 기록을 조회했습니다.')
+  return ApiResponseFactory.success<WorkLogSnapshotResponseModel[]>(
+    workLogs,
+    '작업 기록을 조회했습니다.',
+  )
 }
 
 export const GET = withErrorHandler(getMyWorkLog)

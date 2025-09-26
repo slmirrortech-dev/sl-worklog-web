@@ -24,6 +24,7 @@ export type WorkLogResponseModel = WorkLog & {
 // 관리자 화면에서 사용
 export type WorkLogSnapshotResponseModel = {
   id: string
+  userId: string
   userUserId: string
   userName: string
   startedAt: Date
@@ -35,6 +36,7 @@ export type WorkLogSnapshotResponseModel = {
   lineClassNo: number
   shiftType: ShiftType
   workStatus: WorkStatus
+  memo: string
   histories: any // TODO: 미정
 }
 

@@ -1,6 +1,6 @@
 import React from 'react'
 import prisma from '@/lib/core/prisma'
-import { WorkLogResponseModel } from '@/types/work-log'
+import { WorkLogResponseModel, WorkLogSnapshotResponseModel } from '@/types/work-log'
 import { format } from 'date-fns'
 import ShiftStatusLabel from '@/components/admin/ShiftStatusLabel'
 import ShiftTypeLabel from '@/components/admin/ShiftTypeLabel'
@@ -11,20 +11,24 @@ const DetailHistoryPage = async ({ params }: { params: Promise<{ id: string }> }
 
   const workLog = (await prisma.workLog.findUnique({
     where: { id: id },
-    include: {
-      processShift: {
-        include: {
-          process: {
-            include: {
-              line: true,
-            },
-          },
-        },
-      },
+    select: {
+      id: true,
+      userId: true,
+      userUserId: true,
+      userName: true,
+      startedAt: true,
+      endedAt: true,
+      durationMinutes: true,
+      isDefective: true,
+      processName: true,
+      lineName: true,
+      lineClassNo: true,
+      shiftType: true,
+      workStatus: true,
+      memo: true,
+      histories: true,
     },
-  })) as WorkLogResponseModel
-
-  console.log(workLog)
+  })) as WorkLogSnapshotResponseModel
 
   return (
     <div className="min-h-[calc(100vh-60px)] flex justify-center bg-gray-50">
@@ -35,25 +39,23 @@ const DetailHistoryPage = async ({ params }: { params: Promise<{ id: string }> }
           <div className="space-y-4">
             <div className="flex justify-between">
               <span className="text-gray-600 text-lg">시간대</span>
-              <ShiftTypeLabel shiftType={workLog.processShift.type} size="sm" />
+              <ShiftTypeLabel shiftType={workLog.shiftType} size="sm" />
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600 text-lg">상태</span>
-              <ShiftStatusLabel status={workLog.processShift.status} size="sm" />
+              <ShiftStatusLabel status={workLog.workStatus} size="sm" />
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600 text-lg">라인</span>
-              <span className="font-medium text-lg">{workLog.processShift.process.line.name}</span>
+              <span className="font-medium text-lg">{workLog.lineName}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600 text-lg">반</span>
-              <span className="font-medium text-lg">
-                {workLog.processShift.process.line.classNo}반
-              </span>
+              <span className="font-medium text-lg">{workLog.lineClassNo}반</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600 text-lg">공정</span>
-              <span className="font-medium text-lg">{workLog.processShift.process.name}</span>
+              <span className="font-medium text-lg">{workLog.processName}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600 text-lg">시작일시</span>

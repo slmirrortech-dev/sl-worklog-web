@@ -2,7 +2,7 @@ import React from 'react'
 import { getServerSession } from '@/lib/utils/auth-guards'
 import TopContents from '@/app/worker/home/_component/TopContents'
 import prisma from '@/lib/core/prisma'
-import { WorkLogResponseModel } from '@/types/work-log'
+import { WorkLogSnapshotResponseModel } from '@/types/work-log'
 import HistoryContents from '@/app/worker/home/_component/HistoryContents'
 
 /** 홈 페이지 */
@@ -17,41 +17,51 @@ const HomePage = async () => {
     where: {
       userId: session.id,
       endedAt: null,
-      processShift: { isNot: null },
     },
-    include: {
-      processShift: {
-        include: {
-          process: {
-            include: {
-              line: true,
-            },
-          },
-        },
-      },
+    select: {
+      id: true,
+      userId: true,
+      userUserId: true,
+      userName: true,
+      startedAt: true,
+      endedAt: true,
+      durationMinutes: true,
+      isDefective: true,
+      processName: true,
+      lineName: true,
+      lineClassNo: true,
+      shiftType: true,
+      workStatus: true,
+      memo: true,
+      histories: true,
     },
-  })) as WorkLogResponseModel
+  })) as WorkLogSnapshotResponseModel
 
   const userFinishedWorkLogs = (await prisma.workLog.findMany({
     where: {
       userId: session.id,
       endedAt: { not: null },
-      processShift: { isNot: null },
     },
-    include: {
-      processShift: {
-        include: {
-          process: {
-            include: {
-              line: true,
-            },
-          },
-        },
-      },
+    select: {
+      id: true,
+      userId: true,
+      userUserId: true,
+      userName: true,
+      startedAt: true,
+      endedAt: true,
+      durationMinutes: true,
+      isDefective: true,
+      processName: true,
+      lineName: true,
+      lineClassNo: true,
+      shiftType: true,
+      workStatus: true,
+      memo: true,
+      histories: true,
     },
     take: 5,
     orderBy: { endedAt: 'desc' },
-  })) as WorkLogResponseModel[]
+  })) as WorkLogSnapshotResponseModel[]
 
   return (
     <>

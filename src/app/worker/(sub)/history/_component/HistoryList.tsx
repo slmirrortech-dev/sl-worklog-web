@@ -1,44 +1,34 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import DatePickerSection from '@/app/worker/(sub)/history/_component/DatePickerSection'
-import { WorkLogResponseModel } from '@/types/work-log'
+import { WorkLogSnapshotResponseModel } from '@/types/work-log'
 import { AlertCircle } from 'lucide-react'
 import { format } from 'date-fns'
 import { getMyDailyWorkLogApi } from '@/lib/api/work-log-api'
-import { useRouter } from 'next/navigation'
-import { useLoading } from '@/contexts/LoadingContext'
 import CardWorkLog from '@/components/worker/CardWorkLog'
+import { useQuery } from '@tanstack/react-query'
 
 const HistoryList = () => {
-  const router = useRouter()
-  const { showLoading } = useLoading()
-
-  const [historyData, setHistoryData] = useState<WorkLogResponseModel[]>([])
   const [startDate, setStartDate] = useState<Date>(new Date())
-  const [isLoading, setIsLoading] = useState<boolean>()
 
-  const fetch = async () => {
-    setIsLoading(true)
-    try {
-      const { data } = await getMyDailyWorkLogApi(format(startDate, 'yyyy-MM-dd'))
-      setHistoryData(data)
-    } catch (error) {
-      setHistoryData([])
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    fetch().then()
-  }, [startDate])
+  const { data, isPending } = useQuery({
+    queryKey: ['dailyWorkLog', startDate],
+    queryFn: async () => await getMyDailyWorkLogApi(format(startDate, 'yyyy-MM-dd')),
+    select: (response) => {
+      if (response.data) {
+        return response.data as WorkLogSnapshotResponseModel[]
+      } else {
+        return []
+      }
+    },
+  })
 
   return (
     <div>
       <DatePickerSection startDate={startDate} setStartDate={setStartDate} />
       <div className="mt-4">
-        {isLoading ? (
+        {isPending ? (
           <div className="space-y-4">
             {[...Array(3)].map((_, index) => (
               <div key={index} className="bg-white rounded-xl p-4 shadow-sm border">
@@ -50,11 +40,11 @@ const HistoryList = () => {
           </div>
         ) : (
           <>
-            {historyData.length > 0 ? (
+            {data && data.length > 0 ? (
               <ul className="space-y-4">
-                {historyData.map((item: WorkLogResponseModel) => (
-                  <CardWorkLog key={item.id} worklog={item} />
-                ))}
+                {data.map((item: WorkLogSnapshotResponseModel) => {
+                  return <CardWorkLog key={item.id} worklog={item} />
+                })}
               </ul>
             ) : (
               <div className="text-center py-12">

@@ -6,14 +6,14 @@ import { SessionUser } from '@/lib/core/session'
 import { ROUTES } from '@/lib/constants/routes'
 import { useRouter } from 'next/navigation'
 import CardActiveWorkLog from '@/app/worker/home/_component/CardActiveWorkLog'
-import { WorkLogResponseModel } from '@/types/work-log'
+import { WorkLogSnapshotResponseModel } from '@/types/work-log'
 
 const TopContents = ({
   currentUser,
   userActiveWorkLog,
 }: {
   currentUser: SessionUser | null
-  userActiveWorkLog: WorkLogResponseModel | null
+  userActiveWorkLog: WorkLogSnapshotResponseModel | null
 }) => {
   const router = useRouter()
   const [isNavigating, setIsNavigating] = useState(false)
@@ -33,9 +33,9 @@ const TopContents = ({
       {userActiveWorkLog ? (
         <CardActiveWorkLog
           workLogId={userActiveWorkLog.id}
-          lineName={userActiveWorkLog.processShift.process.line.name}
-          classNo={userActiveWorkLog.processShift.process.line.classNo}
-          processName={userActiveWorkLog.processShift.process.name}
+          lineName={userActiveWorkLog.lineName}
+          classNo={userActiveWorkLog.lineClassNo}
+          processName={userActiveWorkLog.processName}
           startAt={userActiveWorkLog.startedAt}
         />
       ) : (

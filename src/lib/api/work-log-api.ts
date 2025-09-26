@@ -71,12 +71,16 @@ export async function endWorkLogApi(payload: endWorkLogRequestModel) {
  * 날짜별 내 작업 기록 조회
  */
 export async function getMyDailyWorkLogApi(searchDate: string) {
-  return await apiFetch<ApiResponse<WorkLogResponseModel[]>>(`/api/work-log/me?date=${searchDate}`)
+  return await apiFetch<ApiResponse<WorkLogSnapshotResponseModel[]>>(
+    `/api/work-log/me?date=${searchDate}`,
+  )
 }
 
 /**
  * 개별 작업 기록 조회
  */
 export async function getWorkLogByIdApi(id: string) {
-  return await apiFetch<ApiResponse<WorkLogResponseModel>>(`/api/work-log/${id}`)
+  return await apiFetch<ApiResponse<{ workLogs: WorkLogSnapshotResponseModel }>>(
+    `/api/work-log/${id}`,
+  )
 }

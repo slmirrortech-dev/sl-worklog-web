@@ -6,7 +6,7 @@ import prisma from '@/lib/core/prisma'
 import { ApiError } from '@/lib/core/errors'
 import { WorkLogSnapshotResponseModel } from '@/types/work-log'
 import { fromZonedTime } from 'date-fns-tz'
-import { endOfDay, isToday, startOfDay } from 'date-fns'
+import { endOfDay, startOfDay } from 'date-fns'
 
 /** 전체 작업 기록 조회 */
 async function getWorkLog(req: NextRequest) {
@@ -69,6 +69,7 @@ async function getWorkLog(req: NextRequest) {
     orderBy: [{ startedAt: 'desc' }, { endedAt: 'desc' }],
     select: {
       id: true,
+      userId: true,
       userUserId: true,
       userName: true,
       startedAt: true,
@@ -80,6 +81,7 @@ async function getWorkLog(req: NextRequest) {
       lineClassNo: true,
       shiftType: true,
       workStatus: true,
+      memo: true,
       histories: true,
     },
   })) as WorkLogSnapshotResponseModel[]
