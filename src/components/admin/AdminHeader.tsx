@@ -129,7 +129,12 @@ const AdminHeader = ({ name, userId }: { name: string; userId: string }) => {
           {navItems.map((item) => {
             const isActive = pathname.startsWith(item.href)
             return (
-              <Link key={item.name} href={item.href} className="flex-shrink-0" onClick={() => handleNavClick(item.href)}>
+              <Link
+                key={item.name}
+                href={item.href}
+                className="flex-shrink-0"
+                onClick={() => handleNavClick(item.href)}
+              >
                 <Button
                   variant="ghost"
                   size="sm"

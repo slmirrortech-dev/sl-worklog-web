@@ -21,12 +21,14 @@ export default async function MyPagePage() {
               <User className="w-5 h-5 mr-2 text-gray-600" />내 정보
             </h2>
           </div>
-          <MyProfile currentUser={{
-            id: session!.id,
-            userId: session!.userId,
-            name: session!.name,
-            role: session!.role
-          }} />
+          <MyProfile
+            currentUser={{
+              id: session!.id,
+              userId: session!.userId,
+              name: session!.name,
+              role: session!.role,
+            }}
+          />
         </div>
       </div>
     </main>

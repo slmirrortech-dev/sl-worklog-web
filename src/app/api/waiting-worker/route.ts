@@ -171,7 +171,9 @@ export async function swapWaitingWorker(request: NextRequest) {
     })
 
     if (!source) {
-      throw new ApiError(`Source processShift not found: processId=${sourceProcessId}, type=${sourceShiftType}`)
+      throw new ApiError(
+        `Source processShift not found: processId=${sourceProcessId}, type=${sourceShiftType}`,
+      )
     }
 
     // 타켓 정보 가져오기
@@ -189,7 +191,9 @@ export async function swapWaitingWorker(request: NextRequest) {
     })
 
     if (!target) {
-      throw new ApiError(`Target processShift not found: processId=${targetProcessId}, type=${targetShiftType}`)
+      throw new ApiError(
+        `Target processShift not found: processId=${targetProcessId}, type=${targetShiftType}`,
+      )
     }
 
     // 대기자 정보 스왑

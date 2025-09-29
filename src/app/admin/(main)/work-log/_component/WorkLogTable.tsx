@@ -70,7 +70,7 @@ export function WorkLogTable({
   // 페이지 크기 옵션 생성 (총 데이터 수와 성능 고려)
   const getPageSizeOptions = (totalCount: number, currentPageSize: number) => {
     const baseOptions = [5, 10, 20, 50]
-    let validOptions = baseOptions.filter((size) => size < totalCount)
+    const validOptions = baseOptions.filter((size) => size < totalCount)
 
     // 100개 이하일 때만 "전체" 옵션 추가
     if (totalCount <= 100 && totalCount > 0) {

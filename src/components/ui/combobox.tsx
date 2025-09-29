@@ -79,9 +79,7 @@ export function Combobox({
             />
           )}
           <CommandList>
-            <CommandEmpty>
-              {emptyText}
-            </CommandEmpty>
+            <CommandEmpty>{emptyText}</CommandEmpty>
             <CommandGroup>
               {options.map((option) => (
                 <CommandItem

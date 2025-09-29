@@ -60,7 +60,7 @@ const ContainerWaitingWorker = ({
 
   // 동적 스타일 클래스
   const getContainerClass = () => {
-    let baseClass =
+    const baseClass =
       'rounded-lg border shadow-sm flex h-full items-center justify-center gap-2 transition-all duration-300 min-h-[80px]'
 
     // 시프트 타입에 따른 기본 배경색 설정
