@@ -8,6 +8,7 @@ import { withErrorHandler } from '@/lib/core/api-handler'
 import { ApiResponseFactory } from '@/lib/core/api-response-factory'
 import { UserResponseDto } from '@/types/user'
 
+export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 export const BUCKET_NAME = 'licensePhoto'
 
