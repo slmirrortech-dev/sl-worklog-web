@@ -6,6 +6,19 @@ import { getSessionUser, requireManagerOrAdmin, requireUser } from '@/lib/utils/
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
+  // PWA 관련 파일들과 정적 자원들은 인증 체크 제외
+  if (
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/api/') ||
+    pathname === '/manifest.json' ||
+    pathname === '/sw.js' ||
+    pathname === '/workbox-*.js' ||
+    pathname.startsWith('/icon-') ||
+    pathname.match(/\.(ico|png|jpg|jpeg|gif|svg|css|js|woff|woff2|ttf|eot)$/)
+  ) {
+    return NextResponse.next()
+  }
+
   // -----------------------
   // ADMIN 영역
   // -----------------------
