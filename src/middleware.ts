@@ -11,21 +11,27 @@ export async function middleware(req: NextRequest) {
   // -----------------------
   // ADMIN LOGIN 접근 시
   if (pathname === ROUTES.ADMIN.LOGIN) {
-    const session = await getSessionUser(req)
+    try {
+      const session = await getSessionUser(req)
 
-    if (!session) {
-      // 로그인 안 된 경우 → 로그인 페이지 접근 허용
+      if (!session) {
+        // 로그인 안 된 경우 → 로그인 페이지 접근 허용
+        return NextResponse.next()
+      }
+
+      if (session.role === 'ADMIN' || session.role === 'MANAGER') {
+        // 관리자/반장은 로그인 페이지 접근 시
+        return NextResponse.redirect(new URL(ROUTES.ADMIN.SETTING_LINE, req.url))
+      }
+
+      if (session.role === 'WORKER') {
+        // 작업자가 /admin/login 접근
+        return NextResponse.redirect(new URL(ROUTES.ERROR['403'], req.url))
+      }
+    } catch (error) {
+      // 세션 오류 시 로그인 페이지 접근 허용
+      console.error('Session error in middleware:', error)
       return NextResponse.next()
-    }
-
-    if (session.role === 'ADMIN' || session.role === 'MANAGER') {
-      // 관리자/반장은 로그인 페이지 접근 시
-      return NextResponse.redirect(new URL(ROUTES.ADMIN.SETTING_LINE, req.url))
-    }
-
-    if (session.role === 'WORKER') {
-      // 작업자가 /admin/login 접근
-      return NextResponse.redirect(new URL(ROUTES.ERROR['403'], req.url))
     }
   }
 

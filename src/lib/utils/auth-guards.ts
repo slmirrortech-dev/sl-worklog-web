@@ -6,14 +6,19 @@ import { ApiError } from '@/lib/core/errors'
 
 /** 세션 읽기 */
 export async function getSessionUser(req: NextRequest): Promise<SessionUser | null> {
-  const res = new NextResponse()
-  const session = await getIronSession<SessionUser>(req, res, sessionOptions)
+  try {
+    const res = new NextResponse()
+    const session = await getIronSession<SessionUser>(req, res, sessionOptions)
 
-  if (!session?.userId) {
+    if (!session?.userId) {
+      return null
+    }
+
+    return session
+  } catch (error) {
+    console.error('세션 가져오기 실패:', error)
     return null
   }
-
-  return session
 }
 
 /** 로그인만 돼 있으면 허용 */
