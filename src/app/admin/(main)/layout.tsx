@@ -3,6 +3,9 @@ import AdminHeader from '@/components/admin/AdminHeader'
 import { getServerSession } from '@/lib/utils/auth-guards'
 import QueryProvider from '../../../contexts/QueryProvider'
 
+// 동적 렌더링 강제
+export const dynamic = 'force-dynamic'
+
 const AdminLayout = async ({ children }: { children: React.ReactNode }) => {
   const session = await getServerSession()
 

@@ -1,8 +1,5 @@
 'use client'
 
-// 동적 렌더링 강제
-export const dynamic = 'force-dynamic'
-
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Trash2, Upload, User, FileImage } from 'lucide-react'

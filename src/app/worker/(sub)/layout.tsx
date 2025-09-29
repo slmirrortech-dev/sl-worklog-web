@@ -2,6 +2,9 @@ import React from 'react'
 import SubHeader from '@/components/worker/SubHeader'
 import QueryProvider from '@/contexts/QueryProvider'
 
+// 동적 렌더링 강제
+export const dynamic = 'force-dynamic'
+
 const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <QueryProvider>
