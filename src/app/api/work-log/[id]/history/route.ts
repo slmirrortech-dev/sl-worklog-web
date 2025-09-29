@@ -6,11 +6,11 @@ import { ApiResponseFactory } from '@/lib/core/api-response-factory'
 import { withErrorHandler } from '@/lib/core/api-handler'
 
 /** 특정 작업 기록 히스토리 조회 */
-async function getUniqueWorkLogHistory(req: NextRequest, { params }: { params: { id: string } }) {
+async function getUniqueWorkLogHistory(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   await requireManagerOrAdmin(req)
 
   // 경로 파라미터에서 ID 추출
-  const idParam = params.id
+  const { id: idParam } = await params
 
   const workLogHistory = (await prisma.workLogHistory.findMany({
     where: {

@@ -8,11 +8,11 @@ import { differenceInMinutes } from 'date-fns'
 import { ApiError } from '@/lib/core/errors'
 
 /** 특정 작업 기록 조회 */
-async function getUniqueWorkLog(req: NextRequest, { params }: { params: { id: string } }) {
+async function getUniqueWorkLog(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   await requireManagerOrAdmin(req)
 
   // 경로 파라미터에서 ID 추출
-  const idParam = params.id
+  const { id: idParam } = await params
 
   const workLogs = (await prisma.workLog.findUnique({
     where: {
@@ -45,9 +45,9 @@ async function getUniqueWorkLog(req: NextRequest, { params }: { params: { id: st
 export const GET = withErrorHandler(getUniqueWorkLog)
 
 /** 특정 작업 기록 수정 */
-async function updateUniqueWorkLog(req: NextRequest, { params }: { params: { id: string } }) {
+async function updateUniqueWorkLog(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await requireManagerOrAdmin(req)
-  const idParam = params.id
+  const { id: idParam } = await params
   const body = (await req.json()) as Partial<updateWorkLogRequestModel>
 
   // 값을 문자열로 기록하기 위한 헬퍼 (히스토리용)
@@ -164,10 +164,10 @@ async function updateUniqueWorkLog(req: NextRequest, { params }: { params: { id:
 export const PUT = withErrorHandler(updateUniqueWorkLog)
 
 /** 특정 작업 기록 삭제 */
-async function deleteUniqueWorkLog(req: NextRequest, { params }: { params: { id: string } }) {
+async function deleteUniqueWorkLog(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   await requireManagerOrAdmin(req)
 
-  const idParam = params.id
+  const { id: idParam } = await params
 
   // 현재 작업 기록 조회
   const existingWorkLog = await prisma.workLog.findUnique({
