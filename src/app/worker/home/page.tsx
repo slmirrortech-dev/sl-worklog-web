@@ -5,6 +5,9 @@ import prisma from '@/lib/core/prisma'
 import { WorkLogResponseModel } from '@/types/work-log'
 import HistoryContents from '@/app/worker/home/_component/HistoryContents'
 
+// 동적 렌더링 강제
+export const dynamic = 'force-dynamic'
+
 /** 홈 페이지 */
 const HomePage = async () => {
   const session = await getServerSession()

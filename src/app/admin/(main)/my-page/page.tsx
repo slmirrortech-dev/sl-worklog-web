@@ -4,6 +4,9 @@ import LogoutButton from '@/app/admin/(main)/my-page/_component/LogoutButton'
 import MyProfile from '@/app/admin/(main)/my-page/_component/MyProfile'
 import { getServerSession } from '@/lib/utils/auth-guards'
 
+// 동적 렌더링 강제
+export const dynamic = 'force-dynamic'
+
 /** 마이페이지 */
 export default async function MyPagePage() {
   const session = await getServerSession()
