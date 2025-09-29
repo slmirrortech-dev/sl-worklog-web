@@ -1,18 +1,33 @@
 'use client'
 
-import React, { useEffect } from 'react'
+import React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { BarChart3, Users, Settings, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ROUTES } from '@/lib/constants/routes'
 import { useLoading } from '@/contexts/LoadingContext'
+import { getCurrentUserApi } from '@/lib/api/user-api'
+import { useQuery } from '@tanstack/react-query'
 
-const AdminHeader = ({ name, userId }: { name: string; userId: string }) => {
+const AdminHeader = () => {
   const { showLoading } = useLoading()
   const pathname = usePathname()
-  const router = useRouter()
+
+  const { data: currentUser } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: async () => {
+      const response = await getCurrentUserApi()
+      if (response.success) {
+        return response.data
+      }
+      throw new Error('사용자 정보 조회 실패')
+    },
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    staleTime: 0,
+  })
 
   const handleNavClick = (href: string) => {
     if (pathname !== href) {
@@ -104,7 +119,8 @@ const AdminHeader = ({ name, userId }: { name: string; userId: string }) => {
               <User className="w-4 h-4 text-gray-600 transition-colors" />
               <div className="text-right">
                 <p className="text-sm font-medium text-gray-900 transition-colors">
-                  <span>{name}</span> <span className="text-gray-500">({userId})</span>
+                  <span>{currentUser?.name}</span>{' '}
+                  <span className="text-gray-500">({currentUser?.userId})</span>
                 </p>
               </div>
             </Link>
@@ -116,7 +132,8 @@ const AdminHeader = ({ name, userId }: { name: string; userId: string }) => {
             >
               <User className="w-4 h-4 text-gray-600 transition-colors" />
               <span className="text-xs font-medium text-gray-900 transition-colors">
-                <span>{name}</span> <span className="text-gray-500">({userId})</span>
+                <span>{currentUser?.name}</span>{' '}
+                <span className="text-gray-500">({currentUser?.id})</span>
               </span>
             </Link>
           </div>
