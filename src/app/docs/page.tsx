@@ -1,5 +1,8 @@
 'use client'
 
+// 동적 렌더링 강제
+export const dynamic = 'force-dynamic'
+
 import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
 

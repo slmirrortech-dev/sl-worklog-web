@@ -1,5 +1,8 @@
 'use client'
 
+// 동적 렌더링 강제
+export const dynamic = 'force-dynamic'
+
 import React, { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { getMonitorLineWithProcessApi } from '@/lib/api/line-with-process-api'

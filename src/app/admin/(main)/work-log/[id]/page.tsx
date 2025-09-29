@@ -1,5 +1,8 @@
 'use client'
 
+// 동적 렌더링 강제
+export const dynamic = 'force-dynamic'
+
 import React, { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Edit, User, FileText, Trash2, Check } from 'lucide-react'

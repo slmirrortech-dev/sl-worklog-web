@@ -1,4 +1,7 @@
 'use client'
+
+// 동적 렌더링 강제
+export const dynamic = 'force-dynamic'
 import React from 'react'
 import { ColumnDef } from '@tanstack/react-table'
 import { Button } from '@/components/ui/button'
