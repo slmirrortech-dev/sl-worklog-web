@@ -5,6 +5,9 @@ import SettingProcess from '@/app/admin/(main)/setting-line/_component/SettingPr
 import { getShiftStatus } from '@/lib/utils/line-status'
 import { getServerSession } from '@/lib/utils/auth-guards'
 
+// 동적 렌더링 강제
+export const dynamic = 'force-dynamic'
+
 /** 작업장 현황판 */
 const ProcessPage = async () => {
   let responseData: LineResponseDto[] = []

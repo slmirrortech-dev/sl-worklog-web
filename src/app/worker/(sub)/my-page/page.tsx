@@ -3,6 +3,9 @@ import { getServerSession } from '@/lib/utils/auth-guards'
 import { LogOut } from 'lucide-react'
 import ButtonLogout from '@/app/worker/(sub)/my-page/_component/ButtonLogout'
 
+// 동적 렌더링 강제
+export const dynamic = 'force-dynamic'
+
 const MyPagePage = async () => {
   const session = await getServerSession()
 

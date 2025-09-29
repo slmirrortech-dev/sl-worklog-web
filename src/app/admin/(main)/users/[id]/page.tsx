@@ -2,6 +2,9 @@ import { findUserOrThrow } from '@/lib/service/user.servie'
 import UserProfile from '@/app/admin/(main)/users/[id]/_component/UserProfile'
 import { getServerSession } from '@/lib/utils/auth-guards'
 
+// 동적 렌더링 강제
+export const dynamic = 'force-dynamic'
+
 interface UserDetailPageProps {
   params: Promise<{ id: string }>
 }

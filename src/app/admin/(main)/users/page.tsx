@@ -5,6 +5,9 @@ import prisma from '@/lib/core/prisma'
 import UsersDataTable from '@/app/admin/(main)/users/_component/UsersDataTable'
 import { getServerSession } from '@/lib/utils/auth-guards'
 
+// 동적 렌더링 강제
+export const dynamic = 'force-dynamic'
+
 const INITIAL_SKIP = 0
 const INITIAL_TAKE = 10
 
