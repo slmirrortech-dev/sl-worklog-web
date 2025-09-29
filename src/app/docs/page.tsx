@@ -4,10 +4,10 @@
 export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
-import dynamic from 'next/dynamic'
+import dynamicImport from 'next/dynamic'
 
 // SwaggerUI를 dynamic import로 로드 (SSR 방지)
-const SwaggerUI = dynamic(() => import('swagger-ui-react'), {
+const SwaggerUI = dynamicImport(() => import('swagger-ui-react'), {
   ssr: false,
   loading: () => (
     <div className="flex items-center justify-center min-h-screen">
