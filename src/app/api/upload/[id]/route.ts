@@ -3,7 +3,7 @@ import { requireManagerOrAdmin } from '@/lib/utils/auth-guards'
 import { findUserOrThrow } from '@/lib/service/user.servie'
 import prisma from '@/lib/core/prisma'
 import { supabaseServer } from '@/lib/supabase/server'
-// import sharp from 'sharp' // 동적 import로 변경
+import { Jimp } from 'jimp'
 import { withErrorHandler } from '@/lib/core/api-handler'
 import { ApiResponseFactory } from '@/lib/core/api-response-factory'
 import { UserResponseDto } from '@/types/user'
@@ -39,29 +39,48 @@ export async function uploadLicense(
     const oldFileKey = user?.licensePhotoUrl
     console.log('[upload] Old file key:', oldFileKey)
 
-    // 새 파일명 (webp 확장자)
-    const newFileKey = `${id}_${Date.now()}.webp`
+    // 새 파일명 (jpeg 확장자)
+    const newFileKey = `${id}_${Date.now()}.jpg`
     console.log('[upload] New file key:', newFileKey)
 
-    // 원본 -> webp 변환 + 리사이즈
-    console.log('[upload] Loading sharp module...')
-    const sharp = (await import('sharp')).default
-    console.log('[upload] Sharp loaded successfully')
+    // 원본 -> JPEG 변환 + 리사이즈
+    console.log('[upload] Starting image processing with Jimp...')
 
     const buffer = Buffer.from(await file.arrayBuffer())
     console.log('[upload] File buffer created, size:', buffer.length)
 
-    console.log('[upload] Starting image processing...')
-    const optimizedBuffer = await sharp(buffer)
-      .resize(1280, 720, { fit: 'inside', withoutEnlargement: true })
-      .webp({ quality: 70 })
-      .toBuffer()
+    console.log('[upload] Loading image with Jimp...')
+    const image = await Jimp.fromBuffer(buffer)
+    console.log('[upload] Image loaded, original size:', image.width, 'x', image.height)
+
+    // 1280x720 비율에 맞춰 리사이즈 (비율 유지하며 내부에 맞춤)
+    const targetWidth = 1280
+    const targetHeight = 720
+    const aspectRatio = image.width / image.height
+    const targetAspectRatio = targetWidth / targetHeight
+
+    let newWidth, newHeight
+    if (aspectRatio > targetAspectRatio) {
+      // 가로가 더 길면 가로를 기준으로 맞춤
+      newWidth = Math.min(targetWidth, image.width)
+      newHeight = newWidth / aspectRatio
+    } else {
+      // 세로가 더 길면 세로를 기준으로 맞춤
+      newHeight = Math.min(targetHeight, image.height)
+      newWidth = newHeight * aspectRatio
+    }
+
+    console.log('[upload] Resizing to:', Math.round(newWidth), 'x', Math.round(newHeight))
+    image.resize({ w: Math.round(newWidth), h: Math.round(newHeight) })
+
+    console.log('[upload] Converting to JPEG...')
+    const optimizedBuffer = await image.getBuffer('image/jpeg', { quality: 70 })
     console.log('[upload] Image processed, optimized size:', optimizedBuffer.length)
 
     console.log('[upload] Uploading to Supabase storage...')
     const { error: uploadError } = await supabaseServer.storage
       .from(BUCKET_NAME)
-      .upload(newFileKey, optimizedBuffer, { contentType: 'image/webp' })
+      .upload(newFileKey, optimizedBuffer, { contentType: 'image/jpeg' })
 
     if (uploadError) {
       console.error('[upload] Supabase upload error:', uploadError)
