@@ -17,48 +17,84 @@ export async function uploadLicense(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  await requireManagerOrAdmin(req)
-  const { id } = await params
-  await findUserOrThrow(id)
+  try {
+    console.log('[upload] Starting upload process...')
 
-  const formData = await req.formData()
-  const file = formData.get('file') as File
-  if (!file) return NextResponse.json({ error: '파일 없음' }, { status: 400 })
+    await requireManagerOrAdmin(req)
+    const { id } = await params
+    console.log('[upload] User ID:', id)
 
-  const user = await prisma.user.findUnique({ where: { id } })
-  const oldFileKey = user?.licensePhotoUrl
+    await findUserOrThrow(id)
+    console.log('[upload] User found')
 
-  // 새 파일명 (webp 확장자)
-  const newFileKey = `${id}_${Date.now()}.webp`
+    const formData = await req.formData()
+    const file = formData.get('file') as File
+    if (!file) {
+      console.log('[upload] No file provided')
+      return NextResponse.json({ error: '파일 없음' }, { status: 400 })
+    }
+    console.log('[upload] File received:', file.name, file.size, file.type)
 
-  // 원본 -> webp 변환 + 리사이즈
-  const sharp = (await import('sharp')).default
-  const buffer = Buffer.from(await file.arrayBuffer())
-  const optimizedBuffer = await sharp(buffer)
-    .resize(1280, 720, { fit: 'inside', withoutEnlargement: true }) // TV 풀스크린 정도
-    .webp({ quality: 70 })
-    .toBuffer()
+    const user = await prisma.user.findUnique({ where: { id } })
+    const oldFileKey = user?.licensePhotoUrl
+    console.log('[upload] Old file key:', oldFileKey)
 
-  const { error: uploadError } = await supabaseServer.storage
-    .from(BUCKET_NAME)
-    .upload(newFileKey, optimizedBuffer, { contentType: 'image/webp' })
+    // 새 파일명 (webp 확장자)
+    const newFileKey = `${id}_${Date.now()}.webp`
+    console.log('[upload] New file key:', newFileKey)
 
-  if (uploadError) return NextResponse.json({ error: uploadError.message }, { status: 500 })
+    // 원본 -> webp 변환 + 리사이즈
+    console.log('[upload] Loading sharp module...')
+    const sharp = (await import('sharp')).default
+    console.log('[upload] Sharp loaded successfully')
 
-  await prisma.user.update({
-    where: { id },
-    data: { licensePhotoUrl: newFileKey },
-  })
+    const buffer = Buffer.from(await file.arrayBuffer())
+    console.log('[upload] File buffer created, size:', buffer.length)
 
-  const { data: signedUrl } = await supabaseServer.storage
-    .from(BUCKET_NAME)
-    .createSignedUrl(newFileKey, 60 * 60)
+    console.log('[upload] Starting image processing...')
+    const optimizedBuffer = await sharp(buffer)
+      .resize(1280, 720, { fit: 'inside', withoutEnlargement: true })
+      .webp({ quality: 70 })
+      .toBuffer()
+    console.log('[upload] Image processed, optimized size:', optimizedBuffer.length)
 
-  if (oldFileKey) {
-    await supabaseServer.storage.from(BUCKET_NAME).remove([oldFileKey])
+    console.log('[upload] Uploading to Supabase storage...')
+    const { error: uploadError } = await supabaseServer.storage
+      .from(BUCKET_NAME)
+      .upload(newFileKey, optimizedBuffer, { contentType: 'image/webp' })
+
+    if (uploadError) {
+      console.error('[upload] Supabase upload error:', uploadError)
+      return NextResponse.json({ error: uploadError.message }, { status: 500 })
+    }
+    console.log('[upload] Upload to Supabase successful')
+
+    console.log('[upload] Updating user record...')
+    await prisma.user.update({
+      where: { id },
+      data: { licensePhotoUrl: newFileKey },
+    })
+    console.log('[upload] User record updated')
+
+    console.log('[upload] Creating signed URL...')
+    const { data: signedUrl } = await supabaseServer.storage
+      .from(BUCKET_NAME)
+      .createSignedUrl(newFileKey, 60 * 60)
+    console.log('[upload] Signed URL created')
+
+    if (oldFileKey) {
+      console.log('[upload] Removing old file:', oldFileKey)
+      await supabaseServer.storage.from(BUCKET_NAME).remove([oldFileKey])
+      console.log('[upload] Old file removed')
+    }
+
+    console.log('[upload] Upload process completed successfully')
+    return ApiResponseFactory.success({ url: signedUrl?.signedUrl }, '사용자 이미지 업로드 완료')
+  } catch (error) {
+    console.error('[upload] Unexpected error:', error)
+    console.error('[upload] Error stack:', error instanceof Error ? error.stack : 'No stack trace')
+    throw error
   }
-
-  return ApiResponseFactory.success({ url: signedUrl?.signedUrl }, '사용자 이미지 업로드 완료')
 }
 
 export const POST = withErrorHandler(uploadLicense)
