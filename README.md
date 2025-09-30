@@ -1,188 +1,47 @@
-# Supabase CLI
-
-[![Coverage Status](https://coveralls.io/repos/github/supabase/cli/badge.svg?branch=main)](https://coveralls.io/github/supabase/cli?branch=main) [![Bitbucket Pipelines](https://img.shields.io/bitbucket/pipelines/supabase-cli/setup-cli/master?style=flat-square&label=Bitbucket%20Canary)](https://bitbucket.org/supabase-cli/setup-cli/pipelines) [![Gitlab Pipeline Status](https://img.shields.io/gitlab/pipeline-status/sweatybridge%2Fsetup-cli?label=Gitlab%20Canary)
-](https://gitlab.com/sweatybridge/setup-cli/-/pipelines)
-
-[Supabase](https://supabase.io) is an open source Firebase alternative. We're building the features of Firebase using enterprise-grade open source tools.
-
-This repository contains all the functionality for Supabase CLI.
-
-- [x] Running Supabase locally
-- [x] Managing database migrations
-- [x] Creating and deploying Supabase Functions
-- [x] Generating types directly from your database schema
-- [x] Making authenticated HTTP requests to [Management API](https://supabase.com/docs/reference/api/introduction)
-
-## Getting started
-
-### Install the CLI
-
-Available via [NPM](https://www.npmjs.com) as dev dependency. To install:
-
-```bash
-npm i supabase --save-dev
-```
-
-To install the beta release channel:
-
-```bash
-npm i supabase@beta --save-dev
-```
-
-When installing with yarn 4, you need to disable experimental fetch with the following nodejs config.
-
-```
-NODE_OPTIONS=--no-experimental-fetch yarn add supabase
-```
-
-> **Note**
-> For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency](https://bun.sh/guides/install/trusted) before running `bun add -D supabase`.
-
-<details>
-  <summary><b>macOS</b></summary>
-
-Available via [Homebrew](https://brew.sh). To install:
-
-```sh
-brew install supabase/tap/supabase
-```
-
-To install the beta release channel:
-
-```sh
-brew install supabase/tap/supabase-beta
-brew link --overwrite supabase-beta
-```
-
-To upgrade:
-
-```sh
-brew upgrade supabase
-```
-
-</details>
-
-<details>
-  <summary><b>Windows</b></summary>
-
-Available via [Scoop](https://scoop.sh). To install:
-
-```powershell
-scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
-scoop install supabase
-```
-
-To upgrade:
-
-```powershell
-scoop update supabase
-```
-
-</details>
-
-<details>
-  <summary><b>Linux</b></summary>
-
-Available via [Homebrew](https://brew.sh) and Linux packages.
-
-#### via Homebrew
-
-To install:
-
-```sh
-brew install supabase/tap/supabase
-```
-
-To upgrade:
-
-```sh
-brew upgrade supabase
-```
-
-#### via Linux packages
-
-Linux packages are provided in [Releases](https://github.com/supabase/cli/releases). To install, download the `.apk`/`.deb`/`.rpm`/`.pkg.tar.zst` file depending on your package manager and run the respective commands.
-
-```sh
-sudo apk add --allow-untrusted <...>.apk
-```
-
-```sh
-sudo dpkg -i <...>.deb
-```
-
-```sh
-sudo rpm -i <...>.rpm
-```
-
-```sh
-sudo pacman -U <...>.pkg.tar.zst
-```
-
-</details>
-
-<details>
-  <summary><b>Other Platforms</b></summary>
-
-You can also install the CLI via [go modules](https://go.dev/ref/mod#go-install) without the help of package managers.
-
-```sh
-go install github.com/supabase/cli@latest
-```
-
-Add a symlink to the binary in `$PATH` for easier access:
-
-```sh
-ln -s "$(go env GOPATH)/bin/cli" /usr/bin/supabase
-```
-
-This works on other non-standard Linux distros.
-
-</details>
-
-<details>
-  <summary><b>Community Maintained Packages</b></summary>
-
-Available via [pkgx](https://pkgx.sh/). Package script [here](https://github.com/pkgxdev/pantry/blob/main/projects/supabase.com/cli/package.yml).
-To install in your working directory:
-
-```bash
-pkgx install supabase
-```
-
-Available via [Nixpkgs](https://nixos.org/). Package script [here](https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/supabase-cli/default.nix).
-
-</details>
-
-### Run the CLI
-
-```bash
-supabase bootstrap
-```
-
-Or using npx:
-
-```bash
-npx supabase bootstrap
-```
-
-The bootstrap command will guide you through the process of setting up a Supabase project using one of the [starter](https://github.com/supabase-community/supabase-samples/blob/main/samples.json) templates.
-
-## Docs
-
-Command & config reference can be found [here](https://supabase.com/docs/reference/cli/about).
-
-## Breaking changes
-
-We follow semantic versioning for changes that directly impact CLI commands, flags, and configurations.
-
-However, due to dependencies on other service images, we cannot guarantee that schema migrations, seed.sql, and generated types will always work for the same CLI major version. If you need such guarantees, we encourage you to pin a specific version of CLI in package.json.
-
-## Developing
-
-To run from source:
-
-```sh
-# Go >= 1.22
-go run . help
-```
+SL미러텍 공장 관리 시스템 🏭
+=============
+기존에는 작업자 배치와 작업 기록을 칠판과 엑셀에 수기로 입력하며 관리했습니다.  
+이 방식은 기록 누락, 실시간 공유의 어려움, 관리 비효율 문제가 있었습니다.  
+
+이를 해결하기 위해 **웹 기반 공장 관리 시스템**을 개발했습니다.
+- **작업자 모드** (모바일 최적화):  
+  작업 시작/종료 기록, 날짜별 작업 내역 확인  
+- **관리자 모드** (PC · 반응형 화면):  
+  작업자 배치 관리, 작업 기록 관리, 실시간 공장 현황 관리  
+- **모니터 모드** (대형 TV 최적화):  
+  공장 현황을 대형 스크린에서 실시간 조회
+
+#### 개발 기간
+2025.08 ~ 2025.09 (1개월)
+
+#### 운영 및 고도화
+2025.09 ~ (진행 중)
+
+#### 역할
+- 서비스 기획 및 UX/UI 와이어프레임 작성
+- 프론트엔드 개발 (Next.js 기반 화면, Tanstack Query 데이터 처리)
+- 백엔드 개발 (API Routes, Prisma로 CRUD 구현)
+- 배포/운영 환경 구축 (Vercel, Supabase 연동)
+
+#### 사용 기술
+- **Frontend**: Next.js, React, TypeScript, Tanstack Query, Tailwind CSS  
+- **Backend**: Next.js API Routes, Prisma  
+- **Infra**: Vercel, Supabase (DB/Storage/Realtime), Docker(Local)
+
+#### AI 활용
+- 서비스 기획과 핵심 설계·구현은 직접 진행했습니다.
+- 반복적인 코드 작성, 리팩토링, 문서화 보조에는 Claude Code를 활용해 생산성을 강화했습니다.
+
+<br />
+
+## 사용 가이드 문서
+더 자세한 사용법과 전체 화면 캡처는 [프로젝트 가이드 문서](https://kkomyoung.notion.site/27e8e4df974d807c8165fe913cdd000b)에서 확인할 수 있습니다.
+
+<br />
+
+## 문서
+### Notion
+* [테스트 문서](https://kkomyoung.notion.site/27e8e4df974d80b38ed1e679ec2f45ef?source=copy_link)
+
+### Figma
+* [작업자 모드 와이어프레임](https://www.figma.com/design/En44a0DuQjNLszsK5Sa2n1/SL%EB%AF%B8%EB%9F%AC%ED%85%8D-%EC%99%80%EC%9D%B4%EC%96%B4%ED%94%84%EB%A0%88%EC%9E%84?node-id=0-1&t=f2lgZxat8i4s507m-1)
