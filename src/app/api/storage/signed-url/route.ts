@@ -15,20 +15,13 @@ export async function getSignedUrl(req: NextRequest) {
     return NextResponse.json({ error: 'missing key' }, { status: 400 })
   }
 
-  console.log('Requesting signed URL for key:', key, 'from bucket:', BUCKET_NAME)
-  console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
-  console.log('Service Role Key exists:', !!process.env.SUPABASE_SERVICE_ROLE_KEY)
-
   const { data, error } = await supabaseServer.storage
     .from(BUCKET_NAME)
     .createSignedUrl(key, 60 * 60)
 
   if (error) {
-    console.error('Supabase storage error:', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
-
-  console.log('Successfully created signed URL:', data?.signedUrl ? 'URL created' : 'No URL')
   return ApiResponseFactory.success({ url: data?.signedUrl }, 'private 이미지 가져오기 성공')
 }
 
