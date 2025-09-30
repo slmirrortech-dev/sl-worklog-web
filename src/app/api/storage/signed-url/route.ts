@@ -16,6 +16,8 @@ export async function getSignedUrl(req: NextRequest) {
   }
 
   console.log('Requesting signed URL for key:', key, 'from bucket:', BUCKET_NAME)
+  console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
+  console.log('Service Role Key exists:', !!process.env.SUPABASE_SERVICE_ROLE_KEY)
 
   const { data, error } = await supabaseServer.storage
     .from(BUCKET_NAME)
