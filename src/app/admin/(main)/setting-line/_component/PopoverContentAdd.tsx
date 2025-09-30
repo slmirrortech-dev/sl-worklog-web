@@ -41,6 +41,24 @@ const PopoverContentAdd = ({
   const [isError, setIsError] = useState<boolean>(false)
   const [isMoveLoading, setIsMoveLoading] = useState<boolean>(false)
 
+  const handleSearch = async () => {
+    setIsLoading(true)
+    setIsError(false)
+    setSearchUsers([])
+    try {
+      const { data } = await getUsersApi(1, 100, searchText)
+      if (data.length === 0) {
+        setIsError(true)
+      } else {
+        setSearchUsers(data)
+      }
+    } catch (e) {
+      setIsError(true)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
     <>
       <PopoverContent className="w-80">
@@ -57,7 +75,7 @@ const PopoverContentAdd = ({
               }}
               onKeyDown={(event) => {
                 if (event.key === 'Enter') {
-                  // onSearch?.()
+                  handleSearch()
                 }
               }}
               className="w-full md:max-w-xs md:text-base h-10 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500"
@@ -66,25 +84,7 @@ const PopoverContentAdd = ({
               title="작업자 검색"
               variant="outline"
               size="default"
-              onClick={async () => {
-                {
-                  setIsLoading(true)
-                  setIsError(false)
-                  setSearchUsers([])
-                  try {
-                    const { data } = await getUsersApi(1, 100, searchText)
-                    if (data.length === 0) {
-                      setIsError(true)
-                    } else {
-                      setSearchUsers(data)
-                    }
-                  } catch (e) {
-                    setIsError(true)
-                  } finally {
-                    setIsLoading(false)
-                  }
-                }
-              }}
+              onClick={handleSearch}
               disabled={isLoading}
               className="px-3 h-10"
             >
