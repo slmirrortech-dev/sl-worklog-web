@@ -3,7 +3,7 @@ import { requireManagerOrAdmin } from '@/lib/utils/auth-guards'
 import { findUserOrThrow } from '@/lib/service/user.servie'
 import prisma from '@/lib/core/prisma'
 import { supabaseServer } from '@/lib/supabase/server'
-import sharp from 'sharp'
+// import sharp from 'sharp' // 동적 import로 변경
 import { withErrorHandler } from '@/lib/core/api-handler'
 import { ApiResponseFactory } from '@/lib/core/api-response-factory'
 import { UserResponseDto } from '@/types/user'
@@ -32,6 +32,7 @@ export async function uploadLicense(
   const newFileKey = `${id}_${Date.now()}.webp`
 
   // 원본 -> webp 변환 + 리사이즈
+  const sharp = (await import('sharp')).default
   const buffer = Buffer.from(await file.arrayBuffer())
   const optimizedBuffer = await sharp(buffer)
     .resize(1280, 720, { fit: 'inside', withoutEnlargement: true }) // TV 풀스크린 정도
