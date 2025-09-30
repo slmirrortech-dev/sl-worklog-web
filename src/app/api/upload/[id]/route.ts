@@ -10,7 +10,7 @@ import { UserResponseDto } from '@/types/user'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
-export const BUCKET_NAME = 'licensePhoto'
+const BUCKET_NAME = 'licensePhoto'
 
 /** 사용자별 면허증 이미지 업로드 */
 export async function uploadLicense(
