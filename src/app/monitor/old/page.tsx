@@ -93,78 +93,71 @@ const MonitorPage = () => {
       )}
       <main className={`${!isFullscreen && 'pb-24'}`}>
         <div className="min-w-[1600px] w-screen h-screen bg-white overflow-hidden">
-          {data && data.length > 0 && (
-            <div className="flex flex-col h-full">
-              {/* 라인명 행 */}
+          {data &&
+            data.length > 0 &&
+            data.map((line, lineIndex) => (
               <div
+                key={line.id}
                 className="grid"
                 style={{
-                  gridTemplateColumns: `56px repeat(${data.length}, 1fr)`,
-                  height: '100px',
+                  gridTemplateColumns: `300px repeat(${maxLength}, 1fr)`,
+                  height: `calc(100vh / ${data.length})`,
                 }}
               >
-                <div className="bg-slate-200 border-b-2 border-r-2 border-white"></div>
-                {data.map((line) => (
-                  <div key={line.id} className="flex flex-col bg-slate-200 border-white">
-                    <div className="flex-1 flex items-center justify-center font-bold text-xl px-2 text-center border-b-2 border-white">
-                      <span className="break-all overflow-wrap-anywhere leading-none">
-                        {line.name}
-                      </span>
-                    </div>
-                    <div
-                      className={`h-[40px] px-2 ${colorWorkStatus(viewType === 'DAY' ? line.dayStatus : line.nightStatus)} flex items-center justify-center`}
-                    >
-                      <span className="text-xl">
-                        {displayWorkStatus(viewType === 'DAY' ? line.dayStatus : line.nightStatus)}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* 공정 행들 */}
-              {Array.from({ length: maxLength }, (_, processIndex) => (
-                <div
-                  key={'process-row-' + processIndex}
-                  className="grid flex-1"
-                  style={{
-                    gridTemplateColumns: `56px repeat(${data.length}, 1fr)`,
-                  }}
-                >
-                  {/* 공정명 */}
-                  <div className="flex items-center justify-center bg-slate-100 border-r-2 border-b border-gray-200">
-                    <span className="text-xl font-bold text-black">
-                      {data[0]?.processes[processIndex]?.name || ''}
+                {/* 라인명 */}
+                <div className="flex bg-slate-200 border-white">
+                  <div
+                    className={`flex-1 flex gap-2 items-center justify-center font-bold text-3xl border-white px-2 text-center min-w-0 ${lineIndex < data.length - 1 ? 'border-b-2' : ''}`}
+                  >
+                    <span className="break-all overflow-wrap-anywhere leading-none">
+                      {line.name}
                     </span>
                   </div>
-
-                  {/* 각 라인별 공정 칸 */}
-                  {data.map((line, lineIndex) => {
-                    const proc = line.processes[processIndex]
-                    const targetShift = proc?.shifts.filter((item) => item.type === viewType)[0]
-
-                    return (
-                      <div
-                        key={line.id + '-process-' + processIndex}
-                        className={`flex items-center justify-center bg-white border-b border-gray-200 ${lineIndex < data.length - 1 ? 'border-r' : ''}`}
-                      >
-                        {proc && targetShift ? (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <AreaWaitingWorker
-                              processShiftId={targetShift.id}
-                              waitingWorker={targetShift.waitingWorker || null}
-                            />
-                          </div>
-                        ) : (
-                          <div className="w-full h-full"></div>
-                        )}
-                      </div>
-                    )
-                  })}
+                  <div
+                    className={`w-[60px] px-2 ${colorWorkStatus(viewType === 'DAY' ? line.dayStatus : line.nightStatus)} border flex items-center justify-center flex-shrink-0`}
+                  >
+                    <span className="text-2xl">
+                      {displayWorkStatus(viewType === 'DAY' ? line.dayStatus : line.nightStatus)}
+                    </span>
+                  </div>
                 </div>
-              ))}
-            </div>
-          )}
+
+                {/* 공정 칸 */}
+                {Array.from({ length: maxLength }, (_, index) => {
+                  const proc = line.processes[index]
+                  const targetShift = proc?.shifts.filter((item) => item.type === viewType)[0]
+
+                  return (
+                    <div key={'process' + index} className="flex">
+                      {proc && targetShift ? (
+                        <div className="flex flex-1 justify-between">
+                          {/* 공정 이름 */}
+                          <div
+                            className={`w-[90px] flex justify-center items-center bg-slate-100 border-gray-200 text-center ${lineIndex < data.length - 1 ? 'border-b-2' : ''}`}
+                          >
+                            <span className="text-2xl font-bold text-black">{proc.name}</span>
+                          </div>
+                          <div
+                            className={`flex-grow-1 flex flex-col justify-center items-center border-gray-200 bg-white ${lineIndex < data.length - 1 ? 'border-b-2' : ''}`}
+                          >
+                            <div className="w-full flex-1 flex flex-col justify-center items-center">
+                              <AreaWaitingWorker
+                                processShiftId={targetShift.id}
+                                waitingWorker={targetShift.waitingWorker || null}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div
+                          className={`flex-1 flex justify-center items-center border-gray-200 ${lineIndex < data.length - 1 ? 'border-b' : ''}`}
+                        ></div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            ))}
         </div>
         <header
           className={`w-full h-24 bg-white border-t flex justify-between items-center px-6 ${!isFullscreen && 'fixed left-0 bottom-0'}`}

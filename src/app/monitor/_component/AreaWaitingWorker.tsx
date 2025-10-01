@@ -35,7 +35,7 @@ const AreaWaitingWorker = ({
     <>
       {waitingWorker ? (
         <button
-          className="flex-1 w-full  flex items-center justify-center gap-4"
+          className="flex-1 w-full flex flex-col items-center justify-center gap-4"
           onClick={() => {
             if (waitingWorker.licensePhotoUrl) {
               setIsShowLicense(!isShowLicense)
@@ -56,7 +56,7 @@ const AreaWaitingWorker = ({
 
           <div>
             <p
-              className={`text-3xl font-semibold leading-none ${isActive ? 'text-blue-500' : 'text-black'}`}
+              className={`text-2xl font-semibold leading-none ${isActive ? 'text-blue-500' : 'text-black'}`}
             >
               {waitingWorker.name}
             </p>
