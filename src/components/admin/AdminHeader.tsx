@@ -49,6 +49,12 @@ const AdminHeader = () => {
       description: '라인 및 공정 관리',
     },
     {
+      name: '구 작업장 관리',
+      href: ROUTES.ADMIN.OLD_SETTING_LINE,
+      icon: Settings,
+      description: '라인 및 공정 관리',
+    },
+    {
       name: '작업 기록',
       href: ROUTES.ADMIN.WORK_LOG,
       icon: BarChart3,

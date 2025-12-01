@@ -1,11 +1,11 @@
 import React from 'react'
 import { LineResponseDto } from '@/types/line-with-process'
-import ContainerWaitingWorker from '@/app/admin/(main)/setting-line/_component/ContainerWaitingWorker'
-import EditableLineCell from '@/app/admin/(main)/setting-line/_component/EditableLineCell'
-import ProcessCell from '@/app/admin/(main)/setting-line/_component/ProcessCell'
-import ButtonAddProcess from '@/app/admin/(main)/setting-line/_component/ButtonAddProcess'
-import ShiftTypeCell from '@/app/admin/(main)/setting-line/_component/ShiftTypeCell'
-import ButtonAddLine from '@/app/admin/(main)/setting-line/_component/ButtonAddLine'
+import ContainerWaitingWorker from '@/app/admin/(main)/old-setting-line/_component/ContainerWaitingWorker'
+import EditableLineCell from '@/app/admin/(main)/old-setting-line/_component/EditableLineCell'
+import ProcessCell from '@/app/admin/(main)/old-setting-line/_component/ProcessCell'
+import ButtonAddProcess from '@/app/admin/(main)/old-setting-line/_component/ButtonAddProcess'
+import ShiftTypeCell from '@/app/admin/(main)/old-setting-line/_component/ShiftTypeCell'
+import ButtonAddLine from '@/app/admin/(main)/old-setting-line/_component/ButtonAddLine'
 import { ShiftType } from '@prisma/client'
 
 const LineRow = ({

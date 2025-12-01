@@ -1,5 +1,5 @@
 import React from 'react'
-import { leftTableHead } from '@/app/admin/(main)/setting-line/_component/SettingProcess'
+import { leftTableHead } from '@/app/admin/(main)/old-setting-line/_component/SettingProcess'
 import { Plus } from 'lucide-react'
 import { ButtonProps } from 'react-day-picker'
 

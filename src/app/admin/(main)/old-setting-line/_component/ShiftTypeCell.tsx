@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { leftTableShiftHead } from '@/app/admin/(main)/setting-line/_component/SettingProcess'
+import { leftTableShiftHead } from '@/app/admin/(main)/old-setting-line/_component/SettingProcess'
 import { ShiftType, WorkStatus } from '@prisma/client'
 import ShiftStatusLabel from '@/components/admin/ShiftStatusLabel'
 import { updateLineStatusApi } from '@/lib/api/line-status-api'

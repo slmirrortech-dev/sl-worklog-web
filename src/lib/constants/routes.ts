@@ -2,6 +2,7 @@ export const ROUTES = {
   ADMIN: {
     LOGIN: '/admin/login',
     SETTING_LINE: '/admin/setting-line',
+    OLD_SETTING_LINE: '/admin/old-setting-line',
     WORK_LOG: '/admin/work-log',
     USERS: '/admin/users',
     MONITOR: '/admin/monitor',
