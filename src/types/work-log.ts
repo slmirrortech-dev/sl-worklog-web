@@ -24,7 +24,7 @@ export type WorkLogResponseModel = {
   processShiftId: string | null
   processName: string
   lineName: string
-  lineClassNo: number
+  lineClassNo: string
   shiftType: ShiftType
   workStatus: WorkStatus
   memo: string
@@ -53,7 +53,7 @@ export type updateWorkLogRequestModel = {
   startedAt: Date
   endedAt: Date | null
   lineName: string
-  lineClassNo: number
+  lineClassNo: string
   processName: string
   memo: string
 }

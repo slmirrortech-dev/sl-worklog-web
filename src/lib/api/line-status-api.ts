@@ -10,7 +10,7 @@ export async function updateLineStatusApi(
   lineId: string,
   shiftType?: ShiftType,
   workStatus?: WorkStatus,
-  classNo?: number,
+  classNo?: string,
 ) {
   return await apiFetch<ApiResponse<LineResponseDto[]>>(`/api/line-status`, {
     method: 'PUT',

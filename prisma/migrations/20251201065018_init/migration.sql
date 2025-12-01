@@ -25,13 +25,13 @@ CREATE TABLE "public"."users" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."Line" (
+CREATE TABLE "public"."lines" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "order" INTEGER NOT NULL,
-    "classNo" INTEGER[] DEFAULT ARRAY[1]::INTEGER[],
+    "classNo" TEXT NOT NULL DEFAULT '1',
 
-    CONSTRAINT "Line_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "lines_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -56,22 +56,28 @@ CREATE TABLE "public"."process_shifts" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."WorkLog" (
+CREATE TABLE "public"."work_log" (
     "id" TEXT NOT NULL,
     "userId" TEXT,
     "userUserId" TEXT NOT NULL,
     "userName" TEXT NOT NULL,
-    "userBirthday" TEXT NOT NULL,
     "startedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "endedAt" TIMESTAMP(3),
-    "durationMinutes" INTEGER NOT NULL,
+    "durationMinutes" INTEGER,
+    "isDefective" BOOLEAN NOT NULL DEFAULT false,
     "processShiftId" TEXT,
+    "processName" TEXT NOT NULL,
+    "lineName" TEXT NOT NULL,
+    "lineClassNo" TEXT NOT NULL,
+    "shiftType" "public"."ShiftType" NOT NULL,
+    "workStatus" "public"."WorkStatus" NOT NULL,
+    "memo" TEXT,
 
-    CONSTRAINT "WorkLog_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "work_log_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "public"."WorkLogHistory" (
+CREATE TABLE "public"."work_log_history" (
     "id" TEXT NOT NULL,
     "workLogId" TEXT NOT NULL,
     "field" TEXT NOT NULL,
@@ -82,7 +88,7 @@ CREATE TABLE "public"."WorkLogHistory" (
     "changedByUserId" TEXT NOT NULL,
     "changedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "WorkLogHistory_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "work_log_history_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -98,29 +104,40 @@ CREATE TABLE "public"."edit_locks" (
     CONSTRAINT "edit_locks_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "public"."cell_locks" (
+    "id" TEXT NOT NULL,
+    "cellId" TEXT NOT NULL,
+    "lockedBy" TEXT NOT NULL,
+    "lockedByName" TEXT NOT NULL,
+    "lockedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "cell_locks_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "users_userId_key" ON "public"."users"("userId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Line_name_key" ON "public"."Line"("name");
+CREATE UNIQUE INDEX "lines_name_classNo_key" ON "public"."lines"("name", "classNo");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "process_shifts_processId_type_key" ON "public"."process_shifts"("processId", "type");
 
 -- CreateIndex
-CREATE INDEX "WorkLog_userId_idx" ON "public"."WorkLog"("userId");
+CREATE INDEX "work_log_userId_idx" ON "public"."work_log"("userId");
 
 -- CreateIndex
-CREATE INDEX "WorkLog_processShiftId_idx" ON "public"."WorkLog"("processShiftId");
-
--- CreateIndex
-CREATE INDEX "WorkLog_startedAt_idx" ON "public"."WorkLog"("startedAt");
+CREATE INDEX "work_log_startedAt_idx" ON "public"."work_log"("startedAt");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "edit_locks_resourceType_key" ON "public"."edit_locks"("resourceType");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "cell_locks_cellId_key" ON "public"."cell_locks"("cellId");
+
 -- AddForeignKey
-ALTER TABLE "public"."processes" ADD CONSTRAINT "processes_lineId_fkey" FOREIGN KEY ("lineId") REFERENCES "public"."Line"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "public"."processes" ADD CONSTRAINT "processes_lineId_fkey" FOREIGN KEY ("lineId") REFERENCES "public"."lines"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."process_shifts" ADD CONSTRAINT "process_shifts_processId_fkey" FOREIGN KEY ("processId") REFERENCES "public"."processes"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -129,16 +146,16 @@ ALTER TABLE "public"."process_shifts" ADD CONSTRAINT "process_shifts_processId_f
 ALTER TABLE "public"."process_shifts" ADD CONSTRAINT "process_shifts_waitingWorkerId_fkey" FOREIGN KEY ("waitingWorkerId") REFERENCES "public"."users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."WorkLog" ADD CONSTRAINT "WorkLog_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "public"."work_log" ADD CONSTRAINT "work_log_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."WorkLog" ADD CONSTRAINT "WorkLog_processShiftId_fkey" FOREIGN KEY ("processShiftId") REFERENCES "public"."process_shifts"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "public"."work_log_history" ADD CONSTRAINT "work_log_history_workLogId_fkey" FOREIGN KEY ("workLogId") REFERENCES "public"."work_log"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."WorkLogHistory" ADD CONSTRAINT "WorkLogHistory_workLogId_fkey" FOREIGN KEY ("workLogId") REFERENCES "public"."WorkLog"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "public"."WorkLogHistory" ADD CONSTRAINT "WorkLogHistory_changedBy_fkey" FOREIGN KEY ("changedBy") REFERENCES "public"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "public"."work_log_history" ADD CONSTRAINT "work_log_history_changedBy_fkey" FOREIGN KEY ("changedBy") REFERENCES "public"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."edit_locks" ADD CONSTRAINT "edit_locks_lockedBy_fkey" FOREIGN KEY ("lockedBy") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."cell_locks" ADD CONSTRAINT "cell_locks_lockedBy_fkey" FOREIGN KEY ("lockedBy") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;

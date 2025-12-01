@@ -20,7 +20,7 @@ export async function updateLineStatus(request: NextRequest) {
     lineId: string
     shiftType?: ShiftType
     workStatus?: WorkStatus
-    classNo?: number
+    classNo?: string
   } = await request.json()
 
   await prisma.$transaction(async (tx) => {

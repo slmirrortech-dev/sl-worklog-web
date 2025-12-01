@@ -49,7 +49,7 @@ model Line {
   id        String    @id @default(cuid())   // UUID (PK)
   name      String                           // 라인 이름 (전역 유일)
   order     Int                              // 라인 순서
-  classNo   Int       @default(1)
+  classNo   String    @default("1")          // 반 번호 (1, 2, 서브 등)
 
   // Relations
   processes Process[]
@@ -121,7 +121,7 @@ model WorkLog {
   processShiftId  String?   // 활성화 여부 판단을 위해 존재
   processName     String    // 공정 이름 (스냅샷)
   lineName        String    // 라인 이름 (스냅샷)
-  lineClassNo     Int       // 라인 반 번호 (스냅샷)
+  lineClassNo     String    // 라인 반 번호 (스냅샷)
   shiftType       ShiftType // 교대조 타입 (스냅샷)
   workStatus      WorkStatus // 상태 (스냅샷)
 

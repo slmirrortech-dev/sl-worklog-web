@@ -78,13 +78,14 @@ const EditableLineCell = ({ line, editLineControl, isEditMode, dragAndDropContro
               id={line.id}
               value={line.classNo}
               onChange={(e) => {
-                const newClassNo = Number(e.target.value)
+                const newClassNo = e.target.value
                 handleEditModeClassNoChange(line.id, newClassNo)
               }}
               className="-ml-1 border-none outline-none bg-transparent cursor-pointer text-gray-500 font-medium"
             >
-              <option value={1}>1반</option>
-              <option value={2}>2반</option>
+              <option value="1">1반</option>
+              <option value="2">2반</option>
+              <option value="서브">서브</option>
             </select>
           )}
         </div>

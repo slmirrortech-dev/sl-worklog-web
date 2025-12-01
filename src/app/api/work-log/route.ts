@@ -52,7 +52,7 @@ async function getWorkLog(req: NextRequest) {
   if (shiftType) where.shiftType = shiftType
   if (workStatus) where.workStatus = workStatus
   if (lineName) where.lineName = { contains: lineName, mode: 'insensitive' }
-  if (lineClassNo) where.lineClassNo = parseInt(lineClassNo, 10)
+  if (lineClassNo) where.lineClassNo = lineClassNo
   if (processName) where.processName = { contains: processName, mode: 'insensitive' }
   if (isDefective !== null) where.isDefective = isDefective === 'true'
   if (searchName) {

@@ -14,7 +14,7 @@ const CardActiveWorkLog = ({
 }: {
   workLogId: string
   lineName: string
-  classNo: number
+  classNo: string
   processName: string
   startAt: Date
 }) => {
