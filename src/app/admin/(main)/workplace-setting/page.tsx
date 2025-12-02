@@ -3,17 +3,29 @@
 import React from 'react'
 import ClassSettingCard from './_component/ClassSettingCard'
 import ProcessSettingCard from './_component/ProcessSettingCard'
+import LineSettingCard from './_component/LineSettingCard'
+import LineSupportSettingCard from './_component/LineSupportSettingCard'
 
 const WorkplaceSettingPage = () => {
   return (
-    <div className="flex flex-col space-y-8 pb-8">
-      {/* 설정 카드들 */}
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start lg:grid-rows-1">
+    <div className="flex flex-col space-y-6 pb-8">
+      {/* 반 & 공정 설정 */}
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
         <div className="h-[400px]">
           <ClassSettingCard />
         </div>
         <div className="h-[400px]">
           <ProcessSettingCard />
+        </div>
+      </section>
+
+      {/* 라인 & 린지원 설정 */}
+      <section className="grid grid-cols-1 lg:grid-cols-1 gap-6 items-start">
+        <div className="h-[600px]">
+          <LineSettingCard />
+        </div>
+        <div className="h-[500px]">
+          <LineSupportSettingCard />
         </div>
       </section>
     </div>
