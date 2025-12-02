@@ -49,12 +49,6 @@ const AdminHeader = () => {
       description: '작업장 상태 변경 및 작업자 배치',
     },
     {
-      name: '작업장 설정',
-      href: ROUTES.ADMIN.WORKPLACE_SETTING,
-      icon: Settings,
-      description: '반, 라인, 공정 등 설정',
-    },
-    {
       name: '구 작업장 관리',
       href: ROUTES.ADMIN.OLD_SETTING_LINE,
       icon: Settings,

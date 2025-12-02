@@ -2,7 +2,10 @@
 
 import React, { useState } from 'react'
 import ShiftStatusLabel from '@/components/admin/ShiftStatusLabel'
-import { Plus } from 'lucide-react'
+import { Plus, Settings } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { ROUTES } from '@/lib/constants/routes'
+import CustomConfirmDialog from '@/components/CustomConfirmDialog'
 
 const CLASS_MOCK = [
   { id: 1, name: '1', order: 1 },
@@ -64,7 +67,19 @@ const LINE_MOCK = [
 ]
 
 const WorkPlacePage = () => {
+  const router = useRouter()
+
   const [selectedClass, setSelectedClass] = useState(CLASS_MOCK[0].name)
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false)
+
+  const handleSettingClick = () => {
+    setIsConfirmDialogOpen(true)
+  }
+
+  const handleConfirmNavigate = () => {
+    setIsConfirmDialogOpen(false)
+    router.push(ROUTES.ADMIN.WORKPLACE_SETTING)
+  }
 
   // 공정 개수 (동적으로 변경 가능)
   const processCount = 7
@@ -74,22 +89,34 @@ const WorkPlacePage = () => {
     <div className="pb-8">
       {/* 해더 아래 고정 영역 */}
       <div className="sticky bg-gray-50 top-16 z-40 pt-6 -mt-6">
-        {/* 반 선택 영역 */}
-        <div className="flex bg-gray-200 rounded-full p-1 w-fit">
-          {CLASS_MOCK.map((classItem) => (
+        <section className="flex justify-between items-center">
+          {/* 반 선택 영역 */}
+          <div className="flex bg-gray-200 rounded-full p-1 w-fit">
+            {CLASS_MOCK.map((classItem) => (
+              <button
+                key={classItem.name}
+                onClick={() => setSelectedClass(classItem.name)}
+                className={`px-6 py-2 rounded-full text-lg font-semibold transition-all ${
+                  selectedClass === classItem.name
+                    ? 'bg-black text-white shadow-sm'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                {classItem.name}반
+              </button>
+            ))}
+          </div>
+          <div>
             <button
-              key={classItem.name}
-              onClick={() => setSelectedClass(classItem.name)}
-              className={`px-6 py-2 rounded-full text-lg font-semibold transition-all ${
-                selectedClass === classItem.name
-                  ? 'bg-black text-white shadow-sm'
-                  : 'text-gray-600 hover:text-gray-800'
-              }`}
+              onClick={handleSettingClick}
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-colors shadow-sm"
             >
-              {classItem.name}반
+              <Settings className="w-4 h-4" />
+              작업장 설정
             </button>
-          ))}
-        </div>
+          </div>
+        </section>
+
         {/* 테이블 해더 영역 */}
         <div
           className="grid bg-blue-500 rounded-lg rounded-b-none py-3 mt-4 text-base text-white shadow-sm"
@@ -153,6 +180,17 @@ const WorkPlacePage = () => {
           </div>
         ))}
       </section>
+
+      <CustomConfirmDialog
+        isOpen={isConfirmDialogOpen}
+        setIsOpen={setIsConfirmDialogOpen}
+        isLoading={false}
+        title="작업장 설정"
+        desc={`설정창에 진입하면 다른 관리자의 작업장 현황 페이지 사용이 일시 중지됩니다.
+계속하시겠습니까?`}
+        btnCancel={{ btnText: '취소' }}
+        btnConfirm={{ btnText: '확인', fn: handleConfirmNavigate }}
+      />
     </div>
   )
 }

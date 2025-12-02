@@ -156,7 +156,6 @@ export default function ClassSettingCard() {
               disabled={!isDirty}
               className="gap-2"
             >
-              <X className="w-4 h-4" />
               취소
             </Button>
             <Button size="sm" onClick={handleSave} disabled={!isDirty} className="gap-2">
@@ -203,7 +202,12 @@ export default function ClassSettingCard() {
                 }}
                 className="flex-1 h-12 !text-base"
               />
-              <Button onClick={handleAddClass} className="gap-2 shrink-0 h-12">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleAddClass}
+                className="gap-2 shrink-0 h-12"
+              >
                 <Plus className="w-4 h-4" />
                 추가
               </Button>
