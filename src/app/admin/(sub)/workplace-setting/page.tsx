@@ -4,7 +4,6 @@ import React from 'react'
 import ClassSettingCard from './_component/ClassSettingCard'
 import ProcessSettingCard from './_component/ProcessSettingCard'
 import LineSettingCard from './_component/LineSettingCard'
-import LineSupportSettingCard from './_component/LineSupportSettingCard'
 
 const WorkplaceSettingPage = () => {
   return (
@@ -21,11 +20,8 @@ const WorkplaceSettingPage = () => {
 
       {/* 라인 & 린지원 설정 */}
       <section className="grid grid-cols-1 lg:grid-cols-1 gap-6 items-start">
-        <div className="h-[600px]">
+        <div className="h-[700px]">
           <LineSettingCard />
-        </div>
-        <div className="h-[500px]">
-          <LineSupportSettingCard />
         </div>
       </section>
     </div>

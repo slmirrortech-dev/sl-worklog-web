@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useMemo, useRef, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Plus, Save, X, GripVertical, Pencil } from 'lucide-react'
 import { Input } from '@/components/ui/input'
@@ -150,9 +150,14 @@ export default function ClassSettingCard() {
     { id: 3, name: '서브', order: 3 },
   ]
 
+  const [mounted, setMounted] = useState(false)
   const [originalClasses] = useState<ClassItem[]>(INITIAL_DATA)
   const [classes, setClasses] = useState<ClassItem[]>(INITIAL_DATA)
   const [newClassName, setNewClassName] = useState('')
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -247,25 +252,39 @@ export default function ClassSettingCard() {
         <div className="h-full flex flex-col">
           {/* 등록된 반 목록 (스크롤 가능) */}
           <div className="flex-1 overflow-y-auto space-y-2">
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
-            >
-              <SortableContext items={classes} strategy={verticalListSortingStrategy}>
-                <div className="space-y-2">
-                  {classes.map((classItem, index) => (
-                    <SortableItem
-                      key={classItem.id}
-                      classItem={classItem}
-                      index={index}
-                      onDelete={handleDeleteClass}
-                      onUpdateName={handleUpdateName}
-                    />
-                  ))}
-                </div>
-              </SortableContext>
-            </DndContext>
+            {mounted ? (
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext items={classes} strategy={verticalListSortingStrategy}>
+                  <div className="space-y-2">
+                    {classes.map((classItem, index) => (
+                      <SortableItem
+                        key={classItem.id}
+                        classItem={classItem}
+                        index={index}
+                        onDelete={handleDeleteClass}
+                        onUpdateName={handleUpdateName}
+                      />
+                    ))}
+                  </div>
+                </SortableContext>
+              </DndContext>
+            ) : (
+              <div className="space-y-2">
+                {classes.map((classItem, index) => (
+                  <div
+                    key={classItem.id}
+                    className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200"
+                  >
+                    <span className="text-sm text-gray-500 font-mono w-6">{index + 1}</span>
+                    <span className="font-medium flex-1">{classItem.name}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* 새 반 추가 (하단 고정) */}

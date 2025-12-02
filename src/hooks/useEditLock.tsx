@@ -64,7 +64,7 @@ const useEditLock = (currentUser: SessionUser) => {
       const { data } = await supabaseClient
         .from('edit_locks')
         .select('*')
-        .eq('resourceType', 'old-workplace-setting')
+        .eq('resourceType', 'old-workplace-settings')
         .maybeSingle()
 
       if (data) {
@@ -105,7 +105,7 @@ const useEditLock = (currentUser: SessionUser) => {
     try {
       await supabaseClient.from('edit_locks').upsert({
         id: 'global-lock',
-        resourceType: 'old-workplace-setting',
+        resourceType: 'old-workplace-settings',
         lockedBy: currentUser.id,
         lockedByName: currentUser.name,
         lockedByUserId: currentUser.userId,
@@ -119,7 +119,7 @@ const useEditLock = (currentUser: SessionUser) => {
   const stopEditing = async () => {
     setIsLoading(true)
     try {
-      await supabaseClient.from('edit_locks').delete().eq('resourceType', 'old-workplace-setting')
+      await supabaseClient.from('edit_locks').delete().eq('resourceType', 'old-workplace-settings')
     } finally {
       setIsLoading(false)
     }

@@ -196,11 +196,16 @@ export default function LineSettingCard() {
     { id: '5', name: 'SUB LINE', order: 5, classId: 3 },
   ]
 
+  const [mounted, setMounted] = useState(false)
   const [originalLines] = useState<LineItem[]>(INITIAL_LINES)
   const [lines, setLines] = useState<LineItem[]>(INITIAL_LINES)
   const [newLineName, setNewLineName] = useState('')
   const [selectedClassForNew, setSelectedClassForNew] = useState<number>(1)
   const [activeTab, setActiveTab] = useState<string>('1')
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -356,7 +361,7 @@ export default function LineSettingCard() {
                 <div className="flex-1 overflow-y-auto space-y-2 mb-4">
                   {classLines.length === 0 ? (
                     <div className="text-center py-8 text-gray-400">등록된 라인이 없습니다</div>
-                  ) : (
+                  ) : mounted ? (
                     <DndContext
                       sensors={sensors}
                       collisionDetection={closestCenter}
@@ -378,6 +383,18 @@ export default function LineSettingCard() {
                         </div>
                       </SortableContext>
                     </DndContext>
+                  ) : (
+                    <div className="space-y-2">
+                      {classLines.map((line, index) => (
+                        <div
+                          key={line.id}
+                          className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200"
+                        >
+                          <span className="text-sm text-gray-500 font-mono w-6">{index + 1}</span>
+                          <span className="font-medium flex-1">{line.name}</span>
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
               </div>
