@@ -30,6 +30,9 @@ model User {
   editLocks        EditLock[]       @relation("EditLockUser")  // 사용자가 보유한 편집 잠금들
   cellLocks        CellLock[]       @relation("CellLockUser")  // 사용자가 보유한 셀 잠금들
 
+  // 새로 추가
+  processSlot       ProcessSlot[]
+
   @@map("users")
 }
 
@@ -204,4 +207,106 @@ enum WorkStatus {
   NORMAL    // 정상
   OVERTIME  // 잔업
   EXTENDED  // 연장
+}
+
+enum WorkerStatus {
+  NORMAL    // 정상
+  OVERTIME  // 잔업
+}
+
+enum LineType {
+  NORMAL    // 기본
+  SUPPORT  // 린지원
+}
+
+
+// 신규 작업
+
+// ================================
+// WorkClass (반)
+// ================================
+model WorkClass {
+  id              String   @id @default(cuid())     // UUID (PK)
+  name            String   @unique                  // 이름
+  displayOrder    Int      @default(0)              // 순서
+
+  line FactoryLine[]
+
+  @@map("work_classes")
+}
+
+// ================================
+// SystemConfig (전역 설정)
+// ================================
+model FactoryConfig {
+  id           String   @id @default("global_config") // 고정 ID 사용
+  processCount Int      @default(7)                   // 공정 하위 프로세스의 고정 개수
+
+  @@map("factory_configs")
+}
+
+// ================================
+// LineMaster (린지원 설정)
+// ================================
+model LineMaster {
+  id           String   @id @default(cuid())
+  name         String   @unique             // 린지원 작업이름
+  displayOrder Int      @default(0)         // 순서
+
+  @@map("line_masters")
+}
+
+// ================================
+// FactoryLine (공정라인)
+// ================================
+model FactoryLine {
+  id              String   @id @default(cuid())     // UUID (PK)
+  name            String                            // 이름
+  displayOrder    Int                               // 순서
+  type            LineType    @default(NORMAL)      // 공정 타입 (일반공정/린지원)
+
+  workClassId  String
+  workClass     WorkClass   @relation(fields: [workClassId], references: [id], onDelete: Cascade)
+
+  shifts       LineShift[]
+
+  @@map("factory_lines")
+}
+
+// ================================
+// LineShift (근무조 - 주/야 상태관리)
+// ================================
+model LineShift {
+  id              String   @id @default(cuid())     // UUID (PK)
+  type            ShiftType                         // 타입 (주간/야간)
+  status          WorkStatus                        // 상태 (정상/잔업/연장)
+
+  lineId          String                            // 소속 라인 아이디
+  line            FactoryLine @relation(fields: [lineId], references: [id], onDelete: Cascade)
+
+  slots           ProcessSlot[]                      // 이 근무조에 속한 프로세스들
+
+  @@unique([lineId, type]) // 한 라인에 주간/야간 타입은 하나씩만 존재
+  @@map("line_shifts")
+}
+
+// ================================
+// ProcessSlot (공정 프로세스)
+// ================================
+model ProcessSlot {
+  id           String       @id @default(cuid())
+  name         String
+  slotIndex    Int          @default(0)
+
+  shiftId      String
+  shift        LineShift    @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+
+  // 작업자
+  workerId     String?
+  workerStatus WorkStatus   @default(NORMAL) // Enum 타입 확인 필요
+  worker       User?        @relation(fields: [workerId], references: [id])
+
+  @@unique([shiftId, name]) // 한 교대조 내에 이름이 겹치면 안됨
+  @@unique([shiftId, slotIndex]) // 한 교대조 내에 순서가 겹치면 안됨
+  @@map("process_slots")
 }
