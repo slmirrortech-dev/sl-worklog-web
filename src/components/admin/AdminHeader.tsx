@@ -4,7 +4,7 @@ import React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { BarChart3, Users, Settings, User } from 'lucide-react'
+import { BarChart3, Users, Settings, User, MonitorIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ROUTES } from '@/lib/constants/routes'
 import { useLoading } from '@/contexts/LoadingContext'
@@ -43,10 +43,16 @@ const AdminHeader = () => {
 
   const navItems = [
     {
-      name: '작업장 관리',
-      href: ROUTES.ADMIN.SETTING_LINE,
+      name: '작업장 현황',
+      href: ROUTES.ADMIN.WORKPLACE,
+      icon: MonitorIcon,
+      description: '작업장 상태 변경 및 작업자 배치',
+    },
+    {
+      name: '작업장 설정',
+      href: ROUTES.ADMIN.WORKPLACE_SETTING,
       icon: Settings,
-      description: '라인 및 공정 관리',
+      description: '반, 라인, 공정 등 설정',
     },
     {
       name: '구 작업장 관리',
@@ -74,7 +80,7 @@ const AdminHeader = () => {
         <div className="flex justify-between items-center h-16">
           {/* 로고 및 타이틀 섹션 */}
           <div className="flex items-center gap-4">
-            <Link href={ROUTES.ADMIN.SETTING_LINE} className="flex items-center gap-3">
+            <Link href={ROUTES.ADMIN.WORKPLACE} className="flex items-center gap-3">
               <div>
                 <Image
                   src="/logo.png"
@@ -90,7 +96,7 @@ const AdminHeader = () => {
           {/* 네비게이션 메뉴 */}
           <nav className="hidden md:flex items-center gap-1">
             {navItems.map((item) => {
-              const isActive = pathname.startsWith(item.href)
+              const isActive = pathname === item.href
               return (
                 <Link
                   key={item.name}

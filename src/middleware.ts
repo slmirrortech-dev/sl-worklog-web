@@ -34,7 +34,7 @@ export async function middleware(req: NextRequest) {
 
       if (session.role === 'ADMIN' || session.role === 'MANAGER') {
         // 관리자/반장은 로그인 페이지 접근 시
-        return NextResponse.redirect(new URL(ROUTES.ADMIN.SETTING_LINE, req.url))
+        return NextResponse.redirect(new URL(ROUTES.ADMIN.WORKPLACE, req.url))
       }
 
       if (session.role === 'WORKER') {
