@@ -8,9 +8,9 @@ import { ROUTES } from '@/lib/constants/routes'
 import CustomConfirmDialog from '@/components/CustomConfirmDialog'
 
 const CLASS_MOCK = [
-  { id: 1, name: '1', order: 1 },
-  { id: 2, name: '2', order: 2 },
-  { id: 3, name: '서브', order: 3 },
+  { id: 1, name: '1', displayOrder: 1 },
+  { id: 2, name: '2', displayOrder: 2 },
+  { id: 3, name: '서브', displayOrder: 3 },
 ]
 
 const LINE_MOCK = [

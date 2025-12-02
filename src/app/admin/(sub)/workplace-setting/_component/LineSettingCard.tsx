@@ -1,9 +1,9 @@
 'use client'
 
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useRef, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Plus, Save, X, Trash2, GripVertical, Pencil, Check } from 'lucide-react'
+import { Plus, Save, X, GripVertical, Pencil } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -61,6 +61,9 @@ function SortableLineItem({
 }: SortableLineItemProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [editName, setEditName] = useState(line.name)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: line.id,
   })
@@ -70,6 +73,26 @@ function SortableLineItem({
     transition,
     opacity: isDragging ? 0.5 : 1,
   }
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        isEditing &&
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        handleCancelEdit()
+      }
+    }
+
+    if (isEditing) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isEditing])
 
   const handleSaveName = () => {
     if (editName.trim() && editName !== line.name) {
@@ -85,7 +108,10 @@ function SortableLineItem({
 
   return (
     <div
-      ref={setNodeRef}
+      ref={(node) => {
+        setNodeRef(node)
+        containerRef.current = node
+      }}
       style={style}
       className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors"
     >
@@ -100,23 +126,18 @@ function SortableLineItem({
       <span className="text-sm text-gray-500 font-mono w-6">{index + 1}</span>
 
       {isEditing ? (
-        <div className="flex items-center gap-2 flex-1">
+        <div className="flex-1">
           <Input
+            ref={inputRef}
             value={editName}
             onChange={(e) => setEditName(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter') handleSaveName()
               if (e.key === 'Escape') handleCancelEdit()
             }}
-            className="h-8 flex-1"
+            className="h-8 !text-base font-medium"
             autoFocus
           />
-          <Button variant="ghost" size="sm" onClick={handleSaveName} className="h-8 px-2">
-            <Check className="w-4 h-4 text-green-600" />
-          </Button>
-          <Button variant="ghost" size="sm" onClick={handleCancelEdit} className="h-8 px-2">
-            <X className="w-4 h-4 text-red-600" />
-          </Button>
         </div>
       ) : (
         <div className="flex items-center gap-2 flex-1">
@@ -125,7 +146,7 @@ function SortableLineItem({
             variant="ghost"
             size="sm"
             onClick={() => setIsEditing(true)}
-            className="h-7 px-2 text-gray-400 hover:text-gray-600"
+            className="h-7 w-7 p-0 text-gray-400 hover:text-gray-600"
           >
             <Pencil className="w-3 h-3" />
           </Button>
@@ -152,9 +173,9 @@ function SortableLineItem({
         variant="ghost"
         size="sm"
         onClick={() => onDelete(line.id)}
-        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+        className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
       >
-        <Trash2 className="w-4 h-4" />
+        <X className="w-4 h-4" />
       </Button>
     </div>
   )
@@ -288,11 +309,16 @@ export default function LineSettingCard() {
               size="sm"
               onClick={handleCancel}
               disabled={!isDirty}
-              className="gap-2"
+              className="gap-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400"
             >
               취소
             </Button>
-            <Button size="sm" onClick={handleSave} disabled={!isDirty} className="gap-2">
+            <Button
+              size="sm"
+              onClick={handleSave}
+              disabled={!isDirty}
+              className="gap-2 bg-blue-600 text-white hover:bg-blue-700"
+            >
               <Save className="w-4 h-4" />
               저장
             </Button>
@@ -390,7 +416,7 @@ export default function LineSettingCard() {
               variant="outline"
               size="sm"
               onClick={handleAddLine}
-              className="gap-2 shrink-0 h-12"
+              className="gap-2 shrink-0 h-12 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400"
             >
               <Plus className="w-4 h-4" />
               추가
