@@ -1,14 +1,21 @@
+'use client'
+
 import React from 'react'
+import ClassSettingCard from './_component/ClassSettingCard'
+import ProcessSettingCard from './_component/ProcessSettingCard'
 
 const WorkplaceSettingPage = () => {
   return (
-    <div>
-      <ul>
-        <li>반 관리</li>
-        <li>작업장 갯수 조절</li>
-        <li>라인 전용 관리표</li>
-        <li>린지원 전용 관리표</li>
-      </ul>
+    <div className="flex flex-col space-y-8 pb-8">
+      {/* 설정 카드들 */}
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start lg:grid-rows-1">
+        <div className="h-[400px]">
+          <ClassSettingCard />
+        </div>
+        <div className="h-[400px]">
+          <ProcessSettingCard />
+        </div>
+      </section>
     </div>
   )
 }
