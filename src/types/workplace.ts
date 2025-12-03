@@ -1,4 +1,4 @@
-import { WorkClass } from '@prisma/client'
+import { ShiftType, WorkClass, WorkStatus, WorkerStatus } from '@prisma/client'
 
 export type WorkClassResponseDto = WorkClass
 
@@ -11,4 +11,34 @@ export type FactoryConfigRequest = {
 export type FactoryConfigResponse = {
   id: string
   processCount: number
+}
+
+export type FactoryLineResponse = {
+  id: string
+  displayOrder: number
+  name: string
+  shifts: LineShiftResponse
+}
+
+export type LineShiftResponse = {
+  id: string
+  lineId: string
+  status: WorkStatus
+  type: ShiftType
+  slot: ProcessSlot[]
+}
+
+export type ProcessSlot = {
+  id: string
+  name: string
+  shiftId: string
+  slotIndex: number
+  workerId: string
+  workerStatus: WorkerStatus
+  worker: {
+    id: string
+    name: string
+    userId: string
+    licensePhotoUrl: string | null
+  } | null
 }
