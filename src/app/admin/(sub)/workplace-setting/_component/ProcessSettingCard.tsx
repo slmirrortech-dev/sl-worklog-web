@@ -84,9 +84,7 @@ export default function ProcessSettingCard() {
       <CardHeader className="flex-shrink-0">
         <div className="flex items-start justify-between">
           <div className="space-y-1.5">
-            <CardTitle className="text-2xl font-bold flex items-center gap-2">
-              프로세스 설정
-            </CardTitle>
+            <CardTitle className="text-2xl font-bold flex items-center gap-2">공정 설정</CardTitle>
           </div>
 
           <div className="flex gap-2">
@@ -118,7 +116,7 @@ export default function ProcessSettingCard() {
           <div className="space-y-4 pb-4 border-b flex-shrink-0">
             <div className="flex items-center gap-4">
               <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
-                공정 개수
+                라인별 공정
               </label>
               <Input
                 type="number"

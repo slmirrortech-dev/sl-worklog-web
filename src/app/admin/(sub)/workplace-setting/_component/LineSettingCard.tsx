@@ -305,8 +305,8 @@ export default function LineSettingCard() {
       <CardHeader className="flex-shrink-0">
         <div className="flex items-start justify-between">
           <div className="space-y-1.5">
-            <CardTitle className="text-2xl font-bold flex items-center gap-2">공정 설정</CardTitle>
-            <CardDescription>작업 공정을 반별로 관리합니다</CardDescription>
+            <CardTitle className="text-2xl font-bold flex items-center gap-2">라인 설정</CardTitle>
+            <CardDescription>라인을 반별로 관리합니다</CardDescription>
           </div>
 
           <div className="flex gap-2">
@@ -422,7 +422,7 @@ export default function LineSettingCard() {
               </SelectContent>
             </Select>
             <Input
-              placeholder="추가할 공정 이름을 입력하세요"
+              placeholder="추가할 라인 이름을 입력하세요"
               value={newLineName}
               onChange={(e) => setNewLineName(e.target.value)}
               onKeyDown={(e) => {
