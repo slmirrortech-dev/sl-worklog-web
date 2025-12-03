@@ -197,7 +197,6 @@ export default function LineSettingCard() {
   const [originalLines, setOriginalLines] = useState<FactoryLineResponse[]>([])
   const [lines, setLines] = useState<FactoryLineResponse[]>([])
   const [newLineName, setNewLineName] = useState('')
-  const [selectedClassForNew, setSelectedClassForNew] = useState<string>('')
   const [activeTab, setActiveTab] = useState<string>('')
 
   useEffect(() => {
@@ -211,7 +210,6 @@ export default function LineSettingCard() {
   useEffect(() => {
     if (classesData && classesData.length > 0 && !activeTab) {
       setActiveTab(classesData[0].id)
-      setSelectedClassForNew(classesData[0].id)
     }
   }, [classesData, activeTab])
 
@@ -264,16 +262,16 @@ export default function LineSettingCard() {
   }
 
   const handleAddLine = () => {
-    if (!newLineName.trim()) return
+    if (!newLineName.trim() || !activeTab) return
 
-    const classLines = getLinesByClass(selectedClassForNew)
+    const classLines = getLinesByClass(activeTab)
     const maxOrder = classLines.length > 0 ? Math.max(...classLines.map((l) => l.displayOrder)) : 0
 
     const newLine: FactoryLineResponse = {
       id: `temp_${Date.now()}`,
       name: newLineName.trim(),
       displayOrder: maxOrder + 1,
-      workClassId: selectedClassForNew,
+      workClassId: activeTab,
     }
     setLines([...lines, newLine])
     setNewLineName('')
@@ -303,9 +301,6 @@ export default function LineSettingCard() {
           : l,
       ),
     )
-
-    // 탭도 자동으로 변경
-    setActiveTab(newClassId)
   }
 
   const handleSave = () => {
@@ -428,23 +423,6 @@ export default function LineSettingCard() {
         {/* 새 라인 추가 (하단 고정) */}
         <div className="space-y-2 pt-4 border-t flex-shrink-0">
           <div className="flex gap-2">
-            <Select
-              value={selectedClassForNew}
-              onValueChange={(value) => setSelectedClassForNew(value)}
-            >
-              <SelectTrigger className="w-32 !h-12 text-base">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {classesData &&
-                  classesData.length > 0 &&
-                  classesData.map((classItem) => (
-                    <SelectItem key={classItem.id} value={classItem.id}>
-                      {classItem.name}반
-                    </SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
             <Input
               placeholder="추가할 라인 이름을 입력하세요"
               value={newLineName}
