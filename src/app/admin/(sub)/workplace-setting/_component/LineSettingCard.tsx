@@ -81,7 +81,7 @@ function SortableLineItem({
         containerRef.current &&
         !containerRef.current.contains(event.target as Node)
       ) {
-        handleCancelEdit()
+        handleSaveName()
       }
     }
 
@@ -92,7 +92,7 @@ function SortableLineItem({
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
     }
-  }, [isEditing])
+  }, [isEditing, editName, line.name])
 
   const handleSaveName = () => {
     if (editName.trim() && editName !== line.name) {
@@ -135,6 +135,7 @@ function SortableLineItem({
               if (e.key === 'Enter') handleSaveName()
               if (e.key === 'Escape') handleCancelEdit()
             }}
+            onBlur={handleSaveName}
             className="h-8 !text-base font-medium"
             autoFocus
           />

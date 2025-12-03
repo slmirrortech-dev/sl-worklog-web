@@ -1,10 +1,13 @@
 'use client'
 
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Save } from 'lucide-react'
 import { Input } from '@/components/ui/input'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { getFactoryConfigApi, updateFactoryConfigApi } from '@/lib/api/workplace-api'
+import { useLoading } from '@/contexts/LoadingContext'
 
 interface ProcessItem {
   id: number
@@ -13,10 +16,36 @@ interface ProcessItem {
 }
 
 export default function ProcessSettingCard() {
-  const INITIAL_COUNT = 5
+  const { showLoading, hideLoading } = useLoading()
 
-  const [originalCount] = useState<number>(INITIAL_COUNT)
-  const [processCount, setProcessCount] = useState<number>(INITIAL_COUNT)
+  const [originalCount, setOriginalCount] = useState<number>(0)
+  const [processCount, setProcessCount] = useState<number>(0)
+
+  // 공장 설정 > 프로세스 개수 조회
+  const { data, refetch } = useQuery({
+    queryKey: ['getFactoryConfigApi'],
+    queryFn: getFactoryConfigApi,
+    select: (response) => {
+      return response.data.processCount
+    },
+  })
+
+  useEffect(() => {
+    if (data) {
+      setOriginalCount(data)
+      setProcessCount(data)
+    }
+  }, [data])
+
+  const { mutate } = useMutation({
+    mutationFn: updateFactoryConfigApi,
+    onSuccess: () => {
+      refetch()
+    },
+    onSettled: () => {
+      hideLoading()
+    },
+  })
 
   // 변경사항 감지
   const isDirty = useMemo(() => {
@@ -33,8 +62,8 @@ export default function ProcessSettingCard() {
   }, [processCount])
 
   const handleSave = () => {
-    // TODO: API 호출하여 저장
-    console.log('저장:', { processCount, processes })
+    showLoading()
+    mutate({ processCount })
   }
 
   const handleCancel = () => {
@@ -94,12 +123,12 @@ export default function ProcessSettingCard() {
               <Input
                 type="number"
                 min="1"
-                max="20"
+                max="10"
                 value={processCount}
                 onChange={handleCountChange}
                 className="w-24 h-10 text-center"
               />
-              <span className="text-sm text-gray-500">개 (최소 1개, 최대 20개)</span>
+              <span className="text-sm text-gray-500">개 (최소 1개, 최대 10개)</span>
             </div>
           </div>
 
