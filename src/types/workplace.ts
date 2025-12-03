@@ -17,7 +17,15 @@ export type FactoryLineResponse = {
   id: string
   displayOrder: number
   name: string
-  shifts: LineShiftResponse
+  workClassId: string
+  shifts?: LineShiftResponse[]
+}
+
+export type FactoryLineRequest = {
+  id: string
+  displayOrder: number
+  name: string
+  workClassId: string
 }
 
 export type LineShiftResponse = {

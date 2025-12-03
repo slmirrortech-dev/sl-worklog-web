@@ -29,26 +29,18 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-
-interface ClassItem {
-  id: number
-  name: string
-}
-
-interface LineItem {
-  id: string
-  name: string
-  order: number
-  classId: number
-}
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { getFactoryLineApi, getWorkClassesApi, updateFactoryLineApi } from '@/lib/api/workplace-api'
+import { FactoryLineRequest, FactoryLineResponse, WorkClassResponseDto } from '@/types/workplace'
+import { useLoading } from '@/contexts/LoadingContext'
 
 interface SortableLineItemProps {
-  line: LineItem
+  line: FactoryLineResponse
   index: number
-  classes: ClassItem[]
+  classes: WorkClassResponseDto[]
   onDelete: (id: string) => void
   onUpdateName: (id: string, name: string) => void
-  onChangeClass: (id: string, classId: number) => void
+  onChangeClass: (id: string, classId: string) => void
 }
 
 function SortableLineItem({
@@ -154,16 +146,13 @@ function SortableLineItem({
         </div>
       )}
 
-      <Select
-        value={line.classId.toString()}
-        onValueChange={(value) => onChangeClass(line.id, parseInt(value))}
-      >
+      <Select value={line.workClassId} onValueChange={(value) => onChangeClass(line.id, value)}>
         <SelectTrigger className="w-28 h-8">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
           {classes.map((classItem) => (
-            <SelectItem key={classItem.id} value={classItem.id.toString()}>
+            <SelectItem key={classItem.id} value={classItem.id}>
               {classItem.name}반
             </SelectItem>
           ))}
@@ -183,26 +172,48 @@ function SortableLineItem({
 }
 
 export default function LineSettingCard() {
-  const CLASSES: ClassItem[] = [
-    { id: 1, name: '1' },
-    { id: 2, name: '2' },
-    { id: 3, name: '서브' },
-  ]
+  const { showLoading, hideLoading } = useLoading()
 
-  const INITIAL_LINES: LineItem[] = [
-    { id: '1', name: 'MV L/R', order: 1, classId: 1 },
-    { id: '2', name: 'MV ASSY', order: 2, classId: 1 },
-    { id: '3', name: 'DV L/R', order: 3, classId: 2 },
-    { id: '4', name: 'DV ASSY', order: 4, classId: 2 },
-    { id: '5', name: 'SUB LINE', order: 5, classId: 3 },
-  ]
+  const { data: classesData } = useQuery({
+    queryKey: ['getWorkClassesApi'],
+    queryFn: getWorkClassesApi,
+    select: (response) => response.data,
+  })
+
+  const { data: factoryLineData } = useQuery({
+    queryKey: ['getFactoryLineApi'],
+    queryFn: getFactoryLineApi,
+    select: (response) => response.data,
+  })
+
+  const { mutate } = useMutation({
+    mutationFn: updateFactoryLineApi,
+    onSettled: () => {
+      hideLoading()
+    },
+  })
 
   const [mounted, setMounted] = useState(false)
-  const [originalLines] = useState<LineItem[]>(INITIAL_LINES)
-  const [lines, setLines] = useState<LineItem[]>(INITIAL_LINES)
+  const [originalLines, setOriginalLines] = useState<FactoryLineResponse[]>([])
+  const [lines, setLines] = useState<FactoryLineResponse[]>([])
   const [newLineName, setNewLineName] = useState('')
-  const [selectedClassForNew, setSelectedClassForNew] = useState<number>(1)
-  const [activeTab, setActiveTab] = useState<string>('1')
+  const [selectedClassForNew, setSelectedClassForNew] = useState<string>('')
+  const [activeTab, setActiveTab] = useState<string>('')
+
+  useEffect(() => {
+    if (factoryLineData) {
+      setOriginalLines(factoryLineData)
+      setLines(factoryLineData)
+    }
+  }, [factoryLineData])
+
+  //첫 번째 반을 기본 선택
+  useEffect(() => {
+    if (classesData && classesData.length > 0 && !activeTab) {
+      setActiveTab(classesData[0].id)
+      setSelectedClassForNew(classesData[0].id)
+    }
+  }, [classesData, activeTab])
 
   useEffect(() => {
     setMounted(true)
@@ -222,11 +233,13 @@ export default function LineSettingCard() {
   }, [lines, originalLines])
 
   // 탭별 라인 필터링
-  const getLinesByClass = (classId: number) => {
-    return lines.filter((line) => line.classId === classId).sort((a, b) => a.order - b.order)
+  const getLinesByClass = (classId: string) => {
+    return lines
+      .filter((line) => line.workClassId === classId)
+      .sort((a, b) => a.displayOrder - b.displayOrder)
   }
 
-  const handleDragEnd = (event: DragEndEvent, classId: number) => {
+  const handleDragEnd = (event: DragEndEvent, classId: string) => {
     const { active, over } = event
 
     if (over && active.id !== over.id) {
@@ -236,15 +249,15 @@ export default function LineSettingCard() {
 
       const reorderedClassLines = arrayMove(classLines, oldIndex, newIndex).map((item, index) => ({
         ...item,
-        order: index + 1,
+        displayOrder: index + 1,
       }))
 
       // 다른 반의 라인은 그대로 유지하고, 현재 반의 라인만 업데이트
       setLines((prevLines) => {
-        const otherLines = prevLines.filter((line) => line.classId !== classId)
+        const otherLines = prevLines.filter((line) => line.workClassId !== classId) // ✅ 수정: workClassId로 비교
         return [...otherLines, ...reorderedClassLines].sort((a, b) => {
-          if (a.classId === b.classId) return a.order - b.order
-          return a.classId - b.classId
+          if (a.workClassId === b.workClassId) return a.displayOrder - b.displayOrder
+          return a.workClassId.localeCompare(b.workClassId)
         })
       })
     }
@@ -254,13 +267,13 @@ export default function LineSettingCard() {
     if (!newLineName.trim()) return
 
     const classLines = getLinesByClass(selectedClassForNew)
-    const maxOrder = classLines.length > 0 ? Math.max(...classLines.map((l) => l.order)) : 0
+    const maxOrder = classLines.length > 0 ? Math.max(...classLines.map((l) => l.displayOrder)) : 0
 
-    const newLine: LineItem = {
-      id: Date.now().toString(),
+    const newLine: FactoryLineResponse = {
+      id: `temp_${Date.now()}`,
       name: newLineName.trim(),
-      order: maxOrder + 1,
-      classId: selectedClassForNew,
+      displayOrder: maxOrder + 1,
+      workClassId: selectedClassForNew,
     }
     setLines([...lines, newLine])
     setNewLineName('')
@@ -274,25 +287,30 @@ export default function LineSettingCard() {
     setLines(lines.map((line) => (line.id === id ? { ...line, name } : line)))
   }
 
-  const handleChangeClass = (id: string, newClassId: number) => {
+  const handleChangeClass = (id: string, newClassId: string) => {
     const line = lines.find((l) => l.id === id)
     if (!line) return
 
     // 새로운 반의 마지막 order 가져오기
     const newClassLines = getLinesByClass(newClassId)
-    const maxOrder = newClassLines.length > 0 ? Math.max(...newClassLines.map((l) => l.order)) : 0
+    const maxOrder =
+      newClassLines.length > 0 ? Math.max(...newClassLines.map((l) => l.displayOrder)) : 0
 
     setLines(
-      lines.map((l) => (l.id === id ? { ...l, classId: newClassId, order: maxOrder + 1 } : l)),
+      lines.map((l) =>
+        l.id === id
+          ? { ...l, workClassId: newClassId, displayOrder: maxOrder + 1 } // workClassId, displayOrder
+          : l,
+      ),
     )
 
     // 탭도 자동으로 변경
-    setActiveTab(newClassId.toString())
+    setActiveTab(newClassId)
   }
 
   const handleSave = () => {
-    // TODO: API 호출하여 저장
-    console.log('저장:', lines)
+    showLoading()
+    mutate(lines as FactoryLineRequest[])
   }
 
   const handleCancel = () => {
@@ -336,89 +354,95 @@ export default function LineSettingCard() {
         <div className="h-full flex flex-col">
           {/* 커스텀 탭 버튼 */}
           <div className="flex bg-gray-200 rounded-full p-1 w-fit mb-4">
-            {CLASSES.map((classItem) => (
-              <button
-                key={classItem.id}
-                onClick={() => setActiveTab(classItem.id.toString())}
-                className={`px-6 py-1.5 rounded-full text-base font-semibold transition-all ${
-                  activeTab === classItem.id.toString()
-                    ? 'bg-black text-white shadow-sm'
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
-              >
-                {classItem.name}반
-              </button>
-            ))}
+            {classesData &&
+              classesData.length > 0 &&
+              classesData.map((classItem) => (
+                <button
+                  key={classItem.id}
+                  onClick={() => setActiveTab(classItem.id)}
+                  className={`px-6 py-1.5 rounded-full text-base font-semibold transition-all ${
+                    activeTab === classItem.id
+                      ? 'bg-black text-white shadow-sm'
+                      : 'text-gray-600 hover:text-gray-800'
+                  }`}
+                >
+                  {classItem.name}반
+                </button>
+              ))}
           </div>
 
           {/* 탭 컨텐츠 */}
-          {CLASSES.map((classItem) => {
-            const classLines = getLinesByClass(classItem.id)
+          {classesData &&
+            classesData.length > 0 &&
+            classesData.map((classItem) => {
+              const classLines = getLinesByClass(classItem.id)
 
-            if (activeTab !== classItem.id.toString()) return null
+              if (activeTab !== classItem.id) return null
 
-            return (
-              <div key={classItem.id} className="flex-1 flex flex-col min-h-0">
-                <div className="flex-1 overflow-y-auto space-y-2 mb-4">
-                  {classLines.length === 0 ? (
-                    <div className="text-center py-8 text-gray-400">등록된 라인이 없습니다</div>
-                  ) : mounted ? (
-                    <DndContext
-                      sensors={sensors}
-                      collisionDetection={closestCenter}
-                      onDragEnd={(e) => handleDragEnd(e, classItem.id)}
-                    >
-                      <SortableContext items={classLines} strategy={verticalListSortingStrategy}>
-                        <div className="space-y-2">
-                          {classLines.map((line, index) => (
-                            <SortableLineItem
-                              key={line.id}
-                              line={line}
-                              index={index}
-                              classes={CLASSES}
-                              onDelete={handleDeleteLine}
-                              onUpdateName={handleUpdateName}
-                              onChangeClass={handleChangeClass}
-                            />
-                          ))}
-                        </div>
-                      </SortableContext>
-                    </DndContext>
-                  ) : (
-                    <div className="space-y-2">
-                      {classLines.map((line, index) => (
-                        <div
-                          key={line.id}
-                          className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200"
-                        >
-                          <span className="text-sm text-gray-500 font-mono w-6">{index + 1}</span>
-                          <span className="font-medium flex-1">{line.name}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+              return (
+                <div key={classItem.id} className="flex-1 flex flex-col min-h-0">
+                  <div className="flex-1 overflow-y-auto space-y-2 mb-4">
+                    {classLines.length === 0 ? (
+                      <div className="text-center py-8 text-gray-400">등록된 라인이 없습니다</div>
+                    ) : mounted ? (
+                      <DndContext
+                        sensors={sensors}
+                        collisionDetection={closestCenter}
+                        onDragEnd={(e) => handleDragEnd(e, classItem.id)}
+                      >
+                        <SortableContext items={classLines} strategy={verticalListSortingStrategy}>
+                          <div className="space-y-2">
+                            {classLines.map((line, index) => (
+                              <SortableLineItem
+                                key={line.id}
+                                line={line}
+                                index={index}
+                                classes={classesData!} // ✅ 이 시점에는 classesData가 확실히 존재
+                                onDelete={handleDeleteLine}
+                                onUpdateName={handleUpdateName}
+                                onChangeClass={handleChangeClass}
+                              />
+                            ))}
+                          </div>
+                        </SortableContext>
+                      </DndContext>
+                    ) : (
+                      <div className="space-y-2">
+                        {classLines.map((line, index) => (
+                          <div
+                            key={line.id}
+                            className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200"
+                          >
+                            <span className="text-sm text-gray-500 font-mono w-6">{index + 1}</span>
+                            <span className="font-medium flex-1">{line.name}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )
-          })}
+              )
+            })}
         </div>
 
         {/* 새 라인 추가 (하단 고정) */}
         <div className="space-y-2 pt-4 border-t flex-shrink-0">
           <div className="flex gap-2">
             <Select
-              value={selectedClassForNew.toString()}
-              onValueChange={(value) => setSelectedClassForNew(parseInt(value))}
+              value={selectedClassForNew}
+              onValueChange={(value) => setSelectedClassForNew(value)}
             >
               <SelectTrigger className="w-32 !h-12 text-base">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {CLASSES.map((classItem) => (
-                  <SelectItem key={classItem.id} value={classItem.id.toString()}>
-                    {classItem.name}반
-                  </SelectItem>
-                ))}
+                {classesData &&
+                  classesData.length > 0 &&
+                  classesData.map((classItem) => (
+                    <SelectItem key={classItem.id} value={classItem.id}>
+                      {classItem.name}반
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
             <Input

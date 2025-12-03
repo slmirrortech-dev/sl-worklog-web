@@ -4,6 +4,8 @@ import React from 'react'
 import ClassSettingCard from './_component/ClassSettingCard'
 import ProcessSettingCard from './_component/ProcessSettingCard'
 import LineSettingCard from './_component/LineSettingCard'
+import { useQuery } from '@tanstack/react-query'
+import { getWorkClassesApi } from '@/lib/api/workplace-api'
 
 const WorkplaceSettingPage = () => {
   return (

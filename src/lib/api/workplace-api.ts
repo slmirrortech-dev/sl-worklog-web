@@ -3,6 +3,8 @@ import { ApiResponse } from '@/types/common'
 import {
   FactoryConfigRequest,
   FactoryConfigResponse,
+  FactoryLineRequest,
+  FactoryLineResponse,
   WorkClassRequestModel,
   WorkClassResponseDto,
 } from '@/types/workplace'
@@ -42,5 +44,33 @@ export async function updateFactoryConfigApi({ processCount }: FactoryConfigRequ
   return apiFetch<ApiResponse<FactoryConfigResponse>>('/api/factory-config', {
     method: 'PUT',
     body: JSON.stringify({ processCount }),
+  })
+}
+
+/**
+ * 라인 가져오기
+ **/
+export async function getFactoryLineApi() {
+  return apiFetch<ApiResponse<FactoryLineResponse[]>>('/api/factory-line', {
+    method: 'GET',
+  })
+}
+
+/**
+ * 라인 수정하기
+ **/
+export async function updateFactoryLineApi(lines: FactoryLineRequest[]) {
+  return apiFetch<ApiResponse<{}>>('/api/factory-line', {
+    method: 'PUT',
+    body: JSON.stringify(lines),
+  })
+}
+
+/**
+ * 라인 전체 가져오기
+ **/
+export async function getAllFactoryLineApi() {
+  return apiFetch<ApiResponse<FactoryLineResponse>>('/api/factory-line/all', {
+    method: 'GET',
   })
 }
