@@ -70,7 +70,7 @@ export async function updateFactoryLineApi(lines: FactoryLineRequest[]) {
  * 라인 전체 가져오기
  **/
 export async function getAllFactoryLineApi() {
-  return apiFetch<ApiResponse<FactoryLineResponse>>('/api/factory-line/all', {
+  return apiFetch<ApiResponse<FactoryLineResponse[]>>('/api/factory-line/all', {
     method: 'GET',
   })
 }

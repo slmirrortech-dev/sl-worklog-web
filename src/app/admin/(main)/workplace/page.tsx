@@ -1,76 +1,69 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import ShiftStatusLabel from '@/components/admin/ShiftStatusLabel'
 import { Plus, Settings } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { ROUTES } from '@/lib/constants/routes'
 import CustomConfirmDialog from '@/components/CustomConfirmDialog'
-
-const CLASS_MOCK = [
-  { id: 1, name: '1', displayOrder: 1 },
-  { id: 2, name: '2', displayOrder: 2 },
-  { id: 3, name: '서브', displayOrder: 3 },
-]
-
-const LINE_MOCK = [
-  {
-    id: 'uuid', // 라인 고유 아이디
-    name: 'MV L/R', // 라인 명
-    displayOrder: 1, // 라인 순서
-    class: {
-      id: 'uuid',
-      name: '1',
-    }, // 반
-    shifts: [
-      {
-        id: 'uuid',
-        type: 'DAY',
-        status: 'NORMAL',
-        processes: [
-          {
-            id: 'uuid',
-            name: 'P1',
-            slotIndex: 1,
-            worker: {
-              id: '970382',
-              name: '최승혁',
-              status: 'NORMAL', // 초록색
-            },
-          },
-          {
-            id: 'uuid',
-            name: 'P2',
-            slotIndex: 2,
-            worker: null,
-          },
-        ],
-      },
-      {
-        id: 'uuid',
-        type: 'NIGHT',
-        status: 'NORMAL',
-        processes: [
-          {
-            id: 'uuid',
-            name: 'P1',
-            worker: {
-              id: 'uuid',
-              name: '작업자',
-              status: 'NORMAL',
-            },
-          },
-        ],
-      },
-    ],
-  },
-]
+import { useQuery } from '@tanstack/react-query'
+import {
+  getAllFactoryLineApi,
+  getFactoryConfigApi,
+  getWorkClassesApi,
+} from '@/lib/api/workplace-api'
+import { WorkClassResponse } from '@/types/workplace'
+import { useLoading } from '@/contexts/LoadingContext'
 
 const WorkPlacePage = () => {
   const router = useRouter()
+  const { showLoading, hideLoading } = useLoading()
 
-  const [selectedClass, setSelectedClass] = useState(CLASS_MOCK[0].name)
+  const { data: classesData, isPending: isPendingClasses } = useQuery({
+    queryKey: ['getWorkClassesApi'],
+    queryFn: getWorkClassesApi,
+    select: (response) => response.data,
+  })
+
+  const { data: allFactoryLineData, isPending: isPendingAllFactoryLineData } = useQuery({
+    queryKey: ['getAllFactoryLineApi'],
+    queryFn: getAllFactoryLineApi,
+    select: (response) => response.data,
+  })
+
+  const { data: factoryConfigData, isPending: isPendingFactoryConfig } = useQuery({
+    queryKey: ['getFactoryConfigApi'],
+    queryFn: getFactoryConfigApi,
+    select: (response) => response.data,
+  })
+
+  const [classes, setClasses] = useState<WorkClassResponse[]>([])
+  const [selectedClassId, setSelectedClassId] = useState<string>('')
+  const [filteredLines, setFilteredLines] = useState<typeof allFactoryLineData>([])
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false)
+
+  useEffect(() => {
+    if (classesData) {
+      setClasses(classesData)
+      setSelectedClassId(classesData[0].id)
+    }
+  }, [classesData])
+
+  // 선택한 반에 맞게 라인 필터링
+  useEffect(() => {
+    if (allFactoryLineData && selectedClassId) {
+      const filtered = allFactoryLineData.filter((line) => line.workClassId === selectedClassId)
+      setFilteredLines(filtered)
+    }
+  }, [allFactoryLineData, selectedClassId])
+
+  useEffect(() => {
+    if (isPendingClasses || isPendingAllFactoryLineData || isPendingFactoryConfig) {
+      showLoading()
+    } else {
+      hideLoading()
+    }
+  }, [isPendingClasses, isPendingAllFactoryLineData, isPendingFactoryConfig])
 
   const handleSettingClick = () => {
     setIsConfirmDialogOpen(true)
@@ -82,7 +75,7 @@ const WorkPlacePage = () => {
   }
 
   // 공정 개수 (동적으로 변경 가능)
-  const processCount = 7
+  const processCount = factoryConfigData?.processCount ?? 7
   const totalColumns = 2 + processCount // 라인명 + 상태 + 공정들
 
   return (
@@ -92,12 +85,12 @@ const WorkPlacePage = () => {
         <section className="flex justify-between items-center">
           {/* 반 선택 영역 */}
           <div className="flex bg-gray-200 rounded-full p-1 w-fit">
-            {CLASS_MOCK.map((classItem) => (
+            {classes.map((classItem) => (
               <button
                 key={classItem.name}
-                onClick={() => setSelectedClass(classItem.name)}
+                onClick={() => setSelectedClassId(classItem.id)}
                 className={`px-6 py-2 rounded-full text-lg font-semibold transition-all ${
-                  selectedClass === classItem.name
+                  selectedClassId === classItem.id
                     ? 'bg-black text-white shadow-sm'
                     : 'text-gray-600 hover:text-gray-800'
                 }`}
@@ -134,52 +127,136 @@ const WorkPlacePage = () => {
           ))}
         </div>
       </div>
-      <section
-        className="grid bg-white"
-        style={{ gridTemplateColumns: `repeat(${totalColumns}, 1fr)` }}
-      >
-        <div className="flex items-center justify-center text-lg font-bold whitespace-nowrap">
-          라인A
-        </div>
-        <div className="flex flex-col">
-          <div className="flex-1 bg-gray-50 gap-3 flex items-center justify-center text-base font-semibold whitespace-nowrap">
-            <div>주간</div>
-            <div>
-              <ShiftStatusLabel status={'NORMAL'} size={'lg'} />
-            </div>
-          </div>
-          <div className="flex-1 bg-gray-100 gap-3 flex items-center justify-center text-base font-semibold whitespace-nowrap">
-            <div>야간</div>
-            <div>
-              <ShiftStatusLabel status={'NORMAL'} size={'lg'} />
-            </div>
-          </div>
-        </div>
-        {Array.from(Array(processCount).keys()).map((index) => (
-          <div key={index} className="flex flex-col h-50">
-            <div className="flex-1 bg-gray-50 gap-4 px-1 py-2 flex items-center justify-center">
-              <div className="w-full rounded-lg border shadow-sm text-gray-400 flex flex-col h-full items-center justify-center gap-2 transition-all duration-300 border-gray-200 hover:bg-gray-100 border-dashed !cursor-move">
-                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                  <Plus className="w-4 h-4" />
+      {/* 라인 목록 렌더링 */}
+      {filteredLines && filteredLines.length > 0 ? (
+        filteredLines.map((line) => {
+          const dayShift = line.shifts?.find((shift) => shift.type === 'DAY')
+          const nightShift = line.shifts?.find((shift) => shift.type === 'NIGHT')
+
+          return (
+            <section
+              key={line.id}
+              className="grid bg-white"
+              style={{ gridTemplateColumns: `repeat(${totalColumns}, 1fr)` }}
+            >
+              {/* 라인명 */}
+              <div className="flex items-center justify-center text-lg font-bold whitespace-nowrap border-b border-gray-200">
+                {line.name}
+              </div>
+
+              {/* 상태 (주간/야간) */}
+              <div className="flex flex-col border-b border-gray-200">
+                <div className="flex-1 bg-gray-50 gap-3 flex items-center justify-center text-base font-semibold whitespace-nowrap">
+                  <div>주간</div>
+                  <div>
+                    <ShiftStatusLabel status={dayShift?.status ?? 'NORMAL'} size={'lg'} />
+                  </div>
                 </div>
-                <span className="text-xs font-medium">대기</span>
+                <div className="flex-1 bg-gray-100 gap-3 flex items-center justify-center text-base font-semibold whitespace-nowrap">
+                  <div>야간</div>
+                  <div>
+                    <ShiftStatusLabel status={nightShift?.status ?? 'NORMAL'} size={'lg'} />
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="flex-1 bg-gray-100 gap-4 px-1 py-2 flex items-center justify-center">
-              <div className="w-full rounded-lg border shadow-sm h-full flex flex-col items-center justify-center transition-all duration-300 bg-white border-gray-200 hover:bg-gray-50 hover:shadow-md !cursor-move">
-                <p className="flex items-center justify-center gap-1 text-base font-medium">
-                  <span className="relative flex h-2.5 w-2.5 mr-1">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
-                  </span>
-                  최승혁
-                </p>
-                <span className={`text-sm text-gray-600`}>사번 : 970382</span>
-              </div>
-            </div>
-          </div>
-        ))}
-      </section>
+
+              {/* 공정 슬롯 (P1, P2, ...) */}
+              {Array.from(Array(processCount).keys()).map((slotIndex) => {
+                const daySlot = dayShift?.slot?.find((s) => s.slotIndex === slotIndex + 1)
+                const nightSlot = nightShift?.slot?.find((s) => s.slotIndex === slotIndex + 1)
+
+                return (
+                  <div key={slotIndex} className="flex flex-col h-50 border-b border-gray-200">
+                    {/* 주간 슬롯 */}
+                    <div className="flex-1 bg-gray-50 gap-4 px-1 py-2 flex items-center justify-center">
+                      {daySlot?.worker ? (
+                        <div className="w-full rounded-lg border shadow-sm h-full flex flex-col items-center justify-center transition-all duration-300 bg-white border-gray-200 hover:bg-gray-50 hover:shadow-md !cursor-move">
+                          <p className="flex items-center justify-center gap-1 text-base font-medium">
+                            <span className="relative flex h-2.5 w-2.5 mr-1">
+                              <span
+                                className={`animate-ping absolute inline-flex h-full w-full rounded-full ${
+                                  daySlot.workerStatus === 'NORMAL'
+                                    ? 'bg-green-400'
+                                    : daySlot.workerStatus === 'OVERTIME'
+                                      ? 'bg-yellow-400'
+                                      : 'bg-red-400'
+                                } opacity-75`}
+                              ></span>
+                              <span
+                                className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
+                                  daySlot.workerStatus === 'NORMAL'
+                                    ? 'bg-green-500'
+                                    : daySlot.workerStatus === 'OVERTIME'
+                                      ? 'bg-yellow-500'
+                                      : 'bg-red-500'
+                                }`}
+                              ></span>
+                            </span>
+                            {daySlot.worker.name}
+                          </p>
+                          <span className="text-sm text-gray-600">
+                            사번 : {daySlot.worker.userId}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="w-full rounded-lg border shadow-sm text-gray-400 flex flex-col h-full items-center justify-center gap-2 transition-all duration-300 border-gray-200 hover:bg-gray-100 border-dashed !cursor-move">
+                          <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                            <Plus className="w-4 h-4" />
+                          </div>
+                          <span className="text-xs font-medium">대기</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* 야간 슬롯 */}
+                    <div className="flex-1 bg-gray-100 gap-4 px-1 py-2 flex items-center justify-center">
+                      {nightSlot?.worker ? (
+                        <div className="w-full rounded-lg border shadow-sm h-full flex flex-col items-center justify-center transition-all duration-300 bg-white border-gray-200 hover:bg-gray-50 hover:shadow-md !cursor-move">
+                          <p className="flex items-center justify-center gap-1 text-base font-medium">
+                            <span className="relative flex h-2.5 w-2.5 mr-1">
+                              <span
+                                className={`animate-ping absolute inline-flex h-full w-full rounded-full ${
+                                  nightSlot.workerStatus === 'NORMAL'
+                                    ? 'bg-green-400'
+                                    : nightSlot.workerStatus === 'OVERTIME'
+                                      ? 'bg-yellow-400'
+                                      : 'bg-red-400'
+                                } opacity-75`}
+                              ></span>
+                              <span
+                                className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
+                                  nightSlot.workerStatus === 'NORMAL'
+                                    ? 'bg-green-500'
+                                    : nightSlot.workerStatus === 'OVERTIME'
+                                      ? 'bg-yellow-500'
+                                      : 'bg-red-500'
+                                }`}
+                              ></span>
+                            </span>
+                            {nightSlot.worker.name}
+                          </p>
+                          <span className="text-sm text-gray-600">
+                            사번 : {nightSlot.worker.userId}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="w-full rounded-lg border shadow-sm text-gray-400 flex flex-col h-full items-center justify-center gap-2 transition-all duration-300 border-gray-200 hover:bg-gray-100 border-dashed !cursor-move">
+                          <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                            <Plus className="w-4 h-4" />
+                          </div>
+                          <span className="text-xs font-medium">대기</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </section>
+          )
+        })
+      ) : (
+        <div className="text-center py-18 text-gray-400">등록된 라인이 없습니다</div>
+      )}
 
       <CustomConfirmDialog
         isOpen={isConfirmDialogOpen}

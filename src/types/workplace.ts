@@ -4,6 +4,12 @@ export type WorkClassResponseDto = WorkClass
 
 export type WorkClassRequestModel = WorkClass
 
+export type WorkClassResponse = {
+  id: string
+  name: string
+  displayOrder: number
+}
+
 export type FactoryConfigRequest = {
   processCount: number
 }
