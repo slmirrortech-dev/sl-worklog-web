@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import ShiftStatusLabel from '@/components/admin/ShiftStatusLabel'
-import { Plus, Settings } from 'lucide-react'
+import { Settings } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { ROUTES } from '@/lib/constants/routes'
 import CustomConfirmDialog from '@/components/CustomConfirmDialog'
@@ -14,6 +14,7 @@ import {
 } from '@/lib/api/workplace-api'
 import { WorkClassResponse } from '@/types/workplace'
 import { useLoading } from '@/contexts/LoadingContext'
+import ProcessSlotCard from './_component/ProcessSlotCard'
 
 const WorkPlacePage = () => {
   const router = useRouter()
@@ -162,92 +163,27 @@ const WorkPlacePage = () => {
 
               {/* 공정 슬롯 (P1, P2, ...) */}
               {Array.from(Array(processCount).keys()).map((slotIndex) => {
-                const daySlot = dayShift?.slot?.find((s) => s.slotIndex === slotIndex + 1)
-                const nightSlot = nightShift?.slot?.find((s) => s.slotIndex === slotIndex + 1)
+                const actualSlotIndex = slotIndex
+                const daySlot = dayShift?.slots?.find((s) => s.slotIndex === actualSlotIndex)
+                const nightSlot = nightShift?.slots?.find((s) => s.slotIndex === actualSlotIndex)
 
                 return (
                   <div key={slotIndex} className="flex flex-col h-50 border-b border-gray-200">
                     {/* 주간 슬롯 */}
-                    <div className="flex-1 bg-gray-50 gap-4 px-1 py-2 flex items-center justify-center">
-                      {daySlot?.worker ? (
-                        <div className="w-full rounded-lg border shadow-sm h-full flex flex-col items-center justify-center transition-all duration-300 bg-white border-gray-200 hover:bg-gray-50 hover:shadow-md !cursor-move">
-                          <p className="flex items-center justify-center gap-1 text-base font-medium">
-                            <span className="relative flex h-2.5 w-2.5 mr-1">
-                              <span
-                                className={`animate-ping absolute inline-flex h-full w-full rounded-full ${
-                                  daySlot.workerStatus === 'NORMAL'
-                                    ? 'bg-green-400'
-                                    : daySlot.workerStatus === 'OVERTIME'
-                                      ? 'bg-yellow-400'
-                                      : 'bg-red-400'
-                                } opacity-75`}
-                              ></span>
-                              <span
-                                className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
-                                  daySlot.workerStatus === 'NORMAL'
-                                    ? 'bg-green-500'
-                                    : daySlot.workerStatus === 'OVERTIME'
-                                      ? 'bg-yellow-500'
-                                      : 'bg-red-500'
-                                }`}
-                              ></span>
-                            </span>
-                            {daySlot.worker.name}
-                          </p>
-                          <span className="text-sm text-gray-600">
-                            사번 : {daySlot.worker.userId}
-                          </span>
-                        </div>
-                      ) : (
-                        <div className="w-full rounded-lg border shadow-sm text-gray-400 flex flex-col h-full items-center justify-center gap-2 transition-all duration-300 border-gray-200 hover:bg-gray-100 border-dashed !cursor-move">
-                          <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                            <Plus className="w-4 h-4" />
-                          </div>
-                          <span className="text-xs font-medium">대기</span>
-                        </div>
-                      )}
-                    </div>
+                    <ProcessSlotCard
+                      slot={daySlot}
+                      shiftType="DAY"
+                      lineId={line.id}
+                      slotIndex={actualSlotIndex}
+                    />
 
                     {/* 야간 슬롯 */}
-                    <div className="flex-1 bg-gray-100 gap-4 px-1 py-2 flex items-center justify-center">
-                      {nightSlot?.worker ? (
-                        <div className="w-full rounded-lg border shadow-sm h-full flex flex-col items-center justify-center transition-all duration-300 bg-white border-gray-200 hover:bg-gray-50 hover:shadow-md !cursor-move">
-                          <p className="flex items-center justify-center gap-1 text-base font-medium">
-                            <span className="relative flex h-2.5 w-2.5 mr-1">
-                              <span
-                                className={`animate-ping absolute inline-flex h-full w-full rounded-full ${
-                                  nightSlot.workerStatus === 'NORMAL'
-                                    ? 'bg-green-400'
-                                    : nightSlot.workerStatus === 'OVERTIME'
-                                      ? 'bg-yellow-400'
-                                      : 'bg-red-400'
-                                } opacity-75`}
-                              ></span>
-                              <span
-                                className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
-                                  nightSlot.workerStatus === 'NORMAL'
-                                    ? 'bg-green-500'
-                                    : nightSlot.workerStatus === 'OVERTIME'
-                                      ? 'bg-yellow-500'
-                                      : 'bg-red-500'
-                                }`}
-                              ></span>
-                            </span>
-                            {nightSlot.worker.name}
-                          </p>
-                          <span className="text-sm text-gray-600">
-                            사번 : {nightSlot.worker.userId}
-                          </span>
-                        </div>
-                      ) : (
-                        <div className="w-full rounded-lg border shadow-sm text-gray-400 flex flex-col h-full items-center justify-center gap-2 transition-all duration-300 border-gray-200 hover:bg-gray-100 border-dashed !cursor-move">
-                          <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                            <Plus className="w-4 h-4" />
-                          </div>
-                          <span className="text-xs font-medium">대기</span>
-                        </div>
-                      )}
-                    </div>
+                    <ProcessSlotCard
+                      slot={nightSlot}
+                      shiftType="NIGHT"
+                      lineId={line.id}
+                      slotIndex={actualSlotIndex}
+                    />
                   </div>
                 )
               })}
@@ -263,8 +199,7 @@ const WorkPlacePage = () => {
         setIsOpen={setIsConfirmDialogOpen}
         isLoading={false}
         title="작업장 설정"
-        desc={`설정창에 진입하면 다른 관리자의 작업장 현황 페이지 사용이 일시 중지됩니다.
-계속하시겠습니까?`}
+        desc={`설정창에 진입하면 다른 관리자의 작업장 현황 페이지 사용이 일시 중지됩니다.\n계속하시겠습니까?`}
         btnCancel={{ btnText: '취소' }}
         btnConfirm={{ btnText: '확인', fn: handleConfirmNavigate }}
       />

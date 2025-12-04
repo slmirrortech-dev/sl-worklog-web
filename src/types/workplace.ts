@@ -39,7 +39,7 @@ export type LineShiftResponse = {
   lineId: string
   status: WorkStatus
   type: ShiftType
-  slot: ProcessSlot[]
+  slots: ProcessSlot[]
 }
 
 export type ProcessSlot = {
