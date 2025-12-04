@@ -330,119 +330,133 @@ const WorkPlacePage = () => {
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="pb-8">
+      <>
         {/* 해더 아래 고정 영역 */}
-        <div className="sticky bg-gray-50 top-16 z-40 pt-4 -mt-6">
-          <section className="flex justify-between items-end">
-            {/* 반 선택 영역 */}
-            <div className="flex bg-gray-200 rounded-full p-1 w-fit">
-              {classes.map((classItem) => (
-                <button
-                  key={classItem.name}
-                  onClick={() => setSelectedClassId(classItem.id)}
-                  className={`px-4.5 py-1.5 rounded-full text-base font-semibold transition-all ${
-                    selectedClassId === classItem.id
-                      ? 'bg-black text-white shadow-sm'
-                      : 'text-gray-600 hover:text-gray-800'
-                  }`}
-                >
-                  {classItem.name}반
-                </button>
-              ))}
-            </div>
-            <div>
+        <section className="flex justify-between items-end">
+          {/* 반 선택 영역 */}
+          <div className="flex bg-gray-200 rounded-full p-1 w-fit">
+            {classes.map((classItem) => (
               <button
-                onClick={handleSettingClick}
-                className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-colors shadow-sm"
+                key={classItem.name}
+                onClick={() => setSelectedClassId(classItem.id)}
+                className={`px-4.5 py-1.5 rounded-full text-base font-semibold transition-all ${
+                  selectedClassId === classItem.id
+                    ? 'bg-black text-white shadow-sm'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
               >
-                <Settings className="w-4 h-4" />
-                작업장 설정
+                {classItem.name}반
               </button>
-            </div>
-          </section>
-
-          {/* 테이블 해더 영역 */}
-          <div
-            className="grid bg-blue-500 rounded-lg rounded-b-none py-3 mt-4 text-base text-white shadow-sm"
-            style={{ gridTemplateColumns: `repeat(${totalColumns}, 1fr)` }}
-          >
-            <div className="flex items-center justify-center whitespace-nowrap">공정명</div>
-            <div className="flex items-center justify-center whitespace-nowrap">공정상태</div>
-            {Array.from(Array(processCount).keys()).map((index) => (
-              <div
-                key={index}
-                className="flex items-center justify-center font-bold whitespace-nowrap"
-              >
-                P{index + 1}
-              </div>
             ))}
           </div>
-        </div>
-        {/* 라인 목록 렌더링 */}
-        {filteredLines && filteredLines.length > 0 ? (
-          filteredLines.map((line) => {
-            const dayShift = line.shifts?.find((shift) => shift.type === 'DAY')
-            const nightShift = line.shifts?.find((shift) => shift.type === 'NIGHT')
-
-            return (
-              <section
-                key={line.id}
-                className="grid bg-white"
-                style={{ gridTemplateColumns: `repeat(${totalColumns}, 1fr)` }}
-              >
-                {/* 라인명 */}
-                <div className="flex items-center justify-center text-lg font-bold whitespace-nowrap border-b border-gray-200">
-                  {line.name}
+          <div>
+            <button
+              onClick={handleSettingClick}
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-colors shadow-sm"
+            >
+              <Settings className="w-4 h-4" />
+              작업장 설정
+            </button>
+          </div>
+        </section>
+        <div className="overflow-x-auto overflow-y-hidden -mx-4 sm:-mx-6 lg:-mx-8">
+          <div className="min-w-fit px-4 sm:px-6 lg:px-8">
+            {/* 테이블 해더 영역 */}
+            <section
+              className="grid bg-blue-500 rounded-lg rounded-b-none py-3 mt-4 text-base text-white shadow-sm"
+              style={{
+                gridTemplateColumns: `repeat(${totalColumns}, minmax(${1216 / 9}px, 1fr))`,
+              }}
+            >
+              <div className="flex items-center justify-center whitespace-nowrap">공정명</div>
+              <div className="flex items-center justify-center whitespace-nowrap">공정상태</div>
+              {Array.from(Array(processCount).keys()).map((index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-center font-bold whitespace-nowrap"
+                >
+                  P{index + 1}
                 </div>
-
-                {/* 상태 (주간/야간) */}
-                <div className="flex flex-col border-b border-gray-200">
-                  <div className="flex-1 bg-gray-50 gap-3 flex items-center justify-center text-base font-semibold whitespace-nowrap">
-                    <div>주간</div>
-                    <div>
-                      <ShiftStatusLabel status={dayShift?.status ?? 'NORMAL'} size={'lg'} />
-                    </div>
-                  </div>
-                  <div className="flex-1 bg-gray-100 gap-3 flex items-center justify-center text-base font-semibold whitespace-nowrap">
-                    <div>야간</div>
-                    <div>
-                      <ShiftStatusLabel status={nightShift?.status ?? 'NORMAL'} size={'lg'} />
-                    </div>
-                  </div>
-                </div>
-
-                {/* 공정 슬롯 (P1, P2, ...) */}
-                {Array.from(Array(processCount).keys()).map((slotIndex) => {
-                  const actualSlotIndex = slotIndex
-                  const daySlot = dayShift?.slots?.find((s) => s.slotIndex === actualSlotIndex)
-                  const nightSlot = nightShift?.slots?.find((s) => s.slotIndex === actualSlotIndex)
+              ))}
+            </section>
+            <div className="overflow-y-auto h-[calc(100vh-230px)]">
+              {/* 라인 목록 렌더링 */}
+              {filteredLines && filteredLines.length > 0 ? (
+                filteredLines.map((line) => {
+                  const dayShift = line.shifts?.find((shift) => shift.type === 'DAY')
+                  const nightShift = line.shifts?.find((shift) => shift.type === 'NIGHT')
 
                   return (
-                    <div key={slotIndex} className="flex flex-col h-50 border-b border-gray-200">
-                      {/* 주간 슬롯 */}
-                      <ProcessSlotCard
-                        slot={daySlot}
-                        shiftType="DAY"
-                        lineId={line.id}
-                        slotIndex={actualSlotIndex}
-                      />
+                    <section
+                      key={line.id}
+                      className="grid bg-white"
+                      style={{
+                        gridTemplateColumns: `repeat(${totalColumns}, minmax(${1216 / 9}px, 1fr))`,
+                      }}
+                    >
+                      {/* 라인명 */}
+                      <div className="flex items-center justify-center text-lg font-bold whitespace-nowrap border-b border-gray-200">
+                        {line.name}
+                      </div>
 
-                      {/* 야간 슬롯 */}
-                      <ProcessSlotCard
-                        slot={nightSlot}
-                        shiftType="NIGHT"
-                        lineId={line.id}
-                        slotIndex={actualSlotIndex}
-                      />
-                    </div>
+                      {/* 상태 (주간/야간) */}
+                      <div className="flex flex-col border-b border-gray-200">
+                        <div className="flex-1 bg-gray-50 gap-3 flex items-center justify-center text-base font-semibold whitespace-nowrap">
+                          <div>주간</div>
+                          <div>
+                            <ShiftStatusLabel status={dayShift?.status ?? 'NORMAL'} size={'lg'} />
+                          </div>
+                        </div>
+                        <div className="flex-1 bg-gray-100 gap-3 flex items-center justify-center text-base font-semibold whitespace-nowrap">
+                          <div>야간</div>
+                          <div>
+                            <ShiftStatusLabel status={nightShift?.status ?? 'NORMAL'} size={'lg'} />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 공정 슬롯 (P1, P2, ...) */}
+                      {Array.from(Array(processCount).keys()).map((slotIndex) => {
+                        const actualSlotIndex = slotIndex
+                        const daySlot = dayShift?.slots?.find(
+                          (s) => s.slotIndex === actualSlotIndex,
+                        )
+                        const nightSlot = nightShift?.slots?.find(
+                          (s) => s.slotIndex === actualSlotIndex,
+                        )
+
+                        return (
+                          <div
+                            key={slotIndex}
+                            className="flex flex-col h-50 border-b border-gray-200"
+                          >
+                            {/* 주간 슬롯 */}
+                            <ProcessSlotCard
+                              slot={daySlot}
+                              shiftType="DAY"
+                              lineId={line.id}
+                              slotIndex={actualSlotIndex}
+                            />
+
+                            {/* 야간 슬롯 */}
+                            <ProcessSlotCard
+                              slot={nightSlot}
+                              shiftType="NIGHT"
+                              lineId={line.id}
+                              slotIndex={actualSlotIndex}
+                            />
+                          </div>
+                        )
+                      })}
+                    </section>
                   )
-                })}
-              </section>
-            )
-          })
-        ) : (
-          <div className="text-center py-18 text-gray-400">등록된 라인이 없습니다</div>
-        )}
+                })
+              ) : (
+                <div className="text-center py-18 text-gray-400">등록된 라인이 없습니다</div>
+              )}
+            </div>
+          </div>
+        </div>
 
         <CustomConfirmDialog
           isOpen={isConfirmDialogOpen}
@@ -453,7 +467,7 @@ const WorkPlacePage = () => {
           btnCancel={{ btnText: '취소' }}
           btnConfirm={{ btnText: '확인', fn: handleConfirmNavigate }}
         />
-      </div>
+      </>
 
       <DragOverlay dropAnimation={null}>
         {activeWorker ? (
