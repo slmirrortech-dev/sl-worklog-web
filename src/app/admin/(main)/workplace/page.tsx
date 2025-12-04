@@ -379,7 +379,7 @@ const WorkPlacePage = () => {
                 </div>
               ))}
             </section>
-            <div className="overflow-y-auto h-[calc(100vh-230px)]">
+            <div className="overflow-y-auto h-[calc(100vh-280px)] lg:h-[calc(100vh-230px)]">
               {/* 라인 목록 렌더링 */}
               {filteredLines && filteredLines.length > 0 ? (
                 filteredLines.map((line) => {
