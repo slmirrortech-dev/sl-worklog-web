@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Plus, User, X } from 'lucide-react'
+import { Plus, X } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { ProcessSlot } from '@/types/workplace'
 import AddWorkerPopover from './AddWorkerPopover'
@@ -12,6 +12,7 @@ import { useLoading } from '@/contexts/LoadingContext'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
 import CustomConfirmDialog from '@/components/CustomConfirmDialog'
+import { useDraggable, useDroppable } from '@dnd-kit/core'
 
 interface ProcessSlotCardProps {
   slot?: ProcessSlot
@@ -36,7 +37,32 @@ export default function ProcessSlotCard({
   // workerId가 있으면 작업자가 배치된 것으로 간주
   const hasWorker = slot?.workerId && slot?.worker
 
-  // 작업자 제거 mutation
+  // Droppable 설정 (모든 슬롯은 드롭 가능)
+  const droppableId = `${lineId}-${shiftType}-${slotIndex}`
+  const { setNodeRef: setDroppableRef, isOver } = useDroppable({
+    id: droppableId,
+  })
+
+  // Draggable 설정 (작업자가 있는 경우에만)
+  const draggableId = hasWorker ? slot.workerId! : ''
+  const {
+    attributes,
+    listeners,
+    setNodeRef: setDraggableRef,
+    isDragging,
+  } = useDraggable({
+    id: draggableId,
+    data: {
+      lineId,
+      shiftType,
+      slotIndex,
+      worker: slot?.worker,
+      workerStatus: slot?.workerStatus,
+    },
+    disabled: !hasWorker, // 작업자가 없으면 드래그 비활성화
+  })
+
+  // 작업자 제거
   const removeWorkerMutation = useMutation({
     mutationFn: () => removeWorkerFromSlotApi(lineId, shiftType, slotIndex),
     onMutate: () => {
@@ -55,7 +81,7 @@ export default function ProcessSlotCard({
     },
   })
 
-  // 작업자 상태 변경 mutation
+  // 작업자 상태 변경
   const updateStatusMutation = useMutation({
     mutationFn: (workerStatus: 'NORMAL' | 'OVERTIME') =>
       updateWorkerStatusApi(lineId, shiftType, slotIndex, workerStatus),
@@ -88,30 +114,40 @@ export default function ProcessSlotCard({
   }
 
   return (
-    <div className={`flex-1 ${bgColor} gap-4 px-1 py-2 flex items-center justify-center`}>
+    <div
+      ref={setDroppableRef}
+      className={`flex-1 ${bgColor} gap-4 px-1 py-2 flex items-center justify-center transition-all duration-300 ${
+        isOver ? 'shadow-md' : ''
+      }`}
+    >
       {hasWorker ? (
         // 작업자가 있을 때
-        <Popover open={isOpen} onOpenChange={setIsOpen}>
+        <Popover open={!isDragging && isOpen} onOpenChange={setIsOpen}>
           <PopoverTrigger asChild>
-            <div className="w-full rounded-lg border shadow-sm h-full flex flex-col items-center justify-center transition-all duration-300 bg-white border-gray-200 hover:bg-gray-50 hover:shadow-md cursor-pointer">
+            <div
+              ref={setDraggableRef}
+              {...attributes}
+              {...listeners}
+              className={`w-full rounded-lg border shadow-sm h-full flex flex-col items-center justify-center bg-white border-gray-200 hover:bg-gray-50 hover:shadow-md transition-all duration-300 ${
+                isDragging
+                  ? 'opacity-70 scale-95 cursor-move bg-gray-200 border-gray-400'
+                  : 'cursor-grab active:cursor-grabbing'
+              }`}
+            >
               <p className="flex items-center justify-center gap-1 text-base font-medium">
                 <span className="relative flex h-2.5 w-2.5 mr-1">
                   <span
                     className={`animate-ping absolute inline-flex h-full w-full rounded-full ${
                       slot.workerStatus === 'NORMAL'
                         ? 'bg-green-400'
-                        : slot.workerStatus === 'OVERTIME'
-                          ? 'bg-yellow-400'
-                          : 'bg-red-400'
+                        : slot.workerStatus === 'OVERTIME' && 'bg-yellow-400'
                     } opacity-75`}
                   ></span>
                   <span
                     className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
                       slot.workerStatus === 'NORMAL'
                         ? 'bg-green-500'
-                        : slot.workerStatus === 'OVERTIME'
-                          ? 'bg-yellow-500'
-                          : 'bg-red-500'
+                        : slot.workerStatus === 'OVERTIME' && 'bg-yellow-400'
                     }`}
                   ></span>
                 </span>
@@ -189,7 +225,11 @@ export default function ProcessSlotCard({
         // 작업자가 없을 때 (대기 상태)
         <Popover open={isOpen} onOpenChange={setIsOpen}>
           <PopoverTrigger asChild>
-            <div className="w-full rounded-lg border shadow-sm text-gray-400 flex flex-col h-full items-center justify-center gap-2 transition-all duration-300 border-gray-200 hover:bg-gray-100 border-dashed cursor-pointer">
+            <div
+              className={`w-full rounded-lg border shadow-sm text-gray-400 flex flex-col h-full items-center justify-center gap-2 transition-all duration-300 border-gray-200 border-dashed cursor-pointer ${
+                isOver ? 'shadow-md hover:bg-gray-100' : 'hover:bg-gray-100'
+              }`}
+            >
               <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
                 <Plus className="w-4 h-4" />
               </div>

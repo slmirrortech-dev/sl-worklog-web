@@ -41,7 +41,7 @@ export default function AddWorkerPopover({
     select: (response) => response.data,
   })
 
-  // 작업자 추가 mutation
+  // 작업자 추가
   const addWorkerMutation = useMutation({
     mutationFn: ({ workerId, force = false }: { workerId: string; force?: boolean }) =>
       addWorkerToSlotApi(lineId, shiftType, slotIndex, workerId, force),

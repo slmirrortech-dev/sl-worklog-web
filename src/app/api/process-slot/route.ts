@@ -103,8 +103,8 @@ async function addWorkerToSlot(request: NextRequest) {
   let updatedSlot
 
   if (existingSlot) {
-    // 이미 다른 작업자가 있는지 확인
-    if (existingSlot.workerId && existingSlot.workerId !== workerId) {
+    // 이미 다른 작업자가 있는지 확인 (force가 아닐 때만)
+    if (!force && existingSlot.workerId && existingSlot.workerId !== workerId) {
       throw new ApiError('해당 슬롯에 이미 다른 작업자가 배치되어 있습니다.', 400)
     }
 

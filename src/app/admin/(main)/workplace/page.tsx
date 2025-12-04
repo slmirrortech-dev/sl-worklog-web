@@ -6,7 +6,7 @@ import { Settings } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { ROUTES } from '@/lib/constants/routes'
 import CustomConfirmDialog from '@/components/CustomConfirmDialog'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   getAllFactoryLineApi,
   getFactoryConfigApi,
@@ -15,10 +15,22 @@ import {
 import { WorkClassResponse } from '@/types/workplace'
 import { useLoading } from '@/contexts/LoadingContext'
 import ProcessSlotCard from './_component/ProcessSlotCard'
+import {
+  DndContext,
+  DragEndEvent,
+  DragOverlay,
+  DragStartEvent,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  closestCenter,
+} from '@dnd-kit/core'
+import { addWorkerToSlotApi, removeWorkerFromSlotApi } from '@/lib/api/process-slot-api'
 
 const WorkPlacePage = () => {
   const router = useRouter()
   const { showLoading, hideLoading } = useLoading()
+  const queryClient = useQueryClient()
 
   const { data: classesData, isPending: isPendingClasses } = useQuery({
     queryKey: ['getWorkClassesApi'],
@@ -42,6 +54,21 @@ const WorkPlacePage = () => {
   const [selectedClassId, setSelectedClassId] = useState<string>('')
   const [filteredLines, setFilteredLines] = useState<typeof allFactoryLineData>([])
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false)
+  const [activeWorker, setActiveWorker] = useState<{
+    id: string
+    name: string
+    userId: string
+    workerStatus: 'NORMAL' | 'OVERTIME' | null
+  } | null>(null)
+
+  // 드래그 앤 드롭을 위한 센서 설정
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 3, // 3px 이동 후 드래그 시작 (빠른 반응)
+      },
+    }),
+  )
 
   useEffect(() => {
     if (classesData) {
@@ -66,6 +93,223 @@ const WorkPlacePage = () => {
     }
   }, [isPendingClasses, isPendingAllFactoryLineData, isPendingFactoryConfig])
 
+  // 작업자 이동 mutation (Optimistic Update 적용)
+  const moveWorkerMutation = useMutation({
+    mutationFn: async ({
+      workerId,
+      fromLineId,
+      fromShiftType,
+      fromSlotIndex,
+      toLineId,
+      toShiftType,
+      toSlotIndex,
+      toWorkerId,
+    }: {
+      workerId: string
+      fromLineId: string
+      fromShiftType: 'DAY' | 'NIGHT'
+      fromSlotIndex: number
+      toLineId: string
+      toShiftType: 'DAY' | 'NIGHT'
+      toSlotIndex: number
+      toWorkerId: string | null
+    }) => {
+      if (toWorkerId) {
+        // 스왑: 도착지 작업자를 출발지로 먼저 이동
+        await addWorkerToSlotApi(fromLineId, fromShiftType, fromSlotIndex, toWorkerId, true)
+        // 그 다음 출발지 작업자를 도착지로 이동
+        await addWorkerToSlotApi(toLineId, toShiftType, toSlotIndex, workerId, true)
+      } else {
+        // 일반 이동: 새 위치에 배치 (force=true로 기존 위치에서 자동 제거)
+        await addWorkerToSlotApi(toLineId, toShiftType, toSlotIndex, workerId, true)
+      }
+    },
+    onMutate: async ({
+      workerId,
+      fromLineId,
+      fromShiftType,
+      fromSlotIndex,
+      toLineId,
+      toShiftType,
+      toSlotIndex,
+      toWorkerId,
+    }) => {
+      // 진행 중인 refetch 취소
+      await queryClient.cancelQueries({ queryKey: ['getAllFactoryLineApi'] })
+
+      // 현재 데이터 스냅샷 저장
+      const previousData = queryClient.getQueryData(['getAllFactoryLineApi'])
+
+      // Optimistic Update: 캐시를 즉시 업데이트
+      queryClient.setQueryData(['getAllFactoryLineApi'], (old: any) => {
+        if (!old?.data) return old
+
+        const newData = JSON.parse(JSON.stringify(old.data)) // deep copy
+
+        // 출발지 라인 찾기
+        const fromLine = newData.find((line: any) => line.id === fromLineId)
+        if (!fromLine) return old
+
+        // 출발지 shift 찾기
+        const fromShift = fromLine.shifts?.find((shift: any) => shift.type === fromShiftType)
+        if (!fromShift) return old
+
+        // 출발지 slot 찾기
+        const fromSlot = fromShift.slots?.find((slot: any) => slot.slotIndex === fromSlotIndex)
+        if (!fromSlot || !fromSlot.worker) return old
+
+        // 출발지 작업자 정보 저장
+        const fromWorker = fromSlot.worker
+        const fromWorkerStatus = fromSlot.workerStatus
+
+        // 도착지 라인 찾기
+        const toLine = newData.find((line: any) => line.id === toLineId)
+        if (!toLine) return old
+
+        // 도착지 shift 찾기
+        const toShift = toLine.shifts?.find((shift: any) => shift.type === toShiftType)
+        if (!toShift) return old
+
+        // 도착지 slot 찾기
+        let toSlot = toShift.slots?.find((slot: any) => slot.slotIndex === toSlotIndex)
+
+        if (toWorkerId && toSlot && toSlot.worker) {
+          // 스왑: 두 작업자 위치 교환
+          const toWorker = toSlot.worker
+          const toWorkerStatus = toSlot.workerStatus
+
+          // 출발지에 도착지 작업자 배치
+          fromSlot.workerId = toWorkerId
+          fromSlot.worker = toWorker
+          fromSlot.workerStatus = toWorkerStatus
+
+          // 도착지에 출발지 작업자 배치
+          toSlot.workerId = workerId
+          toSlot.worker = fromWorker
+          toSlot.workerStatus = fromWorkerStatus
+        } else {
+          // 일반 이동
+          // 출발지에서 작업자 제거
+          fromSlot.workerId = null
+          fromSlot.worker = null
+          fromSlot.workerStatus = null
+
+          // 도착지에 작업자 추가
+          if (toSlot) {
+            // 슬롯이 이미 존재하면 업데이트
+            toSlot.workerId = workerId
+            toSlot.worker = fromWorker
+            toSlot.workerStatus = fromWorkerStatus
+          } else {
+            // 슬롯이 없으면 새로 생성
+            if (!toShift.slots) toShift.slots = []
+            toShift.slots.push({
+              id: `temp_${Date.now()}`,
+              name: `P${toSlotIndex + 1}`,
+              slotIndex: toSlotIndex,
+              shiftId: toShift.id,
+              workerId: workerId,
+              worker: fromWorker,
+              workerStatus: fromWorkerStatus,
+            })
+          }
+        }
+
+        return { ...old, data: newData }
+      })
+
+      return { previousData }
+    },
+    onError: (error: Error, variables, context) => {
+      // 에러 발생 시 롤백
+      if (context?.previousData) {
+        queryClient.setQueryData(['getAllFactoryLineApi'], context.previousData)
+      }
+      alert(`작업자 이동 실패: ${error.message}`)
+    },
+    onSettled: () => {
+      // 항상 refetch하여 서버 데이터와 동기화
+      queryClient.invalidateQueries({ queryKey: ['getAllFactoryLineApi'] })
+    },
+  })
+
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event
+    const workerId = active.id as string
+
+    // active.data에서 작업자 정보 가져오기
+    const workerData = active.data.current as {
+      lineId: string
+      shiftType: 'DAY' | 'NIGHT'
+      slotIndex: number
+      worker?: {
+        id: string
+        name: string
+        userId: string
+      }
+      workerStatus?: 'NORMAL' | 'OVERTIME' | null
+    }
+
+    if (workerData?.worker) {
+      setActiveWorker({
+        id: workerId,
+        name: workerData.worker.name,
+        userId: workerData.worker.userId,
+        workerStatus: workerData.workerStatus || null,
+      })
+    }
+  }
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+    setActiveWorker(null)
+
+    if (!over) return
+
+    // active.id: "workerId"
+    // over.id: "lineId-shiftType-slotIndex"
+    const activeId = active.id as string
+    const overId = over.id as string
+
+    // active.data에서 출발지 정보 가져오기
+    const fromData = active.data.current as {
+      lineId: string
+      shiftType: 'DAY' | 'NIGHT'
+      slotIndex: number
+    }
+
+    // over.id 파싱 (형식: "lineId-shiftType-slotIndex")
+    const [toLineId, toShiftType, toSlotIndexStr] = overId.split('-')
+    const toSlotIndex = parseInt(toSlotIndexStr, 10)
+
+    // 같은 위치면 무시
+    if (
+      fromData.lineId === toLineId &&
+      fromData.shiftType === toShiftType &&
+      fromData.slotIndex === toSlotIndex
+    ) {
+      return
+    }
+
+    // 도착지에 작업자가 있는지 확인
+    const toLine = allFactoryLineData?.find((line) => line.id === toLineId)
+    const toShift = toLine?.shifts?.find((shift) => shift.type === toShiftType)
+    const toSlot = toShift?.slots?.find((slot) => slot.slotIndex === toSlotIndex)
+    const toWorkerId = toSlot?.workerId
+
+    // 작업자 이동 (스왑 여부 포함)
+    moveWorkerMutation.mutate({
+      workerId: activeId,
+      fromLineId: fromData.lineId,
+      fromShiftType: fromData.shiftType,
+      fromSlotIndex: fromData.slotIndex,
+      toLineId,
+      toShiftType: toShiftType as 'DAY' | 'NIGHT',
+      toSlotIndex,
+      toWorkerId: toWorkerId || null, // 도착지에 작업자가 있으면 스왑
+    })
+  }
+
   const handleSettingClick = () => {
     setIsConfirmDialogOpen(true)
   }
@@ -80,9 +324,15 @@ const WorkPlacePage = () => {
   const totalColumns = 2 + processCount // 라인명 + 상태 + 공정들
 
   return (
-    <div className="pb-8">
-      {/* 해더 아래 고정 영역 */}
-      <div className="sticky bg-gray-50 top-16 z-40 pt-6 -mt-6">
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
+      <div className="pb-8">
+        {/* 해더 아래 고정 영역 */}
+        <div className="sticky bg-gray-50 top-16 z-40 pt-6 -mt-6">
         <section className="flex justify-between items-center">
           {/* 반 선택 영역 */}
           <div className="flex bg-gray-200 rounded-full p-1 w-fit">
@@ -203,7 +453,39 @@ const WorkPlacePage = () => {
         btnCancel={{ btnText: '취소' }}
         btnConfirm={{ btnText: '확인', fn: handleConfirmNavigate }}
       />
-    </div>
+      </div>
+
+      <DragOverlay dropAnimation={null}>
+        {activeWorker ? (
+          <div className="w-40 rounded-lg border shadow-lg h-20 flex flex-col items-center justify-center bg-white border-gray-300 cursor-move">
+            <p className="flex items-center justify-center gap-1 text-base font-medium">
+              <span className="relative flex h-2.5 w-2.5 mr-1">
+                <span
+                  className={`animate-ping absolute inline-flex h-full w-full rounded-full ${
+                    activeWorker.workerStatus === 'NORMAL'
+                      ? 'bg-green-400'
+                      : activeWorker.workerStatus === 'OVERTIME'
+                        ? 'bg-yellow-400'
+                        : 'bg-red-400'
+                  } opacity-75`}
+                ></span>
+                <span
+                  className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
+                    activeWorker.workerStatus === 'NORMAL'
+                      ? 'bg-green-500'
+                      : activeWorker.workerStatus === 'OVERTIME'
+                        ? 'bg-yellow-500'
+                        : 'bg-red-500'
+                  }`}
+                ></span>
+              </span>
+              {activeWorker.name}
+            </p>
+            <span className="text-sm text-gray-600">사번 : {activeWorker.userId}</span>
+          </div>
+        ) : null}
+      </DragOverlay>
+    </DndContext>
   )
 }
 
