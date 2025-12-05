@@ -104,10 +104,19 @@ const WorkPlacePage = () => {
     mutationFn: async ({ shiftId, status }: { shiftId: string; status: WorkStatus }) => {
       await updateShiftStatusApi(shiftId, status)
     },
+    onMutate: () => {
+      setSaveProgress(30)
+    },
     onSuccess: () => {
+      setSaveProgress(70)
+      setTimeout(() => {
+        setSaveProgress(100)
+        setTimeout(() => setSaveProgress(0), 500)
+      }, 300)
       queryClient.invalidateQueries({ queryKey: ['getAllFactoryLineApi'] })
     },
     onError: (error: Error) => {
+      setSaveProgress(0)
       alert(`상태 변경 실패: ${error.message}`)
     },
   })
@@ -276,7 +285,6 @@ const WorkPlacePage = () => {
         userId: string
       }
       workerStatus?: 'NORMAL' | 'OVERTIME' | null
-      width?: number
     }
 
     if (workerData?.worker) {
@@ -285,7 +293,6 @@ const WorkPlacePage = () => {
         name: workerData.worker.name,
         userId: workerData.worker.userId,
         workerStatus: workerData.workerStatus || null,
-        width: workerData.width || 127, // ProcessSlotCard에서 전달받은 너비 사용
       })
     }
   }
@@ -466,7 +473,10 @@ const WorkPlacePage = () => {
                               <ShiftStatusSelect
                                 status={nightShift.status}
                                 onStatusChange={(status) =>
-                                  updateShiftStatusMutation.mutate({ shiftId: nightShift.id, status })
+                                  updateShiftStatusMutation.mutate({
+                                    shiftId: nightShift.id,
+                                    status,
+                                  })
                                 }
                               />
                             ) : (
