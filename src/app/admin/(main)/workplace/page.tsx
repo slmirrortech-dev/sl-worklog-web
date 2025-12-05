@@ -26,11 +26,13 @@ import {
   pointerWithin,
 } from '@dnd-kit/core'
 import { addWorkerToSlotApi } from '@/lib/api/process-slot-api'
+import { Progress } from '@/components/ui/progress'
 
 const WorkPlacePage = () => {
   const router = useRouter()
   const { showLoading, hideLoading } = useLoading()
   const queryClient = useQueryClient()
+  const [saveProgress, setSaveProgress] = useState(10)
 
   const { data: classesData, isPending: isPendingClasses } = useQuery({
     queryKey: ['getWorkClassesApi'],
@@ -135,6 +137,7 @@ const WorkPlacePage = () => {
       toSlotIndex,
       toWorkerId,
     }) => {
+      setSaveProgress(30)
       // 진행 중인 refetch 취소
       await queryClient.cancelQueries({ queryKey: ['getAllFactoryLineApi'] })
 
@@ -221,7 +224,15 @@ const WorkPlacePage = () => {
 
       return { previousData }
     },
+    onSuccess: () => {
+      setSaveProgress(70)
+      setTimeout(() => {
+        setSaveProgress(100)
+        setTimeout(() => setSaveProgress(0), 500)
+      }, 300)
+    },
     onError: (error: Error, variables, context) => {
+      setSaveProgress(0)
       // 에러 발생 시 롤백
       if (context?.previousData) {
         queryClient.setQueryData(['getAllFactoryLineApi'], context.previousData)
@@ -343,31 +354,36 @@ const WorkPlacePage = () => {
     >
       <>
         {/* 해더 아래 고정 영역 */}
-        <section className="flex justify-between items-end">
-          {/* 반 선택 영역 */}
-          <div className="flex bg-gray-200 rounded-full p-1 w-fit">
-            {classes.map((classItem) => (
-              <button
-                key={classItem.name}
-                onClick={() => setSelectedClassId(classItem.id)}
-                className={`px-4.5 py-1.5 rounded-full text-base font-semibold transition-all ${
-                  selectedClassId === classItem.id
-                    ? 'bg-black text-white shadow-sm'
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
-              >
-                {classItem.name}반
-              </button>
-            ))}
+        <section className="-mt-4">
+          <div className="h-2 mb-2">
+            {saveProgress > 0 && <Progress value={saveProgress} className="h-2" />}
           </div>
-          <div>
-            <button
-              onClick={handleSettingClick}
-              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-colors shadow-sm"
-            >
-              <Settings className="w-4 h-4" />
-              작업장 설정
-            </button>
+          <div className="flex justify-between items-end">
+            {/* 반 선택 영역 */}
+            <div className="flex bg-gray-200 rounded-full p-1 w-fit">
+              {classes.map((classItem) => (
+                <button
+                  key={classItem.name}
+                  onClick={() => setSelectedClassId(classItem.id)}
+                  className={`px-4.5 py-1.5 rounded-full text-base font-semibold transition-all ${
+                    selectedClassId === classItem.id
+                      ? 'bg-black text-white shadow-sm'
+                      : 'text-gray-600 hover:text-gray-800'
+                  }`}
+                >
+                  {classItem.name}반
+                </button>
+              ))}
+            </div>
+            <div>
+              <button
+                onClick={handleSettingClick}
+                className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-colors shadow-sm"
+              >
+                <Settings className="w-4 h-4" />
+                작업장 설정
+              </button>
+            </div>
           </div>
         </section>
         <div className="overflow-x-auto overflow-y-hidden -mx-4 sm:-mx-6 lg:-mx-8">
