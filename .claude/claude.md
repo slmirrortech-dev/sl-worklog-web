@@ -2,22 +2,18 @@
 
 ## 프로젝트 개요
 
-SL미러텍의 작업자 배치와 작업 기록을 디지털화한 웹 기반 공장 관리 시스템입니다.
-기존 칠판과 엑셀로 관리하던 작업 기록을 실시간으로 관리하고 공유할 수 있도록 개발되었습니다.
+SL미러텍의 작업자 배치와 공정 관리를 디지털화한 웹 기반 공장 관리 시스템입니다.
+기존 칠판과 엑셀로 관리하던 작업자/공정 관리를 실시간으로 관리하고 공유할 수 있도록 개발되었습니다.
 
 ### 주요 모드
 
-1. **작업자 모드** (모바일 최적화)
-   - 작업 시작/종료 기록
-   - 날짜별 작업 내역 확인
-
-2. **관리자 모드** (PC 반응형)
-   - 작업자 배치 관리
-   - 작업 기록 관리
-   - 실시간 공장 현황 관리
+1. **관리자 모드** (PC/Mobile 반응형)
+   - 작업장 현황 : 라인별 상태 관리, 작업자 배치 관리
+   - 작업장 관리 : 라인, 공정 설정 (진입 시 작업장 현황 Lock)
+   - 작업자 관리 : 관리자, 작업반장, 작업자 등록/수정/삭제, 교육 이력, 불량 발생 여부, 공정면허증 관리
 
 3. **모니터 모드** (대형 TV 최적화)
-   - 공장 현황 실시간 조회
+   - 로그인 없이 공장 현황 실시간 조회
 
 ## 기술 스택
 
@@ -26,14 +22,13 @@ SL미러텍의 작업자 배치와 작업 기록을 디지털화한 웹 기반 �
 - **UI Library**: React 19.1.0
 - **Language**: TypeScript 5
 - **State Management**: Tanstack Query v5.90.1
-- **Styling**: Tailwind CSS v4, Radix UI
-- **PWA**: next-pwa (모바일 앱처럼 사용)
+- **Styling**: Tailwind CSS v4, shadcn UI
 
 ### Backend
 - **API**: Next.js API Routes
 - **ORM**: Prisma 6.15.0
 - **Database**: PostgreSQL (Supabase)
-- **Auth**: iron-session 8.0.4
+- **Auth**: Supabase Auth
 - **Storage**: Supabase Storage
 
 ### Infrastructure
@@ -43,74 +38,10 @@ SL미러텍의 작업자 배치와 작업 기록을 디지털화한 웹 기반 �
 
 ## 프로젝트 구조
 
-```
-factory-worklog/
-├── .claude/                    # Claude Code 설정
-├── prisma/                     # Prisma 스키마 및 마이그레이션
-│   ├── schema.prisma          # 데이터베이스 스키마
-│   └── seed/                  # 시드 데이터
-├── public/                     # 정적 파일
-├── src/
-│   ├── app/                   # Next.js App Router 페이지
-│   │   ├── admin/            # 관리자 모드
-│   │   │   ├── (main)/       # 메인 레이아웃 그룹
-│   │   │   │   ├── my-page/
-│   │   │   │   ├── setting-line/  # 라인/공정 설정
-│   │   │   │   ├── users/         # 사용자 관리
-│   │   │   │   └── work-log/      # 작업 기록 관리
-│   │   │   └── login/
-│   │   ├── worker/           # 작업자 모드
-│   │   │   ├── home/         # 홈 (메인)
-│   │   │   ├── (sub)/        # 서브 페이지 그룹
-│   │   │   │   ├── start/    # 작업 시작
-│   │   │   │   ├── history/  # 작업 내역
-│   │   │   │   └── my-page/
-│   │   │   └── login/
-│   │   ├── monitor/          # 모니터 모드
-│   │   └── api/              # API Routes
-│   │       ├── auth/
-│   │       ├── users/
-│   │       ├── work-log/
-│   │       ├── line-with-process/
-│   │       ├── line-status/
-│   │       └── waiting-worker/
-│   ├── components/            # React 컴포넌트
-│   │   ├── ui/               # shadcn/ui 기본 컴포넌트
-│   │   ├── admin/            # 관리자 전용 컴포넌트
-│   │   ├── worker/           # 작업자 전용 컴포넌트
-│   │   └── common/           # 공통 컴포넌트
-│   ├── lib/                   # 라이브러리 및 유틸리티
-│   │   ├── api/              # API 클라이언트
-│   │   ├── core/             # 핵심 로직 (session, prisma, api-handler)
-│   │   ├── service/          # 비즈니스 로직 서비스
-│   │   ├── utils/            # 유틸리티 함수
-│   │   ├── constants/        # 상수
-│   │   └── supabase/         # Supabase 클라이언트
-│   ├── hooks/                # 커스텀 React Hooks
-│   ├── types/                # TypeScript 타입 정의
-│   └── contexts/             # React Context
-├── scripts/                   # 유틸리티 스크립트
-└── supabase/                  # Supabase 관련 설정
-
-```
-
 ## 데이터베이스 구조
 
 ### 주요 모델
 
-- **User**: 사용자 정보 (작업자, 관리자)
-  - `userId`: 사번 (로그인 ID)
-  - `role`: ADMIN, MANAGER, WORKER
-  - `isActive`: 활성화 여부
-
-- **Line**: 작업 라인
-- **Process**: 공정
-- **ProcessShift**: 교대조별 공정 (주간/야간)
-- **WorkLog**: 작업 기록
-  - 작업자, 공정, 시작/종료 시간
-- **WorkLogHistory**: 작업 기록 변경 이력
-- **EditLock**: 편집 잠금 (동시 편집 방지)
-- **CellLock**: 셀 잠금 (세밀한 편집 제어)
 
 ## 개발 워크플로우
 
@@ -160,59 +91,7 @@ npm run db:sync:prod   # prisma migrate deploy
 
 ## API 구조
 
-### 인증 API (`/api/auth`)
-- `POST /api/auth/login` - 로그인
-- `POST /api/auth/logout` - 로그아웃
-
-### 사용자 API (`/api/users`)
-- `GET /api/users` - 사용자 목록
-- `GET /api/users/current-user` - 현재 로그인 사용자
-- `GET /api/users/:id` - 사용자 상세
-- `POST /api/users` - 사용자 생성
-- `PUT /api/users/:id` - 사용자 수정
-- `DELETE /api/users/:id` - 사용자 삭제
-
-### 작업 기록 API (`/api/work-log`)
-- `GET /api/work-log` - 작업 기록 목록
-- `GET /api/work-log/me` - 내 작업 기록
-- `GET /api/work-log/:id` - 작업 기록 상세
-- `GET /api/work-log/:id/history` - 작업 기록 변경 이력
-- `POST /api/work-log` - 작업 시작
-- `POST /api/work-log/end` - 작업 종료
-- `PUT /api/work-log/:id` - 작업 기록 수정
-- `DELETE /api/work-log/:id` - 작업 기록 삭제
-
-### 라인/공정 API
-- `GET /api/line-with-process` - 라인과 공정 정보
-- `GET /api/line-status` - 라인 상태 정보
-- `GET /api/waiting-worker` - 대기 작업자 목록
-- `GET /api/monitor/line-with-process` - 모니터용 라인 정보
-
-### 스토리지 API
-- `POST /api/storage/signed-url` - Supabase Storage 서명된 URL 생성
-- `POST /api/upload/:id` - 파일 업로드
-
 ## 주요 기능 구현
-
-### 1. 실시간 동시 편집 방지
-- `EditLock`: 페이지 단위 편집 잠금
-- `CellLock`: 셀 단위 편집 잠금
-- 사용자가 편집 중인 항목은 다른 사용자가 수정 불가
-
-### 2. Tanstack Query를 활용한 상태 관리
-- 서버 상태와 클라이언트 상태 분리
-- 자동 캐싱 및 refetch
-- Optimistic Update 적용
-
-### 3. 세션 기반 인증
-- `iron-session`을 사용한 암호화된 쿠키 기반 세션
-- Middleware에서 권한 검증
-- `lib/core/session.ts`: 세션 관리 유틸리티
-
-### 4. API Handler 패턴
-- `lib/core/api-handler.ts`: 공통 API 핸들러
-- `lib/core/api-response-factory.ts`: 일관된 응답 포맷
-- `lib/core/errors.ts`: 커스텀 에러 처리
 
 ## 코딩 컨벤션 및 개발 규칙
 
@@ -382,7 +261,6 @@ export async function fetchUsers() {
 const { data, isLoading, error } = useQuery({
   queryKey: ['users'], // 배열 형식
   queryFn: fetchUsers,
-  staleTime: 1000 * 60 * 5, // 5분
 });
 
 // 3. Mutation
@@ -437,6 +315,11 @@ if (user.role === ROLES.ADMIN) { }
 // ✅ 올바른 방법
 <div className="text-red-500">Text</div>
 ```
+6. 올바른 cn import 경로
+```tsx
+import { cn } from '@/lib/utils/cn'
+```
+
 
 ### 선호 패턴 (PREFER)
 
@@ -579,7 +462,7 @@ export const MyComponent = memo(function MyComponent({ data }) {
 - Public bucket 사용
 - 서명된 URL로 보안 처리
 
-### Realtime (향후 적용 예정)
+### Realtime
 - 실시간 공장 현황 업데이트
 
 ## 배포
@@ -618,11 +501,7 @@ npm run db:dev    # 개발
 npm run db:prod   # 운영 (주의!)
 ```
 
-### 2. API 디버깅
-- Swagger 문서: `/docs`
-- API 자동 생성: `npm run swagger:generate`
-
-### 3. 타입 안전성
+### 2. 타입 안전성
 - Prisma Client는 자동으로 타입 생성
 - API 응답 타입은 `src/types/` 에 정의
 
