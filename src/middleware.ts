@@ -66,32 +66,5 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  // -----------------------
-  // WORKER 영역
-  // -----------------------
-  // ADMIN LOGIN 접근 시
-  if (pathname === ROUTES.WORKER.LOGIN) {
-    try {
-      const session = await requireUser(req)
-      if (session) {
-        return NextResponse.redirect(new URL(ROUTES.WORKER.HOME, req.url))
-      }
-    } catch {
-      return NextResponse.next()
-    }
-  }
-  if (pathname.startsWith('/worker')) {
-    try {
-      // 세션 확인
-      await requireUser(req)
-      return NextResponse.next()
-    } catch (err: any) {
-      if (err.status === 401) {
-        // 로그인 필요
-        return NextResponse.redirect(new URL(ROUTES.WORKER.LOGIN, req.url))
-      }
-    }
-  }
-
   return NextResponse.next()
 }

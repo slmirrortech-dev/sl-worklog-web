@@ -9,7 +9,7 @@ export default function Home() {
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4">
       <div className="w-full max-w-4xl">
         {/* 헤더 */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-8 md:mb-12">
           <Image
             src="/logo.webp"
             alt="회사 로고"
@@ -18,34 +18,14 @@ export default function Home() {
             priority
             className="mx-auto mb-6"
           />
-          <h1 className="text-2xl md:text-4xl font-bold text-gray-800 mb-2 md:mb-6">
+          <h1 className="text-2xl md:text-4xl font-bold text-gray-800 mb-2 md:mb-4">
             작업장 관리 시스템
           </h1>
           <p className="text-base md:text-lg text-gray-600">원하는 모드를 선택해주세요</p>
         </div>
 
         {/* 메뉴 카드들 */}
-        <div className="grid md:grid-cols-3 gap-8">
-          {/* 작업자 */}
-          <Link
-            href={ROUTES.WORKER.LOGIN}
-            target="_blank"
-            className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105 p-4 md:p-8 text-center"
-          >
-            <div className="bg-green-100 rounded-full w-14 h-14 md:w-20 md:h-20 flex items-center justify-center mx-auto mb-4 md:mb-6">
-              <User className="text-green-600 w-7 h-7 md:w-10 md:h-10" />
-            </div>
-            <h3 className="text-2xl font-bold text-gray-800 mb-2 md:mb-4">작업자</h3>
-            <p className="text-gray-600 mb-4 md:mb-6">
-              작업 시작/종료, 기록 조회
-              <br />
-              <span>(모바일에 최적화)</span>
-            </p>
-            <div className="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold">
-              작업자 모드
-            </div>
-          </Link>
-
+        <div className="grid md:grid-cols-2 gap-8 md:gap-12">
           {/* 관리자 */}
           <Link
             href={ROUTES.ADMIN.LOGIN}
@@ -57,9 +37,9 @@ export default function Home() {
             </div>
             <h3 className="text-2xl font-bold text-gray-800 mb-2 md:mb-4">관리자</h3>
             <p className="text-gray-600 mb-4 md:mb-6">
-              작업장 설정, 작업 로그 관리,
+              작업장 관리
               <br />
-              사용자 관리
+              작업자 관리
             </p>
             <div className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold">
               관리자 모드

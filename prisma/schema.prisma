@@ -24,13 +24,6 @@ model User {
   createdAt                DateTime @default(now())         // 생성 시각
 
   // Relations
-  workLogs         WorkLog[]
-  changeHistories  WorkLogHistory[] @relation("AdminHistory")
-  waitingShifts    ProcessShift[]   @relation("WaitingWorker") // 대기자로 설정된 교대조들
-  editLocks        EditLock[]       @relation("EditLockUser")  // 사용자가 보유한 편집 잠금들
-  cellLocks        CellLock[]       @relation("CellLockUser")  // 사용자가 보유한 셀 잠금들
-
-  // 새로 추가
   processSlot       ProcessSlot[]
 
   @@map("users")
@@ -44,179 +37,6 @@ enum Role {
   MANAGER // 작업반장
   WORKER // 작업자
 }
-
-// ================================
-// Line (작업 라인)
-// ================================
-model Line {
-  id        String    @id @default(cuid())   // UUID (PK)
-  name      String                           // 라인 이름 (전역 유일)
-  order     Int                              // 라인 순서
-  classNo   String    @default("1")          // 반 번호 (1, 2, 서브 등)
-
-  // Relations
-  processes Process[]
-
-  @@unique([name, classNo])
-  @@map("lines")
-}
-
-// ================================
-// Process (작업 공정)
-// ================================
-model Process {
-  id      String   @id @default(cuid())   // UUID (PK)
-  name    String                           // 공정 이름
-  order   Int                              // 공정 순서 (화면 표시용)
-  lineId  String                           // 라인 ID (FK)
-
-  // Relations
-  line    Line     @relation(fields: [lineId], references: [id]) // 공정이 속한 라인
-  shifts  ProcessShift[]                                         // 공정별 주/야 교대조 정보
-
-  @@map("processes")
-}
-
-// ================================
-// ProcessShift (공정 교대조)
-// ================================
-// 한 공정(Process)에 대해 주간/야간 별 상태와 대기자를 관리하는 테이블
-model ProcessShift {
-  id        String   @id @default(cuid())   // UUID (PK)
-  type      ShiftType                       // 교대조 타입 (주간/야간)
-  status    WorkStatus @default(NORMAL)     // 상태 (정상/잔업/연장)
-
-  processId String                          // 공정 ID (FK)
-  process   Process @relation(fields: [processId], references: [id]) // 소속 공정
-
-  // Relations
-  waitingWorkerId String?
-  waitingWorker   User? @relation("WaitingWorker", fields: [waitingWorkerId], references: [id], onDelete: SetNull)
-
-  @@unique([processId, type])               // 한 공정에 대해 주간/야간은 유일해야 함
-  @@map("process_shifts")
-}
-
-
-// ================================
-// WorkLog (작업 기록)
-// ================================
-model WorkLog {
-  id              String   @id @default(cuid())   // UUID (PK)
-
-  // User 정보 (FK + 스냅샷)
-  userId          String?                         // FK (User.id), User 삭제 시 NULL
-  userUserId      String                          // 사번 (스냅샷)
-  userName        String                          // 이름 (스냅샷)
-
-  // 작업 시간
-  startedAt       DateTime @default(now())        // 작업 시작 시각
-  endedAt         DateTime?                       // 종료 시각
-  durationMinutes Int?                            // 작업 시간(분)
-
-  // 불량 여부
-  isDefective     Boolean @default(false)
-
-  // Relations
-  user    User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-
-  // Process/Line 스냅샷
-  processShiftId  String?   // 활성화 여부 판단을 위해 존재
-  processName     String    // 공정 이름 (스냅샷)
-  lineName        String    // 라인 이름 (스냅샷)
-  lineClassNo     String    // 라인 반 번호 (스냅샷)
-  shiftType       ShiftType // 교대조 타입 (스냅샷)
-  workStatus      WorkStatus // 상태 (스냅샷)
-
-  // 메모
-  memo            String?   // 작업 메모 (optional)
-
-  histories  WorkLogHistory[]
-
-  @@index([userId])
-  @@index([startedAt])
-  @@map("work_log")
-}
-
-// ================================
-// WorkLogHistory (작업 기록 변경 이력)
-// ================================
-model WorkLogHistory {
-  id              String   @id @default(cuid())   // UUID (PK)
-  workLogId       String
-  field           String
-  oldValue        String?
-  newValue        String?
-  changedBy       String                           // 변경자 User.id
-  changedByName   String                           // 변경자 이름 (스냅샷)
-  changedByUserId String                           // 변경자 사번 (스냅샷)
-  changedAt       DateTime @default(now())
-
-  workLog WorkLog @relation(fields: [workLogId], references: [id])
-  admin   User    @relation("AdminHistory", fields: [changedBy], references: [id])
-  @@map("work_log_history")
-}
-
-// ================================
-// EditLock (편집 잠금)
-// ================================
-// 작업장 관리 화면의 편집 모드 상태를 관리하는 테이블
-model EditLock {
-  id              String   @id @default(cuid())     // UUID (PK)
-  resourceType    String                           // 잠금 리소스 타입 (예: "old-settings-line")
-  lockedBy        String                           // 잠금한 사용자 ID (FK)
-  lockedByName    String                           // 잠금한 사용자 이름 (스냅샷)
-  lockedByUserId  String                           // 잠금한 사용자 사번 (스냅샷)
-  lockedAt        DateTime @default(now())         // 잠금 시각
-  heartbeatAt     DateTime @default(now())         // 마지막 하트비트 시각 (세션 유지 확인용)
-
-  // Relations
-  user User @relation("EditLockUser", fields: [lockedBy], references: [id], onDelete: Cascade)
-
-  @@unique([resourceType]) // 하나의 리소스에는 하나의 잠금만 존재
-  @@map("edit_locks")
-}
-
-// ================================
-// CellLock (셀 단위 편집 잠금)
-// ================================
-// 작업자 배치, 상태 변경 등 셀 단위 편집 잠금을 관리하는 테이블
-model CellLock {
-  id            String   @id @default(cuid())     // UUID (PK)
-  cellId        String   @unique                  // 셀 ID (예: "processId-DAY", "lineId-status-NIGHT")
-  lockedBy      String                           // 잠금한 사용자 ID (FK)
-  lockedByName  String                           // 잠금한 사용자 이름 (스냅샷)
-  lockedAt      DateTime @default(now())         // 잠금 시각
-
-  // Relations
-  user User @relation("CellLockUser", fields: [lockedBy], references: [id], onDelete: Cascade)
-
-  @@map("cell_locks")
-}
-
-
-// ================================
-// Enums
-// ================================
-enum ShiftType {
-  DAY
-  NIGHT
-}
-
-enum WorkStatus {
-  NORMAL    // 정상
-  OVERTIME  // 잔업
-  EXTENDED  // 연장
-}
-
-enum WorkerStatus {
-  NORMAL    // 정상
-  OVERTIME  // 잔업
-}
-
-
-
-// 신규 작업
 
 // ================================
 // WorkClass (반)
@@ -294,4 +114,23 @@ model ProcessSlot {
   @@unique([shiftId, name]) // 한 교대조 내에 이름이 겹치면 안됨
   @@unique([shiftId, slotIndex]) // 한 교대조 내에 순서가 겹치면 안됨
   @@map("process_slots")
+}
+
+// ================================
+// Enums
+// ================================
+enum ShiftType {
+  DAY
+  NIGHT
+}
+
+enum WorkStatus {
+  NORMAL    // 정상
+  OVERTIME  // 잔업
+  EXTENDED  // 연장
+}
+
+enum WorkerStatus {
+  NORMAL    // 정상
+  OVERTIME  // 잔업
 }

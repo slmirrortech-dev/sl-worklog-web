@@ -4,7 +4,7 @@ import React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { BarChart3, Users, Settings, User, MonitorIcon } from 'lucide-react'
+import { Users, User, MonitorIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ROUTES } from '@/lib/constants/routes'
 import { useLoading } from '@/contexts/LoadingContext'
@@ -47,18 +47,6 @@ const AdminHeader = () => {
       href: ROUTES.ADMIN.WORKPLACE,
       icon: MonitorIcon,
       description: '작업장 상태 변경 및 작업자 배치',
-    },
-    {
-      name: '구 작업장 관리',
-      href: ROUTES.ADMIN.OLD_SETTING_LINE,
-      icon: Settings,
-      description: '라인 및 공정 관리',
-    },
-    {
-      name: '작업 기록',
-      href: ROUTES.ADMIN.WORK_LOG,
-      icon: BarChart3,
-      description: '작업 기록 조회',
     },
     {
       name: '직원 관리',

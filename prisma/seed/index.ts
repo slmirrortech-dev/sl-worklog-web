@@ -19,7 +19,7 @@ async function main() {
     console.log('🚫 seedUsers 건너뜀 (운영 환경)')
   }
 
-  await seedLines()
+  // await seedLines()
 
   console.log('✅ Seed complete')
 }
