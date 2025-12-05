@@ -23,7 +23,7 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-  closestCenter,
+  pointerWithin,
 } from '@dnd-kit/core'
 import { addWorkerToSlotApi } from '@/lib/api/process-slot-api'
 
@@ -59,6 +59,7 @@ const WorkPlacePage = () => {
     name: string
     userId: string
     workerStatus: 'NORMAL' | 'OVERTIME' | null
+    width?: number
   } | null>(null)
 
   // 드래그 앤 드롭을 위한 센서 설정
@@ -248,6 +249,7 @@ const WorkPlacePage = () => {
         userId: string
       }
       workerStatus?: 'NORMAL' | 'OVERTIME' | null
+      width?: number
     }
 
     if (workerData?.worker) {
@@ -256,6 +258,7 @@ const WorkPlacePage = () => {
         name: workerData.worker.name,
         userId: workerData.worker.userId,
         workerStatus: workerData.workerStatus || null,
+        width: workerData.width || 127, // ProcessSlotCard에서 전달받은 너비 사용
       })
     }
   }
@@ -326,9 +329,17 @@ const WorkPlacePage = () => {
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCenter}
+      collisionDetection={pointerWithin}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
+      autoScroll={{
+        layoutShiftCompensation: true, // 레이아웃 변경 시 떨림 방지
+        threshold: {
+          x: 0.1, // 가로축: 화면의 10% 영역에 다가가면 스크롤 시작
+          y: 0.1, // 세로축: 화면의 10% 영역에 다가가면 스크롤 시작
+        },
+        acceleration: 10, // 가속도 (숫자가 클수록 가장자리에서 더 빨리 스크롤됨)
+      }}
     >
       <>
         {/* 해더 아래 고정 영역 */}
@@ -469,9 +480,15 @@ const WorkPlacePage = () => {
         />
       </>
 
-      <DragOverlay dropAnimation={null}>
+      <DragOverlay dropAnimation={null} style={{ width: activeWorker?.width || 127 }}>
         {activeWorker ? (
-          <div className="w-40 rounded-lg border shadow-lg h-20 flex flex-col items-center justify-center bg-white border-gray-300 cursor-move">
+          <div
+            style={{
+              width: activeWorker.width || 127,
+              height: '80px',
+            }}
+            className="rounded-lg border shadow-lg flex flex-col items-center justify-center bg-white border-gray-300 cursor-move"
+          >
             <p className="flex items-center justify-center gap-1 text-base font-medium">
               <span className="relative flex h-2.5 w-2.5 mr-1">
                 <span
