@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import ShiftStatusLabel from '@/components/admin/ShiftStatusLabel'
+import ShiftStatusSelect from '@/components/admin/ShiftStatusSelect'
 import { Settings } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { ROUTES } from '@/lib/constants/routes'
@@ -11,6 +12,7 @@ import {
   getAllFactoryLineApi,
   getFactoryConfigApi,
   getWorkClassesApi,
+  updateShiftStatusApi,
 } from '@/lib/api/workplace-api'
 import { WorkClassResponse } from '@/types/workplace'
 import { useLoading } from '@/contexts/LoadingContext'
@@ -27,12 +29,13 @@ import {
 } from '@dnd-kit/core'
 import { addWorkerToSlotApi } from '@/lib/api/process-slot-api'
 import { Progress } from '@/components/ui/progress'
+import { WorkStatus } from '@prisma/client'
 
 const WorkPlacePage = () => {
   const router = useRouter()
   const { showLoading, hideLoading } = useLoading()
   const queryClient = useQueryClient()
-  const [saveProgress, setSaveProgress] = useState(10)
+  const [saveProgress, setSaveProgress] = useState(0)
 
   const { data: classesData, isPending: isPendingClasses } = useQuery({
     queryKey: ['getWorkClassesApi'],
@@ -95,6 +98,19 @@ const WorkPlacePage = () => {
       hideLoading()
     }
   }, [isPendingClasses, isPendingAllFactoryLineData, isPendingFactoryConfig])
+
+  // 교대조 상태 변경
+  const updateShiftStatusMutation = useMutation({
+    mutationFn: async ({ shiftId, status }: { shiftId: string; status: WorkStatus }) => {
+      await updateShiftStatusApi(shiftId, status)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['getAllFactoryLineApi'] })
+    },
+    onError: (error: Error) => {
+      alert(`상태 변경 실패: ${error.message}`)
+    },
+  })
 
   // 작업자 이동
   const moveWorkerMutation = useMutation({
@@ -431,13 +447,31 @@ const WorkPlacePage = () => {
                         <div className="flex-1 bg-gray-50 gap-3 flex items-center justify-center text-base font-semibold whitespace-nowrap">
                           <div>주간</div>
                           <div>
-                            <ShiftStatusLabel status={dayShift?.status ?? 'NORMAL'} size={'lg'} />
+                            {dayShift ? (
+                              <ShiftStatusSelect
+                                status={dayShift.status}
+                                onStatusChange={(status) =>
+                                  updateShiftStatusMutation.mutate({ shiftId: dayShift.id, status })
+                                }
+                              />
+                            ) : (
+                              <ShiftStatusLabel status="NORMAL" size={'lg'} />
+                            )}
                           </div>
                         </div>
                         <div className="flex-1 bg-gray-100 gap-3 flex items-center justify-center text-base font-semibold whitespace-nowrap">
                           <div>야간</div>
                           <div>
-                            <ShiftStatusLabel status={nightShift?.status ?? 'NORMAL'} size={'lg'} />
+                            {nightShift ? (
+                              <ShiftStatusSelect
+                                status={nightShift.status}
+                                onStatusChange={(status) =>
+                                  updateShiftStatusMutation.mutate({ shiftId: nightShift.id, status })
+                                }
+                              />
+                            ) : (
+                              <ShiftStatusLabel status="NORMAL" size={'lg'} />
+                            )}
                           </div>
                         </div>
                       </div>

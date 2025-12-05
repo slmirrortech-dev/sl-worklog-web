@@ -1,5 +1,6 @@
 import { apiFetch } from '@/lib/api/api-fetch'
 import { ApiResponse } from '@/types/common'
+import { WorkStatus } from '@prisma/client'
 import {
   FactoryConfigRequest,
   FactoryConfigResponse,
@@ -72,5 +73,15 @@ export async function updateFactoryLineApi(lines: FactoryLineRequest[]) {
 export async function getAllFactoryLineApi() {
   return apiFetch<ApiResponse<FactoryLineResponse[]>>('/api/factory-line/all', {
     method: 'GET',
+  })
+}
+
+/**
+ * 교대조 상태 변경하기
+ **/
+export async function updateShiftStatusApi(shiftId: string, status: WorkStatus) {
+  return apiFetch<ApiResponse<{}>>('/api/shift-status', {
+    method: 'PUT',
+    body: JSON.stringify({ shiftId, status }),
   })
 }
