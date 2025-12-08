@@ -20,7 +20,7 @@ import { getCurrentUserApi, uploadLicenseApi } from '@/lib/api/user-api'
 interface NewEmployee {
   userId: string
   name: string
-  birthday: string
+  hireDate: string
   role: 'ADMIN' | 'WORKER'
   licensePhotoFile: File | null
   licensePreviewUrl: string | null
@@ -34,7 +34,7 @@ const NewUsersPage = () => {
   const [employee, setEmployee] = useState<NewEmployee>({
     userId: '',
     name: '',
-    birthday: '',
+    hireDate: '',
     role: 'WORKER',
     licensePhotoFile: null,
     licensePreviewUrl: null,
@@ -85,13 +85,9 @@ const NewUsersPage = () => {
       alert('이름은 필수입니다.')
       return false
     }
-    if (!employee.birthday.trim()) {
-      alert('생년월일은 필수입니다.')
-      return false
-    }
-    // 생년월일 유효성 검사
-    if (!isValidBirthday(employee.birthday)) {
-      alert('유효한 생년월일을 입력해주세요')
+    // 입사일 유효성 검사 (선택값이므로 입력된 경우에만 검사)
+    if (employee.hireDate.trim() && !isValidBirthday(employee.hireDate)) {
+      alert('유효한 입사일을 입력해주세요 (yyyymmdd 형식)')
       return false
     }
 
@@ -111,7 +107,7 @@ const NewUsersPage = () => {
         {
           userId: employee.userId.trim(),
           name: employee.name.trim(),
-          birthday: employee.birthday.trim(),
+          hireDate: employee.hireDate.trim() || undefined,
           role: employee.role,
         },
       ]
@@ -262,16 +258,16 @@ const NewUsersPage = () => {
                     />
                   </div>
 
-                  {/* 생년월일 */}
+                  {/* 입사일 */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      생년월일 (ex.19970426) *
+                      입사일 (ex.20240301) <span className="text-gray-500 text-sm">(선택)</span>
                     </label>
                     <Input
                       type="text"
-                      value={employee.birthday}
-                      onChange={(e) => updateEmployee('birthday', e.target.value)}
-                      placeholder="생년월일 8자리를 입력하세요"
+                      value={employee.hireDate}
+                      onChange={(e) => updateEmployee('hireDate', e.target.value)}
+                      placeholder="입사일 8자리를 입력하세요"
                       className="block w-full py-6 md:text-lg bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                     />
                   </div>

@@ -1,70 +1,48 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { ROUTES } from '@/lib/constants/routes'
-import { getSessionUser, requireManagerOrAdmin, requireUser } from '@/lib/utils/auth-guards'
+import { createMiddlewareClient } from '@/lib/supabase/server'
 
 export async function middleware(req: NextRequest) {
+  const { supabase, response } = createMiddlewareClient(req)
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
   const { pathname } = req.nextUrl
 
-  // PWA 관련 파일들과 정적 자원들은 인증 체크 제외
-  if (
-    pathname.startsWith('/_next') ||
-    pathname.startsWith('/api/') ||
-    pathname === '/manifest.json' ||
-    pathname === '/sw.js' ||
-    pathname === '/workbox-*.js' ||
-    pathname.startsWith('/icon-') ||
-    pathname.match(/\.(ico|png|jpg|jpeg|gif|svg|css|js|woff|woff2|ttf|eot)$/)
-  ) {
-    return NextResponse.next()
+  // 비로그인 사용자 처리
+  if (!session) {
+    // 접근하려는 페이지가 보호된 admin 경로이고, 로그인 페이지가 아닌 경우
+    if (pathname.startsWith('/admin') && pathname !== ROUTES.ADMIN.LOGIN) {
+      // 로그인 페이지로 리디렉션
+      return NextResponse.redirect(new URL(ROUTES.ADMIN.LOGIN, req.url))
+    }
   }
-
-  // -----------------------
-  // ADMIN 영역
-  // -----------------------
-  // ADMIN LOGIN 접근 시
-  if (pathname === ROUTES.ADMIN.LOGIN) {
-    try {
-      const session = await getSessionUser(req)
-
-      if (!session) {
-        // 로그인 안 된 경우 → 로그인 페이지 접근 허용
-        return NextResponse.next()
-      }
-
-      if (session.role === 'ADMIN' || session.role === 'MANAGER') {
-        // 관리자/반장은 로그인 페이지 접근 시
-        return NextResponse.redirect(new URL(ROUTES.ADMIN.WORKPLACE, req.url))
-      }
-
-      if (session.role === 'WORKER') {
-        // 작업자가 /admin/login 접근
-        return NextResponse.redirect(new URL(ROUTES.ERROR['403'], req.url))
-      }
-    } catch (error) {
-      // 세션 오류 시 로그인 페이지 접근 허용
-      console.error('Session error in middleware:', error)
-      return NextResponse.next()
+  // 로그인한 사용자 처리
+  else {
+    // 로그인한 사용자가 로그인 페이지에 접근하려고 하는 경우
+    if (pathname === ROUTES.ADMIN.LOGIN) {
+      // 비밀번호 변경 페이지로 리디렉션 (로그인 후 항상 비밀번호 변경 페이지 확인)
+      return NextResponse.redirect(new URL(ROUTES.ADMIN.CHANGE_PASSWORD, req.url))
     }
   }
 
-  if (pathname.startsWith('/admin')) {
-    try {
-      // 세션 및 권한 체크
-      await requireManagerOrAdmin(req)
-      return NextResponse.next()
-    } catch (err: any) {
-      if (err.status === 401) {
-        // 로그인 필요
-        return NextResponse.redirect(new URL(ROUTES.ADMIN.LOGIN, req.url))
-      }
+  return response
+}
 
-      if (err.status === 403) {
-        // 권한 부족
-        return NextResponse.redirect(new URL(ROUTES.ERROR['403'], req.url))
-      }
-    }
-  }
-
-  return NextResponse.next()
+export const config = {
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    // monitor 페이지는 matcher에서 제외하여 미들웨어를 통과하지 않도록 함 (완전 공개)
+    // 단, /monitor 경로를 미들웨어 로직에 포함시키고 싶다면 아래 줄을 삭제하세요.
+    // '/monitor/:path*',
+  ],
 }

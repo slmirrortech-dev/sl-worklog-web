@@ -39,10 +39,11 @@ async function updateUser(req: NextRequest, { params }: { params: Promise<{ id: 
       id: true,
       userId: true,
       name: true,
-      birthday: true,
+      hireDate: true,
       role: true,
-      isInitialPasswordChanged: true,
       licensePhotoUrl: true,
+      isActive: true,
+      deactivatedAt: true,
       createdAt: true,
     },
   })) as UserResponseDto

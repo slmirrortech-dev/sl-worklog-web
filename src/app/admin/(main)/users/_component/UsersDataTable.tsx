@@ -11,7 +11,7 @@ import { format } from 'date-fns'
 import { useRouter, useSearchParams } from 'next/navigation'
 import RoleLabel from '@/components/admin/RoleLabel'
 import ButtonLicense from '@/components/admin/ButtonLicense'
-import { SessionUser } from '@/lib/core/session'
+import { SessionUser } from '@/lib/utils/auth-guards'
 import { useLoading } from '@/contexts/LoadingContext'
 
 /** 사용자 테이블 */

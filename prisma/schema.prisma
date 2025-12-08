@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // ================================
@@ -12,12 +13,13 @@ datasource db {
 // ================================
 model User {
   id                       String   @id @default(cuid())     // UUID (PK)
+  supabaseUserId           String?  @unique                 // Supabase Auth User ID
+  email                    String?  @unique                 // 이메일 (형식: userId@temp.invalid)
   userId                   String   @unique                 // 사번 (로그인 ID)
-  password                 String                           // 비밀번호 (해시 저장)
   name                     String                           // 사용자 이름
-  birthday                 String                           // 생년월일 (8자리)
+  hireDate                 String?                          // 입사일 (8자리 yyyymmdd, 선택값)
   role                     Role     @default(WORKER)        // 사용자 권한
-  isInitialPasswordChanged Boolean  @default(false)          // 초기 비밀번호 변경 여부
+  mustChangePassword       Boolean  @default(true)          // 초기 비밀번호 변경 필수 여부
   licensePhotoUrl          String?                          // 면허증 이미지 경로
   isActive                 Boolean  @default(true)          // 활성 여부
   deactivatedAt            DateTime?                        // 비활성화 시점

@@ -77,7 +77,7 @@ const WorkPlacePage = () => {
   )
 
   useEffect(() => {
-    if (classesData) {
+    if (classesData && classesData[0]?.id) {
       setClasses(classesData)
       setSelectedClassId(classesData[0].id)
     }

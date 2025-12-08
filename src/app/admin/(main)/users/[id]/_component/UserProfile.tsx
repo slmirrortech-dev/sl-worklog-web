@@ -20,7 +20,7 @@ import { deleteUserApi, updateUserApi } from '@/lib/api/user-api'
 import { Role } from '@prisma/client'
 import { useRouter } from 'next/navigation'
 import { ROUTES } from '@/lib/constants/routes'
-import { SessionUser } from '@/lib/core/session'
+import { SessionUser } from '@/lib/utils/auth-guards'
 
 /** 기본 정보 */
 const UserProfile = ({
@@ -168,9 +168,9 @@ const UserProfile = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">생년월일</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">입사일</label>
               <div className="text-lg font-mono text-gray-900 bg-gray-50 px-4 py-2 rounded-lg">
-                {freshUser.birthday}
+                {freshUser.hireDate || '-'}
               </div>
             </div>
 

@@ -1,21 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getIronSession } from 'iron-session'
-import { sessionOptions, SessionUser } from '@/lib/core/session'
 import { withErrorHandler } from '@/lib/core/api-handler'
+import { createRouteHandlerClient } from '@/lib/supabase/server'
 
 /**
- * 로그아웃 API
+ * 로그아웃 API (Supabase Auth)
  **/
 async function logout(req: NextRequest) {
-  // 응답 객체 미리 생성
-  const res = NextResponse.json({ success: true })
+  const supabase = createRouteHandlerClient(req)
 
-  // 세션 가져오기
-  const session = await getIronSession<SessionUser>(req, res, sessionOptions)
+  // Supabase Auth 세션 종료
+  await supabase.auth.signOut()
 
-  // 세션 파기
-  session.destroy()
-  return res
+  return NextResponse.json({ success: true })
 }
 
 export const POST = withErrorHandler(logout)

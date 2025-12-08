@@ -4,6 +4,8 @@ import { UserResponseDto } from '@/types/user'
 import prisma from '@/lib/core/prisma'
 import UsersDataTable from '@/app/admin/(main)/users/_component/UsersDataTable'
 import { getServerSession } from '@/lib/utils/auth-guards'
+import { redirect } from 'next/navigation'
+import { ROUTES } from '@/lib/constants/routes'
 
 // 동적 렌더링 강제
 export const dynamic = 'force-dynamic'
@@ -14,6 +16,11 @@ const INITIAL_TAKE = 10
 /** 사용자 관리 페이지 */
 const AdminUsersPage = async () => {
   const session = await getServerSession()
+
+  // 세션이 없으면 로그인 페이지로 리디렉션
+  if (!session) {
+    redirect(ROUTES.ADMIN.LOGIN)
+  }
 
   // 총 데이터 수
   const totalCount = await prisma.user.count({ where: { isActive: true } })
@@ -31,9 +38,8 @@ const AdminUsersPage = async () => {
       id: true,
       userId: true,
       name: true,
-      birthday: true,
+      hireDate: true,
       role: true,
-      isInitialPasswordChanged: true,
       licensePhotoUrl: true,
       isActive: true,
       deactivatedAt: true,
@@ -50,9 +56,8 @@ const AdminUsersPage = async () => {
       id: true,
       userId: true,
       name: true,
-      birthday: true,
+      hireDate: true,
       role: true,
-      isInitialPasswordChanged: true,
       licensePhotoUrl: true,
       isActive: true,
       deactivatedAt: true,

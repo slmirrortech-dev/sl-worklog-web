@@ -1,20 +1,47 @@
-import { getIronSession } from 'iron-session'
-import { NextRequest, NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
-import { sessionOptions, SessionUser } from '@/lib/core/session'
+import { NextRequest } from 'next/server'
 import { ApiError } from '@/lib/core/errors'
+import { createMiddlewareClient, createServerSupabaseClient } from '@/lib/supabase/server'
+import prisma from '@/lib/core/prisma'
+import { Role } from '@prisma/client'
 
-/** 세션 읽기 */
+export type SessionUser = {
+  id: string
+  userId: string
+  name: string
+  role: Role
+  mustChangePassword: boolean
+}
+
+/** 미들웨어용 세션 읽기 */
 export async function getSessionUser(req: NextRequest): Promise<SessionUser | null> {
   try {
-    const res = new NextResponse()
-    const session = await getIronSession<SessionUser>(req, res, sessionOptions)
+    const { supabase } = createMiddlewareClient(req)
+    const {
+      data: { user: authUser },
+    } = await supabase.auth.getUser()
 
-    if (!session?.userId) {
+    if (!authUser) {
       return null
     }
 
-    return session
+    // Prisma DB에서 사용자 정보 조회
+    const user = await prisma.user.findUnique({
+      where: {
+        supabaseUserId: authUser.id,
+      },
+      select: {
+        id: true,
+        userId: true,
+        name: true,
+        role: true,
+      },
+    })
+
+    if (!user) {
+      return null
+    }
+
+    return user
   } catch (error) {
     console.error('세션 가져오기 실패:', error)
     return null
@@ -61,16 +88,43 @@ export async function requireManagerOrAdmin(req: NextRequest) {
 /** 서버 컴포넌트에서 세션 가져오기 */
 export async function getServerSession(): Promise<SessionUser | null> {
   try {
-    const cookieStore = await cookies()
-    const session = await getIronSession<SessionUser>(cookieStore, sessionOptions)
+    const supabase = await createServerSupabaseClient()
 
-    if (!session?.userId) {
+    // getSession()을 먼저 시도 (쿠키에서 세션 읽기)
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+
+    if (!session?.user) {
+      console.log('[getServerSession] 세션 없음')
       return null
     }
 
-    return session
+    console.log('[getServerSession] Supabase User ID:', session.user.id)
+
+    // Prisma DB에서 사용자 정보 조회
+    const user = await prisma.user.findUnique({
+      where: {
+        supabaseUserId: session.user.id,
+      },
+      select: {
+        id: true,
+        userId: true,
+        name: true,
+        role: true,
+        mustChangePassword: true,
+      },
+    })
+
+    if (!user) {
+      console.log('[getServerSession] DB에 사용자 없음:', session.user.id)
+      return null
+    }
+
+    console.log('[getServerSession] 세션 조회 성공:', user.userId)
+    return user
   } catch (error) {
-    console.error('세션 가져오기 실패:', error)
+    console.error('[getServerSession] 세션 가져오기 실패:', error)
     return null
   }
 }

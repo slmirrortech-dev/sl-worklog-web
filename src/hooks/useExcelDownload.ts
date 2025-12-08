@@ -1,8 +1,22 @@
 import { useState } from 'react'
 import * as XLSX from 'xlsx'
-import { WorkLogResponseModel } from '@/types/work-log'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
+
+// WorkLog 타입 정의 (미사용 기능 - 추후 삭제 예정)
+type WorkLogResponseModel = {
+  shiftType: string
+  workStatus: string
+  lineClassNo: string
+  lineName: string
+  processName: string
+  userName: string
+  userUserId: string
+  startedAt: Date
+  endedAt: Date | null
+  durationMinutes: number
+  isDefective: boolean
+}
 
 export const useExcelDownload = () => {
   const [isDownloading, setIsDownloading] = useState(false)
