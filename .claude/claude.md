@@ -465,6 +465,241 @@ export const MyComponent = memo(function MyComponent({ data }) {
 ### Realtime
 - 실시간 공장 현황 업데이트
 
+### Authentication
+- Supabase Auth 기반 사용자 인증
+- 초기 비밀번호: 사번과 동일
+- 최초 로그인 시 비밀번호 변경 필수 (`mustChangePassword` 플래그)
+
+## 🔐 Supabase Auth + RLS 보안 정책
+
+### 기본 원칙
+
+**✅ 모니터링은 공개 READ, 관리는 인증 WRITE, 충돌과 협업은 Realtime으로 제어**
+
+### 1. 인증 구조
+
+#### 사용자 등록
+- Supabase Auth에 임시 이메일 형식으로 등록: `{userId}@temp.invalid`
+- 초기 비밀번호는 사번과 동일
+- Prisma DB에 사용자 정보 저장 (role, mustChangePassword 등)
+
+#### 로그인 플로우
+1. 사번으로 로그인 (내부적으로 `{userId}@temp.invalid` 이메일로 변환)
+2. 최초 로그인 시 비밀번호 변경 페이지로 자동 리디렉션
+3. 비밀번호 변경 전에는 다른 페이지 접근 불가 (레이아웃 레벨에서 체크)
+4. 비밀번호 변경 후 자동 재로그인 처리
+
+### 2. Row Level Security (RLS) 정책
+
+#### RLS 활성화 테이블
+```sql
+-- 모든 테이블 RLS 활성화
+ALTER TABLE "public"."users" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "public"."work_classes" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "public"."factory_configs" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "public"."factory_lines" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "public"."line_shifts" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "public"."process_slots" ENABLE ROW LEVEL SECURITY;
+```
+
+#### RLS 정책 원칙
+- **로그인 여부만 구분** (`anon` / `authenticated`)
+- **role 기반 분기는 RLS에서 하지 않음** ❌
+- role 체크는 API 레벨에서 수행
+
+#### 정책 설정
+
+**users 테이블**: authenticated만 접근
+```sql
+CREATE POLICY "users_authenticated_all" ON "public"."users"
+  FOR ALL
+  TO authenticated
+  USING (true)
+  WITH CHECK (true);
+```
+
+**공정 관련 테이블**: 읽기는 누구나(모니터용), 쓰기는 authenticated만
+```sql
+-- 예시: work_classes
+CREATE POLICY "work_classes_read_all" ON "public"."work_classes"
+  FOR SELECT
+  TO anon, authenticated
+  USING (true);
+
+CREATE POLICY "work_classes_write_authenticated" ON "public"."work_classes"
+  FOR ALL
+  TO authenticated
+  USING (true)
+  WITH CHECK (true);
+```
+
+### 3. 코드 레벨 접근 제어
+
+#### ✅ 관리자 API (Prisma 사용)
+
+```typescript
+// Prisma는 SERVICE_ROLE_KEY 사용하므로 RLS 우회
+// 반드시 API 레벨에서 인증 체크 필요
+
+// src/app/api/factory-line/route.ts
+export const POST = apiHandler(async (req: NextRequest) => {
+  // Prisma로 데이터 작업
+  const line = await prisma.factoryLine.create({ ... })
+  return ApiResponseFactory.success(line)
+}, {
+  requiredRole: 'ADMIN' // 인증 + role 체크
+})
+```
+
+#### ✅ 모니터 페이지 (Supabase Client 직접 사용)
+
+```typescript
+// src/app/monitor/page.tsx
+// RLS 정책이 자동 적용되는 Supabase Client 사용
+const supabase = createClient(...)
+const { data } = await supabase
+  .from('factory_lines')
+  .select('*')
+// 로그인 없이도 조회 가능 (RLS에서 anon 허용)
+```
+
+#### ❌ 금지 사항
+
+```typescript
+// ❌ 모니터용 API에서 Prisma 사용 금지
+export const GET = async () => {
+  const data = await prisma.factoryLine.findMany() // ❌ RLS 우회됨
+  return NextResponse.json(data)
+}
+
+// ❌ RLS 정책에서 role 체크 금지
+CREATE POLICY "admin_only" ON factory_lines
+  USING (auth.jwt() ->> 'role' = 'ADMIN'); // ❌
+
+// ❌ 관리자 API에서 인증 생략 금지
+export const PUT = async (req) => {
+  await prisma.factoryLine.update({ ... }) // ❌ 인증 체크 없음
+  return NextResponse.json({ success: true })
+}
+```
+
+### 4. 동시 수정 충돌 방지
+
+#### 낙관적 잠금 (Optimistic Locking)
+
+**스키마 변경:**
+```prisma
+model FactoryLine {
+  id              String   @id @default(cuid())
+  name            String
+  displayOrder    Int
+
+  // 낙관적 잠금용
+  version         Int      @default(0)
+
+  // 감사 추적용
+  updatedBy       String?  // 수정한 사용자 ID
+  updatedAt       DateTime @default(now()) @updatedAt
+}
+```
+
+**API 구현:**
+```typescript
+export const PUT = apiHandler(async (req, { params }) => {
+  const { version, ...updateData } = await req.json()
+  const session = await getSessionUser(req)
+
+  // 현재 버전 확인
+  const current = await prisma.factoryLine.findUnique({
+    where: { id: params.id }
+  })
+
+  if (current.version !== version) {
+    throw new ApiError(
+      '다른 관리자가 먼저 수정했습니다. 페이지를 새로고침하세요.',
+      409
+    )
+  }
+
+  // 버전 증가하며 업데이트
+  const updated = await prisma.factoryLine.update({
+    where: { id: params.id, version },
+    data: {
+      ...updateData,
+      version: { increment: 1 },
+      updatedBy: session.userId,
+    },
+  })
+
+  return ApiResponseFactory.success(updated)
+}, { requiredRole: 'ADMIN' })
+```
+
+#### Realtime 편집 상태 표시 (선택적)
+
+```typescript
+// 관리자 화면에서 Supabase Realtime 사용
+const channel = supabase.channel('factory-editing')
+
+// 편집 시작 브로드캐스트
+channel.send({
+  type: 'broadcast',
+  event: 'editing-start',
+  payload: {
+    resource: 'factory_line',
+    resource_id: lineId,
+    user_name: session.name,
+  }
+})
+
+// 다른 관리자 편집 중 표시
+channel.on('broadcast', { event: 'editing-start' }, (payload) => {
+  if (payload.resource_id === currentLineId) {
+    showWarning(`${payload.user_name}님이 편집 중입니다`)
+  }
+})
+```
+
+### 5. 체크리스트
+
+#### Phase 1: RLS 설정 (최우선)
+- [ ] Supabase Dashboard에서 모든 테이블 RLS 활성화
+- [ ] users 테이블: authenticated 전용 정책 생성
+- [ ] 공정 테이블들: SELECT는 anon+authenticated, 쓰기는 authenticated만
+- [ ] 정책에서 role 분기 하지 않기
+
+#### Phase 2: 코드 정리
+- [ ] 모니터 페이지: Supabase Client로 변경 (Prisma 제거)
+- [ ] 관리자 API: Prisma 유지 + 인증 체크 확인
+- [ ] 모든 쓰기 API에 `requiredRole` 옵션 적용 확인
+
+#### Phase 3: 동시 수정 방지
+- [ ] 수정 가능 테이블에 `version`, `updatedBy`, `updatedAt` 추가
+- [ ] PUT API에 낙관적 잠금 로직 구현
+- [ ] 409 Conflict 에러 처리 및 사용자 안내
+
+#### Phase 4: Realtime (선택)
+- [ ] Supabase Realtime 채널 구성
+- [ ] 편집 시작/종료 이벤트 브로드캐스트
+- [ ] UI에 편집 중인 사용자 표시
+
+### 6. 작업 우선순위
+
+| Phase | 작업 | 우선순위 |
+|-------|------|---------|
+| 1 | RLS 설정 | ⭐⭐⭐⭐⭐ |
+| 2 | 코드 정리 | ⭐⭐⭐⭐ |
+| 3 | 낙관적 잠금 | ⭐⭐⭐⭐ |
+| 4 | Realtime | ⭐⭐⭐ |
+
+### 7. 주의사항
+
+- **Prisma는 SERVICE_ROLE_KEY로 동작**하므로 RLS를 우회합니다
+- 따라서 Prisma를 사용하는 모든 API는 **반드시 인증 체크**가 필요합니다
+- 모니터 화면은 로그인 없이 접근 가능해야 하므로 **Supabase Client 직접 사용** 권장
+- RLS 정책은 **로그인 여부만 체크**하고, role 분기는 **API 레벨에서 처리**
+- 비밀번호 변경 시 **자동 재로그인** 처리로 세션 무효화 문제 해결
+
 ## 배포
 
 ### Vercel 배포
