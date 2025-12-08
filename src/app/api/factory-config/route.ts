@@ -37,12 +37,16 @@ async function updateFactoryConfig(request: NextRequest) {
     const oldProcessCount = currentConfig?.processCount ?? 7
     const newProcessCount = body.processCount
 
-    // processCount 업데이트
-    const updatedConfig = await tx.factoryConfig.update({
+    // processCount 업데이트 (upsert로 변경 - 없으면 생성, 있으면 업데이트)
+    const updatedConfig = await tx.factoryConfig.upsert({
       where: {
         id: 'global_config',
       },
-      data: {
+      update: {
+        processCount: newProcessCount,
+      },
+      create: {
+        id: 'global_config',
         processCount: newProcessCount,
       },
     })
