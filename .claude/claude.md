@@ -315,10 +315,36 @@ if (user.role === ROLES.ADMIN) { }
 // ✅ 올바른 방법
 <div className="text-red-500">Text</div>
 ```
-6. 올바른 cn import 경로
+
+6. **올바른 cn import 경로**
 ```tsx
 import { cn } from '@/lib/utils/cn'
 ```
+
+7. **🚨 운영 환경 DB 작업 절대 금지 🚨**
+
+   **운영 환경의 데이터베이스 스키마, 데이터, 설정을 절대로 직접 조작하지 마세요.**
+
+   ```bash
+   # ❌ 절대 금지 - 운영 DB 관련 작업
+   npm run db:prod              # 운영 Prisma Studio
+   npm run db:sync:prod         # 운영 스키마 동기화
+   npm run db:reset:prod        # 운영 DB 초기화
+   npm run dev:prod             # 운영 환경으로 개발
+
+   # ❌ 절대 금지 - 운영 DB에 직접 연결
+   psql $PRODUCTION_DATABASE_URL
+
+   # ❌ 절대 금지 - 운영 환경 변수 사용
+   NODE_ENV=production npm run db:push
+   dotenv -e .env.production -- [any db command]
+   ```
+
+   **운영 환경 작업 원칙:**
+   - 스키마 변경은 **반드시 로컬/개발 환경에서 먼저 테스트**
+   - 운영 배포는 **Git을 통한 자동 배포만 사용** (Vercel)
+   - 긴급 상황에도 **사용자와 먼저 상의**
+   - 데이터 마이그레이션은 **백업 후 승인 받고 진행**
 
 
 ### 선호 패턴 (PREFER)
