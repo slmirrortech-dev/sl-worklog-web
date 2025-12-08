@@ -3,6 +3,8 @@ import prisma from '@/lib/core/prisma'
 import { withErrorHandler } from '@/lib/core/api-handler'
 import { ApiError } from '@/lib/core/errors'
 import { supabaseServer } from '@/lib/supabase/server'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 
 /**
  * 비밀번호 변경 API (초기 비밀번호 변경용)
@@ -66,6 +68,35 @@ export async function changePassword(req: NextRequest) {
       mustChangePassword: false,
     },
   })
+
+  // 비밀번호 변경 후 자동 재로그인 (새로운 세션 생성)
+  const cookieStore = await cookies()
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll: () => cookieStore.getAll(),
+        setAll: (cookiesToSet) => {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            cookieStore.set(name, value, options)
+          })
+        },
+      },
+    },
+  )
+
+  // 이메일과 새 비밀번호로 재로그인
+  const email = `${userId}@temp.invalid`
+  const { error: signInError } = await supabase.auth.signInWithPassword({
+    email,
+    password: newPassword,
+  })
+
+  if (signInError) {
+    console.error('재로그인 실패:', signInError)
+    // 재로그인 실패해도 비밀번호는 변경되었으므로 성공으로 처리
+  }
 
   return NextResponse.json({
     success: true,
