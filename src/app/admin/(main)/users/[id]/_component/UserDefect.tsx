@@ -4,27 +4,22 @@ import React, { useState } from 'react'
 import { OctagonAlert, Plus, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { useQuery } from '@tanstack/react-query'
-import { getDefectLogsByWorkerApi } from '@/lib/api/defect-log-api'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import {
+  createDefectLogApi,
+  getDefectLogsByWorkerApi,
+  removeDefectLogApi,
+} from '@/lib/api/defect-log-api'
 import { DefectLogCreateRequest } from '@/types/defect-log'
 import { ShiftType } from '@prisma/client'
 import { displayShiftType } from '@/lib/utils/shift-type'
 import { format } from 'date-fns'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { useLoading } from '@/contexts/LoadingContext'
 
 const UserDefect = ({ userId }: { userId: string }) => {
-  const {
-    data: defectData,
-    isPending,
-    isFetched,
-  } = useQuery({
-    queryKey: ['getDefectLogsByWorkerApi', userId],
-    queryFn: () => getDefectLogsByWorkerApi(userId),
-    select: (response) => {
-      return response.data || []
-    },
-  })
+  const { showLoading, hideLoading } = useLoading()
 
   const [isAdding, setIsAdding] = useState(false)
 
@@ -36,6 +31,55 @@ const UserDefect = ({ userId }: { userId: string }) => {
   const [newProcess, setNewProcess] = useState('')
   const [newMemo, setNewMemo] = useState('')
 
+  const {
+    data: defectData,
+    isPending,
+    refetch,
+  } = useQuery({
+    queryKey: ['getDefectLogsByWorkerApi', userId],
+    queryFn: () => getDefectLogsByWorkerApi(userId),
+    select: (response) => {
+      return response.data || []
+    },
+  })
+
+  const { mutate: removeMutate } = useMutation({
+    mutationFn: removeDefectLogApi,
+    onMutate: () => {
+      showLoading()
+    },
+    onError: () => {
+      alert('불량유출 이력 삭제 실패')
+    },
+    onSuccess: () => {
+      refetch()
+    },
+    onSettled: () => {
+      hideLoading()
+    },
+  })
+
+  const { mutate: addMutate } = useMutation({
+    mutationFn: createDefectLogApi,
+    onMutate: () => {
+      showLoading()
+    },
+    onError: () => {
+      alert('불량유출 이력 추가 실패')
+    },
+    onSuccess: () => {
+      refetch() // 폼 초기화
+      setNewDate('')
+      setNewLine('')
+      setNewProcess('')
+      setNewMemo('')
+      setIsAdding(false)
+    },
+    onSettled: () => {
+      hideLoading()
+    },
+  })
+
   const handleAdd = () => {
     if (!newDate || !newLine || !newProcess || !newMemo) {
       alert('모든 항목을 입력해주세요')
@@ -43,7 +87,7 @@ const UserDefect = ({ userId }: { userId: string }) => {
     }
 
     const newRecord: DefectLogCreateRequest = {
-      occurredAt: `${newDate}${newTime}`,
+      occurredAt: format(new Date(`${newDate} ${newTime}`), "yyyy-MM-dd'T'HH:mm:ss"),
       workerId: userId,
       lineName: newLine,
       shiftType: newShift,
@@ -52,23 +96,12 @@ const UserDefect = ({ userId }: { userId: string }) => {
     }
 
     // api 호출
-    // setRecords([newRecord, ...records])
-
-    // 폼 초기화
-    setNewDate('')
-    setNewLine('')
-    setNewProcess('')
-    setNewMemo('')
-    setIsAdding(false)
-
-    alert('불량유출 이력이 등록되었습니다')
+    addMutate(newRecord)
   }
 
   const handleDelete = (id: string) => {
     if (confirm('이 불량유출 이력을 삭제하시겠습니까?')) {
-      // API 호출
-      // setRecords(records.filter((record) => record.id !== id))
-      alert('불량유출 이력이 삭제되었습니다')
+      removeMutate(id)
     }
   }
 
