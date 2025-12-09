@@ -101,7 +101,7 @@ const ExportsPage = () => {
   const filteredSnapshots = mockSnapshots.filter((snapshot) => snapshot.date === snapshotDate)
 
   return (
-    <div className="flex flex-col space-y-8">
+    <div className="flex flex-col space-y-8 mb-24">
       {/* 작업장 현황 기록 섹션 */}
       <section className="bg-white rounded-lg shadow-sm border p-6">
         <div className="flex items-center justify-between mb-6">

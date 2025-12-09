@@ -69,7 +69,7 @@ const AdminUsersPage = async () => {
   })) as UserResponseDto[]
 
   return (
-    <div className="flex flex-col space-y-6">
+    <div className="flex flex-col space-y-6 mb-24">
       {/* 사용자 정보 */}
       <UsersSummary
         totalCount={totalCount}
@@ -87,6 +87,7 @@ const AdminUsersPage = async () => {
             userId: session!.userId,
             name: session!.name,
             role: session!.role,
+            mustChangePassword: session!.mustChangePassword || false,
           }}
           initialData={admins}
           skip={INITIAL_SKIP}
@@ -105,6 +106,7 @@ const AdminUsersPage = async () => {
             userId: session!.userId,
             name: session!.name,
             role: session!.role,
+            mustChangePassword: session!.mustChangePassword || false,
           }}
           initialData={workers}
           skip={INITIAL_SKIP}
