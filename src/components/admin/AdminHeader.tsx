@@ -4,7 +4,7 @@ import React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { Users, User, MonitorIcon } from 'lucide-react'
+import { Users, User, MonitorIcon, FileSpreadsheet } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ROUTES } from '@/lib/constants/routes'
 import { useLoading } from '@/contexts/LoadingContext'
@@ -53,6 +53,12 @@ const AdminHeader = () => {
       href: ROUTES.ADMIN.USERS,
       icon: Users,
       description: '직원 정보 관리',
+    },
+    {
+      name: '데이터 관리',
+      href: ROUTES.ADMIN.EXPORTS,
+      icon: FileSpreadsheet,
+      description: '작업장 현황 및 직원 데이터 엑셀 다운로드',
     },
   ]
 

@@ -4,6 +4,7 @@ export const ROUTES = {
     CHANGE_PASSWORD: '/admin/change-password',
     WORKPLACE: '/admin/workplace',
     WORKPLACE_SETTING: '/admin/workplace-setting',
+    EXPORTS: '/admin/exports',
     USERS: '/admin/users',
     MY_PAGE: '/admin/my-page',
   },
