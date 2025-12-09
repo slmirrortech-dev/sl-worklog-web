@@ -118,12 +118,8 @@ const ChangePasswordPage = () => {
               className="mx-auto mb-6"
             />
             <h1 className="text-2xl font-bold text-gray-900">비밀번호 변경</h1>
-            <p className="text-gray-600 mt-2">
-              보안을 위해 초기 비밀번호를 변경해주세요.
-            </p>
-            <p className="text-sm text-orange-600 mt-2">
-              ※ 이 작업은 필수이며 건너뛸 수 없습니다.
-            </p>
+            <p className="text-gray-600 mt-2">보안을 위해 초기 비밀번호를 변경해주세요.</p>
+            <p className="text-sm text-orange-600 mt-2">※ 이 작업은 필수이며 건너뛸 수 없습니다.</p>
           </div>
 
           <form onSubmit={handleChangePassword} className="space-y-6">
@@ -158,10 +154,7 @@ const ChangePasswordPage = () => {
             </div>
 
             <div>
-              <label
-                htmlFor="newPassword"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
+              <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-2">
                 새 비밀번호
               </label>
               <input
@@ -207,13 +200,15 @@ const ChangePasswordPage = () => {
               </div>
             )}
 
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full bg-primary-900 text-white py-3 px-4 rounded-lg font-medium hover:bg-primary-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading ? '변경 중...' : '비밀번호 변경'}
-            </button>
+            {!success && (
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-primary-900 text-white py-3 px-4 rounded-lg font-medium hover:bg-primary-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoading ? '변경 중...' : '비밀번호 변경'}
+              </button>
+            )}
           </form>
         </div>
       </div>
