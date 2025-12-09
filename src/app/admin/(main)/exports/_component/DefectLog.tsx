@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState } from 'react'
 import { Download, FileSpreadsheet, Search, Loader2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'

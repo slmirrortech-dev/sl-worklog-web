@@ -55,7 +55,7 @@ const AdminHeader = () => {
       description: '직원 정보 관리',
     },
     {
-      name: '데이터 관리',
+      name: '이력 관리',
       href: ROUTES.ADMIN.EXPORTS,
       icon: FileSpreadsheet,
       description: '작업장 현황 및 직원 데이터 엑셀 다운로드',
