@@ -33,7 +33,7 @@ const UserDetailPage = async ({ params }: UserDetailPageProps) => {
           }}
         />
         <UserTraining />
-        <UserDefect />
+        <UserDefect userId={user.id} />
       </div>
     </main>
   )

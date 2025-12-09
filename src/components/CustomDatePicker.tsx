@@ -80,7 +80,7 @@ export function CustomDatePicker({
       {/*  </Label>*/}
       {/*  <Input*/}
       {/*    type="time"*/}
-      {/*    id="time-picker"*/}
+      {/*    [id]="time-picker"*/}
       {/*    step="1"*/}
       {/*    value={formatTime(date)}*/}
       {/*    onChange={(e) => {*/}

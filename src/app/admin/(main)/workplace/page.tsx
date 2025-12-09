@@ -303,8 +303,8 @@ const WorkPlacePage = () => {
 
     if (!over) return
 
-    // active.id: "workerId"
-    // over.id: "lineId-shiftType-slotIndex"
+    // active.[id]: "workerId"
+    // over.[id]: "lineId-shiftType-slotIndex"
     const activeId = active.id as string
     const overId = over.id as string
 
@@ -315,7 +315,7 @@ const WorkPlacePage = () => {
       slotIndex: number
     }
 
-    // over.id 파싱 (형식: "lineId-shiftType-slotIndex")
+    // over.[id] 파싱 (형식: "lineId-shiftType-slotIndex")
     const [toLineId, toShiftType, toSlotIndexStr] = overId.split('-')
     const toSlotIndex = parseInt(toSlotIndexStr, 10)
 

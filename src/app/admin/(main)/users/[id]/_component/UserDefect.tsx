@@ -4,49 +4,35 @@ import React, { useState } from 'react'
 import { OctagonAlert, Plus, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { useQuery } from '@tanstack/react-query'
+import { getDefectLogsByWorkerApi } from '@/lib/api/defect-log-api'
+import { DefectLogCreateRequest } from '@/types/defect-log'
+import { ShiftType } from '@prisma/client'
+import { displayShiftType } from '@/lib/utils/shift-type'
+import { format } from 'date-fns'
+import { Label } from '@/components/ui/label'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 
-// 불량유출 이력 타입
-interface DefectRecord {
-  id: string
-  date: string // yyyy-mm-dd
-  time: string
-  line: string
-  shift: string
-  process: string
-  memo: string
-}
+const UserDefect = ({ userId }: { userId: string }) => {
+  const {
+    data: defectData,
+    isPending,
+    isFetched,
+  } = useQuery({
+    queryKey: ['getDefectLogsByWorkerApi', userId],
+    queryFn: () => getDefectLogsByWorkerApi(userId),
+    select: (response) => {
+      return response.data || []
+    },
+  })
 
-// 목업 데이터
-const mockDefectRecords: DefectRecord[] = [
-  {
-    id: '1',
-    date: '2024-12-05',
-    time: '10:00',
-    line: 'MX5 LH',
-    shift: '주간',
-    process: 'P1',
-    memo: '부품 누락',
-  },
-  {
-    id: '2',
-    date: '2024-11-28',
-    time: '10:00',
-    line: 'MX5 RH',
-    shift: '야간',
-    process: 'P2',
-    memo: '외관 불량 (스크래치)',
-  },
-]
-
-const UserDefect = () => {
-  const [records, setRecords] = useState<DefectRecord[]>(mockDefectRecords)
   const [isAdding, setIsAdding] = useState(false)
 
   // 입력 폼 상태
   const [newDate, setNewDate] = useState('')
   const [newTime, setNewTime] = useState('')
   const [newLine, setNewLine] = useState('')
-  const [newShift, setNewShift] = useState('')
+  const [newShift, setNewShift] = useState<ShiftType>(ShiftType.DAY)
   const [newProcess, setNewProcess] = useState('')
   const [newMemo, setNewMemo] = useState('')
 
@@ -56,17 +42,17 @@ const UserDefect = () => {
       return
     }
 
-    const newRecord: DefectRecord = {
-      id: Date.now().toString(),
-      date: newDate,
-      time: newTime,
-      line: newLine,
-      shift: newShift,
-      process: newProcess,
+    const newRecord: DefectLogCreateRequest = {
+      occurredAt: `${newDate}${newTime}`,
+      workerId: userId,
+      lineName: newLine,
+      shiftType: newShift,
+      processName: newProcess,
       memo: newMemo,
     }
 
-    setRecords([newRecord, ...records])
+    // api 호출
+    // setRecords([newRecord, ...records])
 
     // 폼 초기화
     setNewDate('')
@@ -80,7 +66,8 @@ const UserDefect = () => {
 
   const handleDelete = (id: string) => {
     if (confirm('이 불량유출 이력을 삭제하시겠습니까?')) {
-      setRecords(records.filter((record) => record.id !== id))
+      // API 호출
+      // setRecords(records.filter((record) => record.id !== id))
       alert('불량유출 이력이 삭제되었습니다')
     }
   }
@@ -121,7 +108,7 @@ const UserDefect = () => {
                     type="date"
                     value={newDate}
                     onChange={(e) => setNewDate(e.target.value)}
-                    className="w-full"
+                    className="w-full !text-base h-10"
                   />
                 </div>
                 <div>
@@ -130,7 +117,7 @@ const UserDefect = () => {
                     type="time"
                     value={newTime}
                     onChange={(e) => setNewTime(e.target.value)}
-                    className="w-full"
+                    className="w-full !text-base h-10"
                   />
                 </div>
                 <div>
@@ -140,18 +127,32 @@ const UserDefect = () => {
                     value={newLine}
                     onChange={(e) => setNewLine(e.target.value)}
                     placeholder="예: MX5 LH"
-                    className="w-full"
+                    className="w-full !text-base h-10"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">교대조 *</label>
-                  <Input
-                    type="text"
+                  <label className="block text-sm font-medium text-gray-700 mb-2">교대조</label>
+                  <RadioGroup
                     value={newShift}
-                    onChange={(e) => setNewShift(e.target.value)}
-                    placeholder="예: 주간"
-                    className="w-full"
-                  />
+                    onValueChange={(e) => {
+                      setNewShift(e as ShiftType)
+                    }}
+                    className="flex gap-4 h-10"
+                  >
+                    {Object.values(ShiftType).map((item: ShiftType) => {
+                      return (
+                        <div className="flex items-center space-x-1.5" key={item}>
+                          <RadioGroupItem value={item} id={item} />
+                          <Label
+                            htmlFor={item}
+                            className="text-base font-medium cursor-pointer flex items-center gap-1.5"
+                          >
+                            {displayShiftType(item)}
+                          </Label>
+                        </div>
+                      )
+                    })}
+                  </RadioGroup>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">공정 *</label>
@@ -160,7 +161,7 @@ const UserDefect = () => {
                     value={newProcess}
                     onChange={(e) => setNewProcess(e.target.value)}
                     placeholder="예: P1"
-                    className="w-full"
+                    className="w-full !text-base h-10"
                   />
                 </div>
                 <div>
@@ -170,7 +171,7 @@ const UserDefect = () => {
                     value={newMemo}
                     onChange={(e) => setNewMemo(e.target.value)}
                     placeholder="예: 부품 누락"
-                    className="w-full"
+                    className="w-full !text-base h-10"
                   />
                 </div>
               </div>
@@ -196,10 +197,13 @@ const UserDefect = () => {
           </div>
         )}
 
-        {/* 불량유출 이력 목록 */}
-        {records.length === 0 ? (
+        {isPending && <>스켈레톤</>}
+
+        {defectData && defectData.length === 0 && (
           <div className="text-center py-12 text-gray-400">등록된 불량유출 이력이 없습니다</div>
-        ) : (
+        )}
+
+        {defectData && defectData.length > 0 && (
           <div className="overflow-x-auto">
             <table className="w-full table-fixed">
               <colgroup>
@@ -237,23 +241,29 @@ const UserDefect = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {records.map((record) => (
-                  <tr key={record.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-4 text-base text-gray-900 text-center">{record.date}</td>
-                    <td className="px-4 py-4 text-base text-gray-900 text-center">{record.time}</td>
-                    <td className="px-4 py-4 text-base text-gray-900 text-center">{record.line}</td>
+                {defectData?.map((item) => (
+                  <tr key={item.id} className="hover:bg-gray-50">
                     <td className="px-4 py-4 text-base text-gray-900 text-center">
-                      {record.shift}
+                      {format(item.occurredAt, 'yyyy-MM-dd')}
                     </td>
                     <td className="px-4 py-4 text-base text-gray-900 text-center">
-                      {record.process}
+                      {format(item.occurredAt, 'HH:mm')}
                     </td>
-                    <td className="px-4 py-4 text-base text-gray-600 text-center">{record.memo}</td>
+                    <td className="px-4 py-4 text-base text-gray-900 text-center">
+                      {item.lineName}
+                    </td>
+                    <td className="px-4 py-4 text-base text-gray-900 text-center">
+                      {displayShiftType(item.shiftType)}
+                    </td>
+                    <td className="px-4 py-4 text-base text-gray-900 text-center">
+                      {item.processName}
+                    </td>
+                    <td className="px-4 py-4 text-base text-gray-600 text-center">{item.memo}</td>
                     <td className="px-4 py-4 text-center">
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleDelete(record.id)}
+                        onClick={() => handleDelete(item.id)}
                         className="text-red-600 hover:text-red-700 hover:bg-red-50"
                       >
                         <X className="w-4 h-4" />
