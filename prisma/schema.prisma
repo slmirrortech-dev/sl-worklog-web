@@ -26,10 +26,53 @@ model User {
   createdAt                DateTime @default(now())         // 생성 시각
 
   // Relations
-  processSlot       ProcessSlot[]
+  processSlot              ProcessSlot[]
+  DefectLog                DefectLog[]
+  TrainingLog TrainingLog[]
 
   @@map("users")
 }
+
+// ================================
+// TrainingLog (교육 기록)
+// ================================
+model TrainingLog {
+  id                       String   @id @default(cuid())     // UUID (PK)
+  trainedAt                DateTime @default(now())           // 교육일시
+
+  workerId                 String
+  worker                   User @relation(fields: [workerId], references: [id])
+
+  title                    String                            // 교육명
+  instructor               String                            // 교육자
+
+  createdAt                DateTime @default(now())
+  createdBy                String                            // 기록한 관리자 uuid
+
+  @@map("training_logs")
+}
+
+// ================================
+// DefectLog (불량유출 기록)
+// ================================
+model DefectLog {
+  id                       String   @id @default(cuid())     // UUID (PK)
+  occurredAt               DateTime @default(now())          // 발생 일시
+
+  workerId                 String
+  worker                   User @relation(fields: [workerId], references: [id])
+
+  lineName                 String                            // 라인명
+  shiftType                ShiftType                         // 교대조 타입 (주간/야간)
+  processName              String                            // 공정명
+  memo                     String                            // 메모
+
+  createdAt                DateTime @default(now())
+  createdBy                String                            // 기록한 관리자 uuid
+
+  @@map("defect_logs")
+}
+
 
 // ================================
 // Role (사용자 권한)
