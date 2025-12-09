@@ -50,33 +50,45 @@ const mockDefectRecords = [
   {
     id: '1',
     date: '2024-12-09',
+    time: '08:00',
     workerName: '김철수',
     workerUserId: 'W001',
-    lineName: 'A-1 라인',
+    lineName: 'ML5 RH',
+    shift: '주간',
+    process: 'P1',
     memo: '외관 불량 발생 (스크래치)',
   },
   {
     id: '2',
     date: '2024-12-08',
+    time: '08:00',
     workerName: '이영희',
     workerUserId: 'W023',
-    lineName: 'B-2 라인',
+    lineName: 'ML5 RH',
+    shift: '주간',
+    process: 'P1',
     memo: '치수 불량',
   },
   {
     id: '3',
     date: '2024-12-07',
+    time: '08:00',
     workerName: '박민수',
     workerUserId: 'W045',
-    lineName: 'A-3 라인',
+    lineName: 'ML5 RH',
+    shift: '주간',
+    process: 'P1',
     memo: '도장 불량 (색상 불일치)',
   },
   {
     id: '4',
     date: '2024-12-06',
+    time: '08:00',
     workerName: '최지현',
     workerUserId: 'W067',
-    lineName: 'C-1 라인',
+    lineName: 'ML5 RH',
+    shift: '주간',
+    process: 'P1',
     memo: '조립 누락',
   },
 ]
@@ -379,10 +391,15 @@ const ExportsPage = () => {
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">날짜</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">발생일</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                  발생시간
+                </th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">작업자</th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">사번</th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">라인</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">교대조</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">공정</th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">메모</th>
               </tr>
             </thead>
@@ -390,11 +407,14 @@ const ExportsPage = () => {
               {mockDefectRecords.map((record) => (
                 <tr key={record.id} className="hover:bg-gray-50">
                   <td className="px-4 py-4 text-sm text-gray-900">{record.date}</td>
+                  <td className="px-4 py-4 text-sm text-gray-900">{record.time}</td>
                   <td className="px-4 py-4 text-sm font-medium text-gray-900">
                     {record.workerName}
                   </td>
                   <td className="px-4 py-4 text-sm text-gray-600">{record.workerUserId}</td>
                   <td className="px-4 py-4 text-sm text-gray-600">{record.lineName}</td>
+                  <td className="px-4 py-4 text-sm text-gray-600">{record.shift}</td>
+                  <td className="px-4 py-4 text-sm text-gray-600">{record.process}</td>
                   <td className="px-4 py-4 text-sm text-gray-600">{record.memo}</td>
                 </tr>
               ))}
