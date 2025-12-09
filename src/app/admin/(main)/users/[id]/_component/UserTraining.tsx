@@ -111,7 +111,7 @@ const UserTraining = () => {
                     type="date"
                     value={newDate}
                     onChange={(e) => setNewDate(e.target.value)}
-                    className="w-full"
+                    className="w-full !text-base h-10"
                   />
                 </div>
                 <div>
@@ -121,7 +121,7 @@ const UserTraining = () => {
                     value={newTrainingName}
                     onChange={(e) => setNewTrainingName(e.target.value)}
                     placeholder="예: 안전 교육"
-                    className="w-full"
+                    className="w-full !text-base h-10"
                   />
                 </div>
                 <div>
@@ -131,7 +131,7 @@ const UserTraining = () => {
                     value={newInstructor}
                     onChange={(e) => setNewInstructor(e.target.value)}
                     placeholder="예: 김안전"
-                    className="w-full"
+                    className="w-full !text-base h-10"
                   />
                 </div>
               </div>
@@ -161,25 +161,19 @@ const UserTraining = () => {
           <div className="text-center py-12 text-gray-400">등록된 교육 이력이 없습니다</div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full table-fixed">
-              <colgroup>
-                <col className="w-32" />
-                <col />
-                <col className="w-32" />
-                <col className="w-16" />
-              </colgroup>
+            <table className="w-full min-w-[500px]">
               <thead className="bg-blue-50 border-b border-gray-200">
                 <tr>
-                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
+                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700 w-32 min-w-[128px]">
                     교육일
                   </th>
-                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
+                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700 min-w-[200px]">
                     교육명
                   </th>
-                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
+                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700 w-24 min-w-[96px]">
                     교육자
                   </th>
-                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
+                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700 w-16 min-w-[64px]">
                     삭제
                   </th>
                 </tr>
@@ -187,14 +181,16 @@ const UserTraining = () => {
               <tbody className="divide-y divide-gray-200">
                 {records.map((record) => (
                   <tr key={record.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-4 text-base text-gray-900 text-center">{record.date}</td>
-                    <td className="px-4 py-4 text-base font-medium text-gray-900 text-center">
+                    <td className="px-4 py-4 text-base text-gray-900 text-center whitespace-nowrap">
+                      {record.date}
+                    </td>
+                    <td className="px-4 py-4 text-base font-medium text-gray-900 text-center whitespace-nowrap">
                       {record.trainingName}
                     </td>
-                    <td className="px-4 py-4 text-base text-gray-600 text-center">
+                    <td className="px-4 py-4 text-base text-gray-600 text-center whitespace-nowrap">
                       {record.instructor}
                     </td>
-                    <td className="px-4 py-4 text-center">
+                    <td className="px-4 py-4 text-center whitespace-nowrap">
                       <Button
                         variant="ghost"
                         size="sm"

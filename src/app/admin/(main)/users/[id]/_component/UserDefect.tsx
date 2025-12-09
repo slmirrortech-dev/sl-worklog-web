@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { OctagonAlert, Plus, X } from 'lucide-react'
+import { OctagonAlert, Plus, X, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useMutation, useQuery } from '@tanstack/react-query'
@@ -230,7 +230,11 @@ const UserDefect = ({ userId }: { userId: string }) => {
           </div>
         )}
 
-        {isPending && <>스켈레톤</>}
+        {isPending && (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+          </div>
+        )}
 
         {defectData && defectData.length === 0 && (
           <div className="text-center py-12 text-gray-400">등록된 불량유출 이력이 없습니다</div>
@@ -238,37 +242,28 @@ const UserDefect = ({ userId }: { userId: string }) => {
 
         {defectData && defectData.length > 0 && (
           <div className="overflow-x-auto">
-            <table className="w-full table-fixed">
-              <colgroup>
-                <col className="w-32" />
-                <col className="w-22" />
-                <col className="w-34" />
-                <col className="w-20" />
-                <col className="w-20" />
-                <col />
-                <col className="w-16" />
-              </colgroup>
+            <table className="w-full min-w-[700px]">
               <thead className="bg-blue-50 border-b border-gray-200">
                 <tr>
-                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
+                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700 w-32 min-w-[128px]">
                     발생일
                   </th>
-                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
+                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700 w-24 min-w-[96px]">
                     발생시간
                   </th>
-                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
+                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700 w-28 min-w-[112px]">
                     라인
                   </th>
-                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
+                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700 w-20 min-w-[80px]">
                     교대조
                   </th>
-                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
+                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700 w-20 min-w-[80px]">
                     공정
                   </th>
-                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
+                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700 min-w-[200px]">
                     메모
                   </th>
-                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
+                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700 w-16 min-w-[64px]">
                     삭제
                   </th>
                 </tr>
@@ -276,23 +271,25 @@ const UserDefect = ({ userId }: { userId: string }) => {
               <tbody className="divide-y divide-gray-200">
                 {defectData?.map((item) => (
                   <tr key={item.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-4 text-base text-gray-900 text-center">
+                    <td className="px-4 py-4 text-base text-gray-900 text-center whitespace-nowrap">
                       {format(item.occurredAt, 'yyyy-MM-dd')}
                     </td>
-                    <td className="px-4 py-4 text-base text-gray-900 text-center">
+                    <td className="px-4 py-4 text-base text-gray-900 text-center whitespace-nowrap">
                       {format(item.occurredAt, 'HH:mm')}
                     </td>
-                    <td className="px-4 py-4 text-base text-gray-900 text-center">
+                    <td className="px-4 py-4 text-base text-gray-900 text-center whitespace-nowrap">
                       {item.lineName}
                     </td>
-                    <td className="px-4 py-4 text-base text-gray-900 text-center">
+                    <td className="px-4 py-4 text-base text-gray-900 text-center whitespace-nowrap">
                       {displayShiftType(item.shiftType)}
                     </td>
-                    <td className="px-4 py-4 text-base text-gray-900 text-center">
+                    <td className="px-4 py-4 text-base text-gray-900 text-center whitespace-nowrap">
                       {item.processName}
                     </td>
-                    <td className="px-4 py-4 text-base text-gray-600 text-center">{item.memo}</td>
-                    <td className="px-4 py-4 text-center">
+                    <td className="px-4 py-4 text-base text-gray-600 text-center whitespace-nowrap">
+                      {item.memo}
+                    </td>
+                    <td className="px-4 py-4 text-center whitespace-nowrap">
                       <Button
                         variant="ghost"
                         size="sm"
