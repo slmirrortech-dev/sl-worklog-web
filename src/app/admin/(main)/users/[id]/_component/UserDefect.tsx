@@ -9,7 +9,9 @@ import { Input } from '@/components/ui/input'
 interface DefectRecord {
   id: string
   date: string // yyyy-mm-dd
+  time: string
   line: string
+  shift: string
   process: string
   memo: string
 }
@@ -19,14 +21,18 @@ const mockDefectRecords: DefectRecord[] = [
   {
     id: '1',
     date: '2024-12-05',
+    time: '10:00',
     line: 'MX5 LH',
+    shift: '주간',
     process: 'P1',
     memo: '부품 누락',
   },
   {
     id: '2',
     date: '2024-11-28',
+    time: '10:00',
     line: 'MX5 RH',
+    shift: '야간',
     process: 'P2',
     memo: '외관 불량 (스크래치)',
   },
@@ -38,7 +44,9 @@ const UserDefect = () => {
 
   // 입력 폼 상태
   const [newDate, setNewDate] = useState('')
+  const [newTime, setNewTime] = useState('')
   const [newLine, setNewLine] = useState('')
+  const [newShift, setNewShift] = useState('')
   const [newProcess, setNewProcess] = useState('')
   const [newMemo, setNewMemo] = useState('')
 
@@ -51,7 +59,9 @@ const UserDefect = () => {
     const newRecord: DefectRecord = {
       id: Date.now().toString(),
       date: newDate,
+      time: newTime,
       line: newLine,
+      shift: newShift,
       process: newProcess,
       memo: newMemo,
     }
@@ -115,12 +125,31 @@ const UserDefect = () => {
                   />
                 </div>
                 <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">발생시간 *</label>
+                  <Input
+                    type="time"
+                    value={newTime}
+                    onChange={(e) => setNewTime(e.target.value)}
+                    className="w-full"
+                  />
+                </div>
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">라인 *</label>
                   <Input
                     type="text"
                     value={newLine}
                     onChange={(e) => setNewLine(e.target.value)}
                     placeholder="예: MX5 LH"
+                    className="w-full"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">교대조 *</label>
+                  <Input
+                    type="text"
+                    value={newShift}
+                    onChange={(e) => setNewShift(e.target.value)}
+                    placeholder="예: 주간"
                     className="w-full"
                   />
                 </div>
@@ -175,10 +204,12 @@ const UserDefect = () => {
             <table className="w-full table-fixed">
               <colgroup>
                 <col className="w-32" />
-                <col className="w-32" />
-                <col className="w-32" />
-                <col />
+                <col className="w-22" />
+                <col className="w-34" />
                 <col className="w-20" />
+                <col className="w-20" />
+                <col />
+                <col className="w-16" />
               </colgroup>
               <thead className="bg-blue-50 border-b border-gray-200">
                 <tr>
@@ -186,7 +217,13 @@ const UserDefect = () => {
                     발생일
                   </th>
                   <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
+                    발생시간
+                  </th>
+                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
                     라인
+                  </th>
+                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
+                    교대조
                   </th>
                   <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
                     공정
@@ -203,7 +240,11 @@ const UserDefect = () => {
                 {records.map((record) => (
                   <tr key={record.id} className="hover:bg-gray-50">
                     <td className="px-4 py-4 text-base text-gray-900 text-center">{record.date}</td>
+                    <td className="px-4 py-4 text-base text-gray-900 text-center">{record.time}</td>
                     <td className="px-4 py-4 text-base text-gray-900 text-center">{record.line}</td>
+                    <td className="px-4 py-4 text-base text-gray-900 text-center">
+                      {record.shift}
+                    </td>
                     <td className="px-4 py-4 text-base text-gray-900 text-center">
                       {record.process}
                     </td>

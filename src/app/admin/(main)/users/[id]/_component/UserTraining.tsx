@@ -166,7 +166,7 @@ const UserTraining = () => {
                 <col className="w-32" />
                 <col />
                 <col className="w-32" />
-                <col className="w-20" />
+                <col className="w-16" />
               </colgroup>
               <thead className="bg-blue-50 border-b border-gray-200">
                 <tr>
