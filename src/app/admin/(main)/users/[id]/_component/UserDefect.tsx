@@ -140,6 +140,7 @@ const UserDefect = ({ userId }: { userId: string }) => {
                   <Input
                     type="date"
                     value={newDate}
+                    max={format(new Date(), 'yyyy-MM-dd')}
                     onChange={(e) => setNewDate(e.target.value)}
                     className="w-full !text-base h-10"
                   />

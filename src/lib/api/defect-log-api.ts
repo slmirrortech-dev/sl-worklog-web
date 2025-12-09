@@ -1,6 +1,38 @@
 import { apiFetch } from '@/lib/api/api-fetch'
 import { DefectLogCreateRequest, DefectLogResponse } from '@/types/defect-log'
 import { ApiResponse } from '@/types/common'
+import { ShiftType } from '@prisma/client'
+
+export interface DefectLogSearchParams {
+  startDate?: string
+  endDate?: string
+  workerSearch?: string
+  lineName?: string
+  processName?: string
+  shiftType?: ShiftType
+  memo?: string
+}
+
+/**
+ * 불량 유출 이력 검색
+ */
+export async function searchDefectLogsApi(params: DefectLogSearchParams) {
+  const queryParams = new URLSearchParams()
+
+  if (params.startDate) queryParams.append('startDate', params.startDate)
+  if (params.endDate) queryParams.append('endDate', params.endDate)
+  if (params.workerSearch) queryParams.append('workerSearch', params.workerSearch)
+  if (params.lineName) queryParams.append('lineName', params.lineName)
+  if (params.processName) queryParams.append('processName', params.processName)
+  if (params.shiftType) queryParams.append('shiftType', params.shiftType)
+  if (params.memo) queryParams.append('memo', params.memo)
+
+  const url = `/api/defect-log/search${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+
+  return await apiFetch<ApiResponse<DefectLogResponse[]>>(url, {
+    method: 'GET',
+  })
+}
 
 /**
  * 특정 작업자 불량 유출 이력 조회
