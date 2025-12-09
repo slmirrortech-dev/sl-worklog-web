@@ -32,7 +32,7 @@ const UserDetailPage = async ({ params }: UserDetailPageProps) => {
             mustChangePassword: session?.mustChangePassword || false,
           }}
         />
-        <UserTraining />
+        <UserTraining userId={user.id} />
         <UserDefect userId={user.id} />
       </div>
     </main>

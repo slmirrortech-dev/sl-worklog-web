@@ -1,42 +1,22 @@
 'use client'
 
 import React, { useState } from 'react'
-import { GraduationCap, Plus, X } from 'lucide-react'
+import { GraduationCap, Plus, X, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import {
+  createTrainingLogApi,
+  getTrainingLogsByWorkerApi,
+  removeTrainingLogApi,
+} from '@/lib/api/training-log-api'
+import { TrainingLogCreateRequest } from '@/types/training-log'
+import { format } from 'date-fns'
+import { useLoading } from '@/contexts/LoadingContext'
 
-// 교육 이력 타입
-interface TrainingRecord {
-  id: string
-  date: string // yyyy-mm-dd
-  trainingName: string
-  instructor: string
-}
+const UserTraining = ({ userId }: { userId: string }) => {
+  const { showLoading, hideLoading } = useLoading()
 
-// 목업 데이터
-const mockTrainingRecords: TrainingRecord[] = [
-  {
-    id: '1',
-    date: '2024-12-01',
-    trainingName: '안전 교육',
-    instructor: '김안전',
-  },
-  {
-    id: '2',
-    date: '2024-11-15',
-    trainingName: '품질 관리 교육',
-    instructor: '이품질',
-  },
-  {
-    id: '3',
-    date: '2024-10-20',
-    trainingName: '신규 공정 교육',
-    instructor: '박공정',
-  },
-]
-
-const UserTraining = () => {
-  const [records, setRecords] = useState<TrainingRecord[]>(mockTrainingRecords)
   const [isAdding, setIsAdding] = useState(false)
 
   // 입력 폼 상태
@@ -44,34 +24,75 @@ const UserTraining = () => {
   const [newTrainingName, setNewTrainingName] = useState('')
   const [newInstructor, setNewInstructor] = useState('')
 
+  const {
+    data: trainingData,
+    isPending,
+    refetch,
+  } = useQuery({
+    queryKey: ['getTrainingLogsByWorkerApi', userId],
+    queryFn: () => getTrainingLogsByWorkerApi(userId),
+    select: (response) => {
+      return response.data || []
+    },
+  })
+
+  const { mutate: removeMutate } = useMutation({
+    mutationFn: removeTrainingLogApi,
+    onMutate: () => {
+      showLoading()
+    },
+    onError: () => {
+      alert('교육 이력 삭제 실패')
+    },
+    onSuccess: () => {
+      refetch()
+    },
+    onSettled: () => {
+      hideLoading()
+    },
+  })
+
+  const { mutate: addMutate } = useMutation({
+    mutationFn: createTrainingLogApi,
+    onMutate: () => {
+      showLoading()
+    },
+    onError: () => {
+      alert('교육 이력 추가 실패')
+    },
+    onSuccess: () => {
+      refetch()
+      // 폼 초기화
+      setNewDate('')
+      setNewTrainingName('')
+      setNewInstructor('')
+      setIsAdding(false)
+    },
+    onSettled: () => {
+      hideLoading()
+    },
+  })
+
   const handleAdd = () => {
     if (!newDate || !newTrainingName || !newInstructor) {
       alert('모든 항목을 입력해주세요')
       return
     }
 
-    const newRecord: TrainingRecord = {
-      id: Date.now().toString(),
-      date: newDate,
-      trainingName: newTrainingName,
+    const newRecord: TrainingLogCreateRequest = {
+      trainedAt: format(new Date(newDate), "yyyy-MM-dd'T'HH:mm:ss"),
+      workerId: userId,
+      title: newTrainingName,
       instructor: newInstructor,
     }
 
-    setRecords([newRecord, ...records])
-
-    // 폼 초기화
-    setNewDate('')
-    setNewTrainingName('')
-    setNewInstructor('')
-    setIsAdding(false)
-
-    alert('교육 이력이 등록되었습니다')
+    // api 호출
+    addMutate(newRecord)
   }
 
   const handleDelete = (id: string) => {
     if (confirm('이 교육 이력을 삭제하시겠습니까?')) {
-      setRecords(records.filter((record) => record.id !== id))
-      alert('교육 이력이 삭제되었습니다')
+      removeMutate(id)
     }
   }
 
@@ -156,10 +177,17 @@ const UserTraining = () => {
           </div>
         )}
 
-        {/* 교육 이력 목록 */}
-        {records.length === 0 ? (
+        {isPending && (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+          </div>
+        )}
+
+        {trainingData && trainingData.length === 0 && (
           <div className="text-center py-12 text-gray-400">등록된 교육 이력이 없습니다</div>
-        ) : (
+        )}
+
+        {trainingData && trainingData.length > 0 && (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[500px]">
               <thead className="bg-blue-50 border-b border-gray-200">
@@ -179,22 +207,22 @@ const UserTraining = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {records.map((record) => (
-                  <tr key={record.id} className="hover:bg-gray-50">
+                {trainingData?.map((item) => (
+                  <tr key={item.id} className="hover:bg-gray-50">
                     <td className="px-4 py-4 text-base text-gray-900 text-center whitespace-nowrap">
-                      {record.date}
+                      {format(new Date(item.trainedAt), 'yyyy-MM-dd')}
                     </td>
                     <td className="px-4 py-4 text-base font-medium text-gray-900 text-center whitespace-nowrap">
-                      {record.trainingName}
+                      {item.title}
                     </td>
                     <td className="px-4 py-4 text-base text-gray-600 text-center whitespace-nowrap">
-                      {record.instructor}
+                      {item.instructor}
                     </td>
                     <td className="px-4 py-4 text-center whitespace-nowrap">
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleDelete(record.id)}
+                        onClick={() => handleDelete(item.id)}
                         className="text-red-600 hover:text-red-700 hover:bg-red-50"
                       >
                         <X className="w-4 h-4" />
