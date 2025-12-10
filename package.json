@@ -6,6 +6,7 @@
     "dev:local": "next dev --turbopack",
     "dev:dev": "dotenv -e .env.development -- next dev --turbopack",
     "dev:prod": "dotenv -e .env.production -- next dev --turbopack",
+    "test:cron": "curl http://localhost:3000/api/cron/backup-workplace",
     "swagger:generate": "node scripts/generate-swagger.js",
     "prebuild": "npm run swagger:generate",
     "build": "prisma generate && next build --turbopack",
