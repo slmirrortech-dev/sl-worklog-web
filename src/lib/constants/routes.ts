@@ -6,6 +6,7 @@ export const ROUTES = {
     WORKPLACE_SETTING: '/admin/workplace-setting',
     EXPORTS: '/admin/exports',
     USERS: '/admin/users',
+    USER_DETAIL: (id: string) => `/admin/user-detail/${id}`,
     MY_PAGE: '/admin/my-page',
   },
   MONITOR: '/monitor',

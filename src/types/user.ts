@@ -15,4 +15,4 @@ export type CurrentUserModel = Pick<
   'id' | 'userId' | 'name' | 'hireDate' | 'role' | 'licensePhotoUrl' | 'createdAt'
 >
 
-export type updateUserRequestModel = Pick<User, 'name' | 'role' | 'isActive' | 'licensePhotoUrl'>
+export type updateUserRequestModel = Pick<User, 'name' | 'role' | 'isActive' | 'licensePhotoUrl' | 'hireDate'>

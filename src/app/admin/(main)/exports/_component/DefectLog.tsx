@@ -7,11 +7,31 @@ import { CustomDataGrid } from '@/components/admin/CustomDataGrid'
 import useSearchDefectLog from '@/app/admin/(main)/exports/_hooks/useSearchDefectLog'
 import SearchBarDefectLog from '@/app/admin/(main)/exports/_component/SearchBarDefectLog'
 import { DefectLogResponse } from '@/types/defect-log'
+import { Download } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { useExcelDownload } from '@/hooks/useExcelDownload'
 
 const DefectLog = () => {
   // 개별 상태 관리
   const { searchStates, defectLogQuery, resetFilters, page, setPage, pageSize, setPageSize, totalCount } =
     useSearchDefectLog()
+
+  // 엑셀 다운로드 훅
+  const { downloadWorkLogExcel, isDownloading } = useExcelDownload()
+
+  // 엑셀 다운로드 처리
+  const handleExcelDownload = async () => {
+    try {
+      const logData = defectLogQuery.data?.data || []
+      if (logData.length === 0) {
+        alert('다운로드할 데이터가 없습니다.')
+        return
+      }
+      await downloadWorkLogExcel(logData, '불량유출기록')
+    } catch (error) {
+      alert('엑셀 다운로드 중 오류가 발생했습니다.')
+    }
+  }
 
   // 테이블 컬럼 정의
   const columns: ColumnDef<DefectLogResponse>[] = [
@@ -82,11 +102,7 @@ const DefectLog = () => {
   return (
     <>
       <section className="flex flex-col space-y-6">
-        <SearchBarDefectLog
-          searchStates={searchStates}
-          resetFilters={resetFilters}
-          logData={defectLogQuery.data?.data || []}
-        />
+        <SearchBarDefectLog searchStates={searchStates} resetFilters={resetFilters} />
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           <CustomDataGrid
             id="defect-log"
@@ -98,7 +114,17 @@ const DefectLog = () => {
             loading={defectLogQuery.isLoading}
             setPage={setPage}
             setPageSize={setPageSize}
-          />
+          >
+            <Button
+              variant="outline"
+              className="bg-green-700 text-white hover:bg-green-800 hover:text-white"
+              onClick={handleExcelDownload}
+              disabled={isDownloading || (defectLogQuery.data?.data || []).length === 0}
+            >
+              <Download className="w-4 h-4" />
+              Excel 다운로드
+            </Button>
+          </CustomDataGrid>
         </div>
       </section>
     </>

@@ -124,7 +124,10 @@ export function CustomDataGrid({
           />
         )
       },
-      size: 50,
+      size: 40,
+      meta: {
+        className: 'w-10',
+      },
     }
 
     return [selectionColumn, ...columns]
@@ -243,7 +246,9 @@ export function CustomDataGrid({
                   return (
                     <TableHead
                       key={header.id}
-                      className="py-3 md:py-4 px-3 md:px-6 font-medium text-gray-700 text-sm md:text-base text-center"
+                      className={`py-3 md:py-4 font-medium text-gray-700 text-sm md:text-base text-center ${
+                        header.column.id === 'select' ? 'px-1 md:px-2 w-10' : 'px-3 md:px-6'
+                      }`}
                     >
                       {header.isPlaceholder
                         ? null
@@ -276,7 +281,9 @@ export function CustomDataGrid({
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
                       key={cell.id}
-                      className="py-3 md:py-4 px-2 md:px-3 text-gray-900 text-sm md:text-base text-center"
+                      className={`py-3 md:py-4 text-gray-900 text-sm md:text-base text-center ${
+                        cell.column.id === 'select' ? 'px-1 md:px-2 w-10' : 'px-2 md:px-3'
+                      }`}
                     >
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>

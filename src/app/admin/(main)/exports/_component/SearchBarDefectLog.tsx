@@ -3,12 +3,10 @@
 import React, { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Download, RotateCcw, Search } from 'lucide-react'
+import { RotateCcw, Search } from 'lucide-react'
 import { SearchStatesType } from '@/app/admin/(main)/exports/_hooks/useSearchDefectLog'
 import { CustomDatePicker } from '@/components/CustomDatePicker'
 import { subDays, subMonths } from 'date-fns'
-import { useExcelDownload } from '@/hooks/useExcelDownload'
-import { DefectLogResponse } from '@/types/defect-log'
 import {
   Select,
   SelectContent,
@@ -22,11 +20,9 @@ const DATA_RANGE = ['오늘', '1주일', '1개월']
 const SearchBarDefectLog = ({
   searchStates,
   resetFilters,
-  logData = [],
 }: {
   searchStates: SearchStatesType
   resetFilters: () => void
-  logData?: DefectLogResponse[]
 }) => {
   const {
     startDate,
@@ -50,9 +46,6 @@ const SearchBarDefectLog = ({
 
   // 활성화 된 기간
   const [activeRange, setActiveRange] = useState<(typeof DATA_RANGE)[number]>(DATA_RANGE[0])
-
-  // 엑셀 다운로드 훅
-  const { downloadWorkLogExcel, isDownloading } = useExcelDownload()
 
   // 기간 변경에 따라 검색일 변경
   const handleDateRange = (index: number) => {
@@ -105,125 +98,125 @@ const SearchBarDefectLog = ({
     setActiveRange('')
   }, [startDate, endDate])
 
-  // 엑셀 다운로드 처리
-  const handleExcelDownload = async () => {
-    try {
-      if (logData.length === 0) {
-        alert('다운로드할 데이터가 없습니다.')
-        return
-      }
-      await downloadWorkLogExcel(logData, '불량유출기록')
-    } catch (error) {
-      alert('엑셀 다운로드 중 오류가 발생했습니다.')
-    }
-  }
-
   return (
-    <>
-      {/* 검색 필터 */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <CustomDatePicker
-              label="검색 시작일"
-              date={startDate}
-              onChangeAction={setStartDate}
-              max={startDate <= endDate ? endDate : undefined}
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div className="space-y-4">
+        {/* 첫 번째 줄: 기간 선택, 시작일, 종료일만 */}
+        <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-end">
+          {/* 기간 선택 버튼 */}
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium text-gray-700">기간 선택</label>
+            <div className="flex gap-2">
+              {DATA_RANGE.map((item, index) => (
+                <Button
+                  key={item + index}
+                  variant={activeRange === item ? 'default' : 'outline'}
+                  size="sm"
+                  className="min-w-[70px]"
+                  onClick={() => handleDateRange(index)}
+                >
+                  {item}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* 날짜 선택 */}
+          <CustomDatePicker
+            label="검색 시작일"
+            date={startDate}
+            onChangeAction={setStartDate}
+            max={startDate <= endDate ? endDate : undefined}
+          />
+          <CustomDatePicker
+            label="검색 종료일"
+            date={endDate}
+            onChangeAction={setEndDate}
+            min={startDate}
+            max={new Date()}
+          />
+        </div>
+
+        {/* 두 번째 줄부터: 나머지 필터들 4-column grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium text-gray-700">교대조</label>
+            <Select value={shiftType} onValueChange={setShiftType}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="전체" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">전체</SelectItem>
+                <SelectItem value="DAY">주간</SelectItem>
+                <SelectItem value="NIGHT">야간</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium text-gray-700">라인명</label>
+            <Input
+              type="text"
+              placeholder="라인명 검색"
+              value={lineName}
+              onChange={(e) => setLineName(e.target.value)}
             />
-            <CustomDatePicker
-              label="검색 종료일"
-              date={endDate}
-              onChangeAction={setEndDate}
-              min={startDate}
-              max={new Date()}
+          </div>
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium text-gray-700">반 이름</label>
+            <Input
+              type="text"
+              placeholder="1반, 2반, 서브반 등"
+              value={className}
+              onChange={(e) => setClassName(e.target.value)}
             />
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-gray-700">교대조</label>
-              <Select value={shiftType} onValueChange={setShiftType}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="전체" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ALL">전체</SelectItem>
-                  <SelectItem value="DAY">주간</SelectItem>
-                  <SelectItem value="NIGHT">야간</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-gray-700">라인명</label>
-              <Input
-                type="text"
-                placeholder="라인명 검색"
-                value={lineName}
-                onChange={(e) => setLineName(e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-gray-700">반 이름</label>
-              <Input
-                type="text"
-                placeholder="1반, 2반, 서브반 등"
-                value={className}
-                onChange={(e) => setClassName(e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-gray-700">공정명</label>
-              <Input
-                type="text"
-                placeholder="공정명 검색"
-                value={processName}
-                onChange={(e) => setProcessName(e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-gray-700">작업자</label>
-              <Input
-                type="text"
-                placeholder="이름 또는 사번"
-                value={worker}
-                onChange={(e) => setWorker(e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-gray-700">메모</label>
-              <Input
-                type="text"
-                placeholder="메모 검색"
-                value={memo}
-                onChange={(e) => setMemo(e.target.value)}
-              />
-            </div>
+          </div>
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium text-gray-700">공정명</label>
+            <Input
+              type="text"
+              placeholder="공정명 검색"
+              value={processName}
+              onChange={(e) => setProcessName(e.target.value)}
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium text-gray-700">작업자</label>
+            <Input
+              type="text"
+              placeholder="이름 또는 사번"
+              value={worker}
+              onChange={(e) => setWorker(e.target.value)}
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium text-gray-700">메모</label>
+            <Input
+              type="text"
+              placeholder="메모 검색"
+              value={memo}
+              onChange={(e) => setMemo(e.target.value)}
+            />
           </div>
         </div>
 
         {/* 액션 버튼 */}
-        <div className="flex items-center justify-end gap-2 mt-6">
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" size="sm" onClick={resetFilters}>
+            <RotateCcw className="w-4 h-4 mr-1" />
+            초기화
+          </Button>
           <Button
             variant="default"
+            size="sm"
             className="bg-blue-600 text-white hover:bg-blue-700"
             onClick={handleSearch}
           >
-            <Search className="w-4 h-4" />
+            <Search className="w-4 h-4 mr-1" />
             검색
-          </Button>
-          <Button
-            variant="outline"
-            className="bg-green-700 text-white hover:bg-green-800 hover:text-white"
-            onClick={handleExcelDownload}
-            disabled={isDownloading || logData.length === 0}
-          >
-            <Download className="w-4 h-4" />
-            {isDownloading ? '다운로드 중...' : 'Excel 다운로드'}
-          </Button>
-          <Button variant="outline" onClick={resetFilters}>
-            <RotateCcw className="w-4 h-4" />
-            검색 조건 초기화
           </Button>
         </div>
       </div>
-    </>
+    </div>
   )
 }
 

@@ -13,6 +13,7 @@ import RoleLabel from '@/components/admin/RoleLabel'
 import ButtonLicense from '@/components/admin/ButtonLicense'
 import { SessionUser } from '@/lib/utils/auth-guards'
 import { useLoading } from '@/contexts/LoadingContext'
+import { ROUTES } from '@/lib/constants/routes'
 
 /** 사용자 테이블 */
 const UsersDataTable = ({
@@ -197,7 +198,7 @@ const UsersDataTable = ({
               onClick={() => {
                 showLoading()
                 saveScrollPosition()
-                router.push(`/admin/users/${user.id}`)
+                router.push(ROUTES.ADMIN.USER_DETAIL(user.id))
               }}
             >
               상세 보기

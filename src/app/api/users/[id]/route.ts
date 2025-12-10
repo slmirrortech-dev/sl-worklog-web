@@ -23,6 +23,7 @@ async function updateUser(req: NextRequest, { params }: { params: Promise<{ id: 
   if (body.role !== undefined) data.role = body.role
   if (body.isActive !== undefined) data.isActive = body.isActive
   if (body.licensePhotoUrl !== undefined) data.licensePhoto = body.licensePhotoUrl
+  if (body.hireDate !== undefined) data.hireDate = body.hireDate
 
   if (Object.keys(data).length === 0) {
     throw new ApiError('수정할 값이 없습니다', 400, 'NO_UPDATE')
