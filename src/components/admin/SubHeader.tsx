@@ -9,12 +9,12 @@ import { useRouter } from 'next/navigation'
 
 const SubHeader = ({ title = '서브페이지' }: { title: string }) => {
   const router = useRouter()
-  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false)
+  // const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false)
 
-  const handleConfirmNavigate = () => {
-    setIsConfirmDialogOpen(false)
-    router.back()
-  }
+  // const handleConfirmNavigate = () => {
+  //   setIsConfirmDialogOpen(false)
+  //   router.back()
+  // }
 
   return (
     <>
@@ -26,7 +26,7 @@ const SubHeader = ({ title = '서브페이지' }: { title: string }) => {
                 variant="ghost"
                 size="sm"
                 className="text-gray-600 hover:text-gray-900"
-                onClick={() => setIsConfirmDialogOpen(true)}
+                onClick={() => router.back()}
               >
                 <ArrowLeft className="w-4 h-4 mr-1" />
                 뒤로
@@ -37,15 +37,15 @@ const SubHeader = ({ title = '서브페이지' }: { title: string }) => {
           </div>
         </div>
       </header>
-      <CustomConfirmDialog
-        isOpen={isConfirmDialogOpen}
-        setIsOpen={setIsConfirmDialogOpen}
-        isLoading={false}
-        title="설정 페이지 나가기"
-        desc={`변경 사항을 저장했는지 한번 더 확인 후\n나가기 버튼을 눌러주세요.`}
-        btnCancel={{ btnText: '취소' }}
-        btnConfirm={{ btnText: '나가기', fn: handleConfirmNavigate }}
-      />
+      {/*<CustomConfirmDialog*/}
+      {/*  isOpen={isConfirmDialogOpen}*/}
+      {/*  setIsOpen={setIsConfirmDialogOpen}*/}
+      {/*  isLoading={false}*/}
+      {/*  title="설정 페이지 나가기"*/}
+      {/*  desc={`변경 사항을 저장했는지 한번 더 확인 후\n나가기 버튼을 눌러주세요.`}*/}
+      {/*  btnCancel={{ btnText: '취소' }}*/}
+      {/*  btnConfirm={{ btnText: '나가기', fn: handleConfirmNavigate }}*/}
+      {/*/>*/}
     </>
   )
 }
