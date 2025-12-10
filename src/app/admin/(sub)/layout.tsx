@@ -1,11 +1,21 @@
 import React from 'react'
 import QueryProvider from '../../../contexts/QueryProvider'
 import SubHeader from '@/components/admin/SubHeader'
+import { getServerSession } from '@/lib/utils/auth-guards'
+import { redirect } from 'next/navigation'
+import { ROUTES } from '@/lib/constants/routes'
 
 // 동적 렌더링 강제
 export const dynamic = 'force-dynamic'
 
 const AdminLayout = async ({ children }: { children: React.ReactNode }) => {
+  const session = await getServerSession()
+
+  // 세션이 없으면 로그인 페이지로
+  if (!session) {
+    redirect(ROUTES.ADMIN.LOGIN)
+  }
+
   return (
     <QueryProvider>
       <div className="min-h-screen bg-gray-50">

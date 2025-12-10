@@ -144,6 +144,8 @@ const useSearchWorkplaceLog = () => {
     pageSize,
     setPageSize: updatePageSize,
     totalCount,
+    appliedStartDate,
+    appliedEndDate,
   }
 }
 

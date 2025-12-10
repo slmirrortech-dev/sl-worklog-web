@@ -19,7 +19,7 @@ const ExportsPage = () => {
   }
 
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full space-y-6 mb-24">
       {/* --- 상단 탭 영역 --- */}
       <div className="flex border-b border-gray-200">
         <button

@@ -92,6 +92,20 @@ model WorkplaceSnapshot {
   @@map("workplace_snapshots")
 }
 
+// ================================
+// BackupSchedule (자동 백업 스케줄)
+// ================================
+model BackupSchedule {
+  id                       String   @id @default(cuid())     // UUID (PK)
+  time                     String                            // 백업 시간 (HH:mm 형식)
+
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  @@unique([time]) // 중복 시간 방지
+  @@map("backup_schedules")
+}
+
 
 // ================================
 // Role (사용자 권한)
@@ -172,7 +186,7 @@ model ProcessSlot {
 
   // 작업자
   workerId     String?
-  workerStatus WorkerStatus   @default(NORMAL) // Enum 타입 확인 필요
+  workerStatus WorkerStatus?
   worker       User?        @relation(fields: [workerId], references: [id])
 
   @@unique([shiftId, name]) // 한 교대조 내에 이름이 겹치면 안됨

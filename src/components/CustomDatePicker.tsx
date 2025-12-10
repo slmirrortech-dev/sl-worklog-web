@@ -33,7 +33,7 @@ export function CustomDatePicker({
   //     .padStart(2, '0')}:${d.getSeconds().toString().padStart(2, '0')}`
 
   return (
-    <div className="flex gap-4">
+    <div className="flex gap-4 flex-1">
       {/* 날짜 선택 */}
       <div className="flex flex-col gap-3 w-full">
         <Label htmlFor="date-picker" className="px-1">

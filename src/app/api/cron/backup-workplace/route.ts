@@ -16,10 +16,7 @@ export async function GET(request: NextRequest) {
     const cronSecret = process.env.CRON_SECRET
 
     if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-      return NextResponse.json(
-        { ok: false, error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 })
     }
 
     // 모든 ProcessSlot + 상위 관계 정보 조회
@@ -40,14 +37,16 @@ export async function GET(request: NextRequest) {
 
     // WorkplaceSnapshotRow 형식으로 변환
     const snapshotData: WorkplaceSnapshotRow[] = processSlots.map((slot) => ({
-      반이름: slot.shift.line.workClass.name,
-      라인이름: slot.shift.line.name,
-      공정이름: slot.name,
-      교대조타입: slot.shift.type,
+      반: slot.shift.line.workClass.name,
+      라인: slot.shift.line.name,
+      교대조: slot.shift.type,
       라인상태: slot.shift.status,
-      작업자이름: slot.worker?.name || null,
+      공정: slot.name,
+      작업자: slot.worker?.name || null,
       사번: slot.worker?.userId || null,
-      작업자상태: slot.workerStatus,
+      작업자상태: slot.worker ? slot.workerStatus : null,
+      라인순서: slot.shift.line.displayOrder,
+      공정순서: slot.slotIndex,
     }))
 
     // 스냅샷 저장 (자동 백업이므로 createdBy는 null)
@@ -75,7 +74,7 @@ export async function GET(request: NextRequest) {
         ok: false,
         error: errorMessage,
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

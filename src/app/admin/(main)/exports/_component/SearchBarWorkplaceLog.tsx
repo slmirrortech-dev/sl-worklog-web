@@ -2,31 +2,25 @@
 
 import React, { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Download, RotateCcw, Search } from 'lucide-react'
+import { RotateCcw, Search } from 'lucide-react'
 import { SearchStatesType } from '@/app/admin/(main)/exports/_hooks/useSearchWorkplaceLog'
 import { CustomDatePicker } from '@/components/CustomDatePicker'
 import { subDays, subMonths } from 'date-fns'
-import { useExcelDownload } from '@/hooks/useExcelDownload'
-import { WorkplaceSnapshotResponse } from '@/types/workplace-snapshot'
+import { Label } from '@/components/ui/label'
 
 const DATA_RANGE = ['오늘', '1주일', '1개월']
 
 const SearchBarWorkplaceLog = ({
   searchStates,
   resetFilters,
-  logData = [],
 }: {
   searchStates: SearchStatesType
   resetFilters: () => void
-  logData?: WorkplaceSnapshotResponse[]
 }) => {
   const { startDate, setStartDate, endDate, setEndDate, handleSearch } = searchStates
 
   // 활성화 된 기간
   const [activeRange, setActiveRange] = useState<(typeof DATA_RANGE)[number]>(DATA_RANGE[0])
-
-  // 엑셀 다운로드 훅
-  const { downloadWorkLogExcel, isDownloading } = useExcelDownload()
 
   // 기간 변경에 따라 검색일 변경
   const handleDateRange = (index: number) => {
@@ -79,79 +73,63 @@ const SearchBarWorkplaceLog = ({
     setActiveRange('')
   }, [startDate, endDate])
 
-  // 엑셀 다운로드 처리
-  const handleExcelDownload = async () => {
-    try {
-      if (logData.length === 0) {
-        alert('다운로드할 데이터가 없습니다.')
-        return
-      }
-      await downloadWorkLogExcel(logData, '작업기록')
-    } catch (error) {
-      alert('엑셀 다운로드 중 오류가 발생했습니다.')
-    }
-  }
-
   return (
-    <>
-      {/* 검색 필터 */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <div className="space-y-6">
-          {/*<div className="flex items-end gap-2">*/}
-          {/*  {DATA_RANGE.map((item, index) => (*/}
-          {/*    <Button*/}
-          {/*      key={item + index}*/}
-          {/*      variant={activeRange === item ? 'default' : 'outline'}*/}
-          {/*      size="default"*/}
-          {/*      onClick={() => handleDateRange(index)}*/}
-          {/*    >*/}
-          {/*      {item}*/}
-          {/*    </Button>*/}
-          {/*  ))}*/}
-          {/*</div>*/}
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            <CustomDatePicker
-              label="검색 시작일"
-              date={startDate}
-              onChangeAction={setStartDate}
-              max={startDate <= endDate ? endDate : undefined}
-            />
-            <CustomDatePicker
-              label="검색 종료일"
-              date={endDate}
-              onChangeAction={setEndDate}
-              min={startDate}
-              max={new Date()}
-            />
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div className="space-y-4">
+        {/* 검색 조건 */}
+        <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-end">
+          {/* 기간 선택 버튼 */}
+          <div className="flex flex-col gap-2">
+            <Label className="text-sm text-gray-700">기간 선택</Label>
+            <div className="flex gap-2">
+              {DATA_RANGE.map((item, index) => (
+                <Button
+                  key={item + index}
+                  variant={activeRange === item ? 'default' : 'outline'}
+                  size="sm"
+                  className="min-w-[70px]"
+                  onClick={() => handleDateRange(index)}
+                >
+                  {item}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* 날짜 선택 */}
+          <CustomDatePicker
+            label="검색 시작일"
+            date={startDate}
+            onChangeAction={setStartDate}
+            max={startDate <= endDate ? endDate : undefined}
+          />
+          <CustomDatePicker
+            label="검색 종료일"
+            date={endDate}
+            onChangeAction={setEndDate}
+            min={startDate}
+            max={new Date()}
+          />
+
+          {/* 액션 버튼 */}
+          <div className="flex gap-2 ml-auto">
+            <Button variant="outline" size="sm" onClick={resetFilters}>
+              <RotateCcw className="w-4 h-4 mr-1" />
+              초기화
+            </Button>
+            <Button
+              variant="default"
+              size="sm"
+              className="bg-blue-600 text-white hover:bg-blue-700"
+              onClick={handleSearch}
+            >
+              <Search className="w-4 h-4 mr-1" />
+              검색
+            </Button>
           </div>
         </div>
-
-        {/* 액션 버튼 */}
-        <div className="flex items-center justify-end gap-2 mt-6">
-          <Button
-            variant="default"
-            className="bg-blue-600 text-white hover:bg-blue-700"
-            onClick={handleSearch}
-          >
-            <Search className="w-4 h-4" />
-            검색
-          </Button>
-          <Button
-            variant="outline"
-            className="bg-green-700 text-white hover:bg-green-800 hover:text-white"
-            onClick={handleExcelDownload}
-            disabled={isDownloading || logData.length === 0}
-          >
-            <Download className="w-4 h-4" />
-            {isDownloading ? '다운로드 중...' : 'Excel 다운로드'}
-          </Button>
-          <Button variant="outline" onClick={resetFilters}>
-            <RotateCcw className="w-4 h-4" />
-            검색 조건 초기화
-          </Button>
-        </div>
       </div>
-    </>
+    </div>
   )
 }
 

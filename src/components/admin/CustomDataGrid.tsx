@@ -44,6 +44,12 @@ export function CustomDataGrid({
   loading = false,
   setPage,
   setPageSize,
+  enableSelection = false,
+  selectedIds,
+  onSelectionChange,
+  getRowId,
+  onSelectAll,
+  children,
 }: {
   id: string
   data: any[]
@@ -55,6 +61,12 @@ export function CustomDataGrid({
   loading?: boolean
   setPage: any
   setPageSize: any
+  enableSelection?: boolean
+  selectedIds?: Set<string>
+  onSelectionChange?: (selectedIds: Set<string>) => void
+  getRowId?: (row: any) => string
+  onSelectAll?: () => Promise<string[]>
+  children?: React.ReactNode
 }) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -62,6 +74,70 @@ export function CustomDataGrid({
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = useState({})
   const [isMobile, setIsMobile] = useState(false)
+
+  // 체크박스 컬럼 추가
+  const columnsWithSelection = useMemo(() => {
+    if (!enableSelection) return columns
+
+    const selectionColumn: ColumnDef<any> = {
+      id: 'select',
+      header: ({ table }) => (
+        <input
+          type="checkbox"
+          checked={selectedIds?.size === totalCount && totalCount > 0}
+          onChange={async (e) => {
+            if (e.target.checked) {
+              // 전체 선택
+              if (onSelectAll) {
+                try {
+                  const allIds = await onSelectAll()
+                  onSelectionChange?.(new Set(allIds))
+                } catch (error) {
+                  console.error('전체 선택 실패:', error)
+                }
+              }
+            } else {
+              // 전체 해제
+              onSelectionChange?.(new Set())
+            }
+          }}
+          className="w-4 h-4 cursor-pointer"
+        />
+      ),
+      cell: ({ row }) => {
+        const rowId = getRowId?.(row.original) || row.original.id
+        return (
+          <input
+            type="checkbox"
+            checked={selectedIds?.has(rowId) || false}
+            onChange={(e) => {
+              const newSelectedIds = new Set(selectedIds)
+              if (e.target.checked) {
+                newSelectedIds.add(rowId)
+              } else {
+                newSelectedIds.delete(rowId)
+              }
+              onSelectionChange?.(newSelectedIds)
+            }}
+            onClick={(e) => e.stopPropagation()}
+            className="w-4 h-4 cursor-pointer"
+          />
+        )
+      },
+      size: 50,
+    }
+
+    return [selectionColumn, ...columns]
+  }, [
+    columns,
+    enableSelection,
+    selectedIds,
+    onSelectionChange,
+    data,
+    getRowId,
+    totalCount,
+    onSelectAll,
+  ])
 
   const totalPages = useMemo(() => {
     return Math.ceil(totalCount / pageSize)
@@ -108,7 +184,7 @@ export function CustomDataGrid({
 
   const table = useReactTable({
     data,
-    columns,
+    columns: columnsWithSelection,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onGlobalFilterChange: setGlobalFilter,
@@ -140,11 +216,20 @@ export function CustomDataGrid({
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <span className="whitespace-nowrap">총 {totalCount}개 항목</span>
+            {enableSelection && selectedIds && selectedIds.size > 0 && (
+              <>
+                <span className="text-gray-400">|</span>
+                <span className="whitespace-nowrap text-blue-600 font-medium">
+                  {selectedIds.size}개 선택됨
+                </span>
+              </>
+            )}
             <span className="text-gray-400 hidden md:inline">|</span>
             <span className="whitespace-nowrap hidden md:inline">
               {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, totalCount)} 표시 중
             </span>
           </div>
+          {children}
         </div>
       </div>
 
@@ -172,7 +257,7 @@ export function CustomDataGrid({
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-32 text-center py-12">
+                <TableCell colSpan={columnsWithSelection.length} className="h-32 text-center py-12">
                   <div className="flex flex-col items-center justify-center text-gray-500">
                     <div className="text-base md:text-lg font-medium mb-2">
                       데이터를 불러오는 중...
@@ -200,7 +285,7 @@ export function CustomDataGrid({
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-32 text-center py-12">
+                <TableCell colSpan={columnsWithSelection.length} className="h-32 text-center py-12">
                   <div className="flex flex-col items-center justify-center text-gray-500">
                     <div className="text-base md:text-lg font-medium mb-2">데이터가 없습니다</div>
                     <div className="text-sm">검색 조건을 변경해주세요</div>

@@ -102,14 +102,16 @@ async function createWorkplaceSnapshot(request: NextRequest) {
 
   // WorkplaceSnapshotRow 형식으로 변환
   const snapshotData: WorkplaceSnapshotRow[] = processSlots.map((slot) => ({
-    반이름: slot.shift.line.workClass.name,
-    라인이름: slot.shift.line.name,
-    공정이름: slot.name,
-    교대조타입: slot.shift.type,
+    반: slot.shift.line.workClass.name,
+    라인: slot.shift.line.name,
+    교대조: slot.shift.type,
     라인상태: slot.shift.status,
-    작업자이름: slot.worker?.name || null,
+    공정: slot.name,
+    작업자: slot.worker?.name || null,
     사번: slot.worker?.userId || null,
-    작업자상태: slot.workerStatus,
+    작업자상태: slot.worker ? slot.workerStatus : null,
+    라인순서: slot.shift.line.displayOrder,
+    공정순서: slot.slotIndex,
   }))
 
   // 스냅샷 저장

@@ -9,7 +9,11 @@ import {
   WorkClassRequestModel,
   WorkClassResponseDto,
 } from '@/types/workplace'
-import { WorkplaceSnapshotResponse } from '@/types/workplace-snapshot'
+import {
+  WorkplaceSnapshotResponse,
+  WorkplaceSnapshotRow,
+  WorkplaceSnapshotRowWithBackupTime,
+} from '@/types/workplace-snapshot'
 
 /**
  * 반 가져오기
@@ -93,5 +97,39 @@ export async function updateShiftStatusApi(shiftId: string, status: WorkStatus) 
 export async function createWorkplaceSnapshotApi() {
   return apiFetch<ApiResponse<WorkplaceSnapshotResponse>>('/api/workplace-snapshot', {
     method: 'POST',
+  })
+}
+
+/**
+ * 선택된 스냅샷들을 병합하여 데이터 반환
+ **/
+export async function getMergedSnapshotsApi(snapshotIds: string[]) {
+  const idsParam = snapshotIds.join(',')
+  return apiFetch<
+    ApiResponse<{
+      data: WorkplaceSnapshotRowWithBackupTime[]
+      snapshotCount: number
+      totalRecords: number
+    }>
+  >(`/api/workplace-snapshot/merge?ids=${idsParam}`, {
+    method: 'GET',
+  })
+}
+
+/**
+ * 검색 조건에 해당하는 모든 스냅샷 ID 목록 조회
+ **/
+export async function getAllSnapshotIdsApi(params: { startDate?: string; endDate?: string }) {
+  const searchParams = new URLSearchParams()
+  if (params.startDate) searchParams.set('startDate', params.startDate)
+  if (params.endDate) searchParams.set('endDate', params.endDate)
+
+  const queryString = searchParams.toString()
+  const url = queryString
+    ? `/api/workplace-snapshot/ids?${queryString}`
+    : '/api/workplace-snapshot/ids'
+
+  return apiFetch<ApiResponse<{ ids: string[]; totalCount: number }>>(url, {
+    method: 'GET',
   })
 }
