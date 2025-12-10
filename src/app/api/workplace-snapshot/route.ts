@@ -4,8 +4,6 @@ import { withErrorHandler } from '@/lib/core/api-handler'
 import prisma from '@/lib/core/prisma'
 import { ApiResponseFactory } from '@/lib/core/api-response-factory'
 import { WorkplaceSnapshotResponse, WorkplaceSnapshotRow } from '@/types/workplace-snapshot'
-import { format } from 'date-fns'
-import { toZonedTime } from 'date-fns-tz'
 
 /**
  * 작업장 현황 스냅샷 목록 조회
@@ -29,19 +27,19 @@ async function getWorkplaceSnapshots(request: NextRequest) {
   // where 조건 동적 구성
   const where: any = {}
 
-  // 날짜 범위 검색
+  // 날짜 범위 검색 (createdAt 기준)
   if (startDate && endDate) {
-    where.snapshotDate = {
-      gte: startDate,
-      lte: endDate,
+    where.createdAt = {
+      gte: new Date(startDate),
+      lte: new Date(endDate + 'T23:59:59'),
     }
   } else if (startDate) {
-    where.snapshotDate = {
-      gte: startDate,
+    where.createdAt = {
+      gte: new Date(startDate),
     }
   } else if (endDate) {
-    where.snapshotDate = {
-      lte: endDate,
+    where.createdAt = {
+      lte: new Date(endDate + 'T23:59:59'),
     }
   }
 
@@ -51,19 +49,21 @@ async function getWorkplaceSnapshots(request: NextRequest) {
   // 페이징된 데이터 조회
   const snapshots = await prisma.workplaceSnapshot.findMany({
     where,
-    orderBy: [{ snapshotDate: 'desc' }, { snapshotTime: 'desc' }],
+    orderBy: { createdAt: 'desc' },
     skip,
     take: pageSize,
   })
 
-  const data = snapshots.map((snapshot) => ({
-    id: snapshot.id,
-    snapshotDate: snapshot.snapshotDate,
-    snapshotTime: snapshot.snapshotTime,
-    recordCount: snapshot.recordCount,
-    createdAt: snapshot.createdAt.toISOString(),
-    createdBy: snapshot.createdBy,
-  })) as WorkplaceSnapshotResponse[]
+  const data = snapshots.map((snapshot) => {
+    const snapshotData = snapshot.data as WorkplaceSnapshotRow[]
+    return {
+      id: snapshot.id,
+      recordCount: Array.isArray(snapshotData) ? snapshotData.length : 0,
+      createdAt: snapshot.createdAt.toISOString(),
+      createdByUserName: snapshot.createdByUserName,
+      createdByUserUserId: snapshot.createdByUserUserId,
+    }
+  }) as WorkplaceSnapshotResponse[]
 
   return ApiResponseFactory.success(
     {
@@ -83,15 +83,6 @@ async function getWorkplaceSnapshots(request: NextRequest) {
 async function createWorkplaceSnapshot(request: NextRequest) {
   // 권한 확인
   const session = await requireManagerOrAdmin(request)
-
-  // 요청 바디 파싱
-  const body = await request.json()
-  const { snapshotDate, snapshotTime, createdBy } = body
-
-  // 현재 시각이면 자동으로 날짜/시간 생성
-  const now = toZonedTime(new Date(), 'Asia/Seoul')
-  const finalDate = snapshotDate || format(now, 'yyyy-MM-dd')
-  const finalTime = snapshotTime || format(now, 'HH:mm')
 
   // 모든 ProcessSlot + 상위 관계 정보 조회
   const processSlots = await prisma.processSlot.findMany({
@@ -124,22 +115,20 @@ async function createWorkplaceSnapshot(request: NextRequest) {
   // 스냅샷 저장
   const snapshot = await prisma.workplaceSnapshot.create({
     data: {
-      snapshotDate: finalDate,
-      snapshotTime: finalTime,
       data: snapshotData as any,
-      recordCount: snapshotData.length,
-      createdBy: createdBy || session.userId || null,
+      createdByUserId: session.id,
+      createdByUserName: session.name,
+      createdByUserUserId: session.userId,
     },
   })
 
   return ApiResponseFactory.success(
     {
       id: snapshot.id,
-      snapshotDate: snapshot.snapshotDate,
-      snapshotTime: snapshot.snapshotTime,
-      recordCount: snapshot.recordCount,
+      recordCount: snapshotData.length,
       createdAt: snapshot.createdAt.toISOString(),
-      createdBy: snapshot.createdBy,
+      createdByUserName: snapshot.createdByUserName,
+      createdByUserUserId: snapshot.createdByUserUserId,
     },
     '작업장 현황 스냅샷이 생성되었습니다.',
     201,

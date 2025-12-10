@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import ShiftStatusLabel from '@/components/admin/ShiftStatusLabel'
 import ShiftStatusSelect from '@/components/admin/ShiftStatusSelect'
-import { Settings } from 'lucide-react'
+import { Settings, Save } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { ROUTES } from '@/lib/constants/routes'
 import CustomConfirmDialog from '@/components/CustomConfirmDialog'
@@ -13,6 +13,7 @@ import {
   getFactoryConfigApi,
   getWorkClassesApi,
   updateShiftStatusApi,
+  createWorkplaceSnapshotApi,
 } from '@/lib/api/workplace-api'
 import { WorkClassResponse } from '@/types/workplace'
 import { useLoading } from '@/contexts/LoadingContext'
@@ -118,6 +119,19 @@ const WorkPlacePage = () => {
     onError: (error: Error) => {
       setSaveProgress(0)
       alert(`상태 변경 실패: ${error.message}`)
+    },
+  })
+
+  // 작업장 현황 백업
+  const createSnapshotMutation = useMutation({
+    mutationFn: async () => {
+      await createWorkplaceSnapshotApi()
+    },
+    onSuccess: () => {
+      alert('작업장 현황이 백업되었습니다.')
+    },
+    onError: (error: Error) => {
+      alert(`백업 실패: ${error.message}`)
     },
   })
 
@@ -398,7 +412,15 @@ const WorkPlacePage = () => {
                 </button>
               ))}
             </div>
-            <div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => createSnapshotMutation.mutate()}
+                disabled={createSnapshotMutation.isPending}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Save className="w-4 h-4" />
+                현재 상태 백업
+              </button>
               <button
                 onClick={handleSettingClick}
                 className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-colors shadow-sm"

@@ -28,9 +28,11 @@ model User {
   // Relations
   processSlot              ProcessSlot[]
   DefectLog                DefectLog[]
-  TrainingLog TrainingLog[]
+  TrainingLog              TrainingLog[]
+  WorkplaceSnapshot        WorkplaceSnapshot[]
 
   @@map("users")
+
 }
 
 // ================================
@@ -82,7 +84,10 @@ model WorkplaceSnapshot {
   data                     Json                              // 전체 작업장 현황 데이터 (JSON)
 
   createdAt                DateTime @default(now())
-  createdBy                String?                           // 생성자 (자동 백업이면 null)
+  createdByUserId          String?                           // 생성자 uuid (자동 백업이면 null)
+  createdByUserName        String?                           // 생성자 이름 (삭제 후에도 유지)
+  createdByUserUserId      String?                           // 생성자 사번 (삭제 후에도 유지)
+  createdByUser            User?    @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
 
   @@map("workplace_snapshots")
 }
@@ -129,8 +134,8 @@ model FactoryLine {
   name            String                            // 이름
   displayOrder    Int                               // 순서
 
-  workClassId  String
-  workClass     WorkClass   @relation(fields: [workClassId], references: [id], onDelete: Cascade)
+  workClassId     String
+  workClass       WorkClass   @relation(fields: [workClassId], references: [id], onDelete: Cascade)
 
   shifts       LineShift[]
 

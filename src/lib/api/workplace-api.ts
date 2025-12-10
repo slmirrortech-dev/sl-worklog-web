@@ -9,6 +9,7 @@ import {
   WorkClassRequestModel,
   WorkClassResponseDto,
 } from '@/types/workplace'
+import { WorkplaceSnapshotResponse } from '@/types/workplace-snapshot'
 
 /**
  * 반 가져오기
@@ -83,5 +84,14 @@ export async function updateShiftStatusApi(shiftId: string, status: WorkStatus) 
   return apiFetch<ApiResponse<{}>>('/api/shift-status', {
     method: 'PUT',
     body: JSON.stringify({ shiftId, status }),
+  })
+}
+
+/**
+ * 작업장 현황 스냅샷 생성
+ **/
+export async function createWorkplaceSnapshotApi() {
+  return apiFetch<ApiResponse<WorkplaceSnapshotResponse>>('/api/workplace-snapshot', {
+    method: 'POST',
   })
 }

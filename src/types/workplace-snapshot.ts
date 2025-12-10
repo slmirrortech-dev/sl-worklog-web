@@ -1,4 +1,4 @@
-import { ShiftType, WorkStatus } from '@prisma/client'
+import { ShiftType, WorkStatus, WorkerStatus } from '@prisma/client'
 
 // 스냅샷 데이터의 개별 행 (ProcessSlot + 상위 관계 정보)
 export type WorkplaceSnapshotRow = {
@@ -9,24 +9,17 @@ export type WorkplaceSnapshotRow = {
   라인상태: WorkStatus // LineShift.status (NORMAL/OVERTIME/EXTENDED)
   작업자이름: string | null // User.name
   사번: string | null // User.userId
-  작업자상태: WorkStatus // ProcessSlot.workerStatus (NORMAL/OVERTIME/EXTENDED)
+  작업자상태: WorkerStatus // ProcessSlot.workerStatus (NORMAL/OVERTIME)
 }
 
 // API 응답 타입
 export type WorkplaceSnapshotResponse = {
   id: string
-  snapshotDate: string // yyyy-MM-dd
-  snapshotTime: string // HH:mm
   recordCount: number // 저장된 데이터 행 수
   createdAt: string
-  createdBy: string | null
-}
-
-// 스냅샷 생성 요청 (API에서 자동으로 현재 작업장 현황을 캡처)
-export type WorkplaceSnapshotCreateRequest = {
-  snapshotDate: string // yyyy-MM-dd
-  snapshotTime: string // HH:mm
-  createdBy?: string | null
+  createdByUserId: string | null
+  createdByUserName: string | null // 생성자 이름
+  createdByUserUserId: string | null // 생성자 사번
 }
 
 // 스냅샷 검색 파라미터
