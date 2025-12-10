@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
+import { ShiftType } from '@prisma/client'
 import { useQuery } from '@tanstack/react-query'
-import { searchWorkplaceSnapshotsApi } from '@/lib/api/workplace-snapshot-api'
+import { searchDefectLogsApi } from '@/lib/api/defect-log-api'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { format, subMonths } from 'date-fns'
 
@@ -9,10 +10,22 @@ export type SearchStatesType = {
   setStartDate: (value: Date) => void
   endDate: Date
   setEndDate: (value: Date) => void
+  shiftType: ShiftType | 'ALL'
+  setShiftType: (value: ShiftType | 'ALL') => void
+  lineName: string
+  setLineName: (value: string) => void
+  className: string
+  setClassName: (value: string) => void
+  processName: string
+  setProcessName: (value: string) => void
+  worker: string
+  setWorker: (value: string) => void
+  memo: string
+  setMemo: (value: string) => void
   handleSearch: () => void
 }
 
-const useSearchWorkplaceLog = () => {
+const useSearchDefectLog = () => {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -20,6 +33,10 @@ const useSearchWorkplaceLog = () => {
   const getInitialDate = (paramName: string, defaultDate: Date) => {
     const param = searchParams.get(paramName)
     return param ? new Date(param) : defaultDate
+  }
+
+  const getInitialString = (paramName: string, defaultValue: string) => {
+    return searchParams.get(paramName) || defaultValue
   }
 
   const getInitialNumber = (paramName: string, defaultValue: number) => {
@@ -33,6 +50,14 @@ const useSearchWorkplaceLog = () => {
   // 검색 필터 (사용자 입력용)
   const [startDate, setStartDate] = useState(() => getInitialDate('startDate', oneMonthAgo))
   const [endDate, setEndDate] = useState(() => getInitialDate('endDate', today))
+  const [shiftType, setShiftType] = useState<ShiftType | 'ALL'>(
+    () => getInitialString('shiftType', 'ALL') as ShiftType | 'ALL',
+  )
+  const [lineName, setLineName] = useState(() => getInitialString('lineName', ''))
+  const [className, setClassName] = useState(() => getInitialString('className', ''))
+  const [processName, setProcessName] = useState(() => getInitialString('processName', ''))
+  const [worker, setWorker] = useState(() => getInitialString('worker', ''))
+  const [memo, setMemo] = useState(() => getInitialString('memo', ''))
 
   const [page, setPage] = useState(() => getInitialNumber('page', 1))
   const [pageSize, setPageSize] = useState(() => getInitialNumber('pageSize', 50))
@@ -40,6 +65,14 @@ const useSearchWorkplaceLog = () => {
   // 실제 쿼리에 사용되는 검색 조건 (검색 버튼을 눌렀을 때만 업데이트)
   const [appliedStartDate, setAppliedStartDate] = useState(() => getInitialDate('startDate', oneMonthAgo))
   const [appliedEndDate, setAppliedEndDate] = useState(() => getInitialDate('endDate', today))
+  const [appliedShiftType, setAppliedShiftType] = useState<ShiftType | 'ALL'>(
+    () => getInitialString('shiftType', 'ALL') as ShiftType | 'ALL',
+  )
+  const [appliedLineName, setAppliedLineName] = useState(() => getInitialString('lineName', ''))
+  const [appliedClassName, setAppliedClassName] = useState(() => getInitialString('className', ''))
+  const [appliedProcessName, setAppliedProcessName] = useState(() => getInitialString('processName', ''))
+  const [appliedWorker, setAppliedWorker] = useState(() => getInitialString('worker', ''))
+  const [appliedMemo, setAppliedMemo] = useState(() => getInitialString('memo', ''))
 
   // 데이터 조회 결과
   const [totalCount, setTotalCount] = useState<number>(0)
@@ -71,11 +104,23 @@ const useSearchWorkplaceLog = () => {
   const handleSearch = () => {
     setAppliedStartDate(startDate)
     setAppliedEndDate(endDate)
+    setAppliedShiftType(shiftType)
+    setAppliedLineName(lineName)
+    setAppliedClassName(className)
+    setAppliedProcessName(processName)
+    setAppliedWorker(worker)
+    setAppliedMemo(memo)
 
     // URL 업데이트
     updateURL({
       startDate,
       endDate,
+      shiftType,
+      lineName,
+      className,
+      processName,
+      worker,
+      memo,
     }, true)
   }
 
@@ -96,11 +141,23 @@ const useSearchWorkplaceLog = () => {
 
     setStartDate(oneMonthAgo)
     setEndDate(today)
+    setShiftType('ALL')
+    setLineName('')
+    setClassName('')
+    setProcessName('')
+    setWorker('')
+    setMemo('')
     setPage(1)
 
     // 적용된 검색 조건도 초기화
     setAppliedStartDate(oneMonthAgo)
     setAppliedEndDate(today)
+    setAppliedShiftType('ALL')
+    setAppliedLineName('')
+    setAppliedClassName('')
+    setAppliedProcessName('')
+    setAppliedWorker('')
+    setAppliedMemo('')
 
     // URL 초기화
     const url = new URL(window.location.href)
@@ -108,12 +165,30 @@ const useSearchWorkplaceLog = () => {
     router.replace(url.pathname, { scroll: false })
   }
 
-  const snapshotQuery = useQuery({
-    queryKey: ['workplaceSnapshots', page, pageSize, appliedStartDate, appliedEndDate],
+  const defectLogQuery = useQuery({
+    queryKey: [
+      'defectLogs',
+      page,
+      pageSize,
+      appliedStartDate,
+      appliedEndDate,
+      appliedShiftType,
+      appliedLineName,
+      appliedClassName,
+      appliedProcessName,
+      appliedWorker,
+      appliedMemo,
+    ],
     queryFn: async () => {
-      const response = await searchWorkplaceSnapshotsApi({
+      const response = await searchDefectLogsApi({
         startDate: format(appliedStartDate, 'yyyy-MM-dd'),
         endDate: format(appliedEndDate, 'yyyy-MM-dd'),
+        shiftType: appliedShiftType === 'ALL' ? undefined : appliedShiftType,
+        lineName: appliedLineName || undefined,
+        className: appliedClassName || undefined,
+        processName: appliedProcessName || undefined,
+        workerSearch: appliedWorker || undefined,
+        memo: appliedMemo || undefined,
         page,
         pageSize,
       })
@@ -122,12 +197,12 @@ const useSearchWorkplaceLog = () => {
   })
 
   useEffect(() => {
-    if (snapshotQuery.data) {
-      setTotalCount(snapshotQuery.data.totalCount)
+    if (defectLogQuery.data) {
+      setTotalCount(defectLogQuery.data.totalCount)
     } else {
       setTotalCount(0)
     }
-  }, [snapshotQuery.data])
+  }, [defectLogQuery.data])
 
   return {
     searchStates: {
@@ -135,10 +210,22 @@ const useSearchWorkplaceLog = () => {
       setStartDate,
       endDate,
       setEndDate,
+      shiftType,
+      setShiftType,
+      lineName,
+      setLineName,
+      className,
+      setClassName,
+      processName,
+      setProcessName,
+      worker,
+      setWorker,
+      memo,
+      setMemo,
       handleSearch,
     } as SearchStatesType,
     resetFilters,
-    snapshotQuery,
+    defectLogQuery,
     page,
     setPage: updatePage,
     pageSize,
@@ -147,4 +234,4 @@ const useSearchWorkplaceLog = () => {
   }
 }
 
-export default useSearchWorkplaceLog
+export default useSearchDefectLog

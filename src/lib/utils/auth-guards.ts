@@ -34,6 +34,7 @@ export async function getSessionUser(req: NextRequest): Promise<SessionUser | nu
         userId: true,
         name: true,
         role: true,
+        mustChangePassword: true,
       },
     })
 

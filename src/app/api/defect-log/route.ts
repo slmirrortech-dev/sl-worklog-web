@@ -16,10 +16,10 @@ async function createDefectLog(request: NextRequest) {
   // body 파싱
   const body = (await request.json()) as DefectLogCreateRequest
 
-  const { occurredAt, workerId, lineName, shiftType, processName, memo } = body
+  const { occurredAt, workerId, lineName, className, shiftType, processName, memo } = body
 
   // 필수 값 검증
-  if (!workerId || !occurredAt || !lineName || !shiftType || !processName) {
+  if (!workerId || !occurredAt || !lineName || !className || !shiftType || !processName) {
     throw new Error('필수 입력 값이 누락되었습니다.')
   }
 
@@ -32,6 +32,7 @@ async function createDefectLog(request: NextRequest) {
       occurredAt: new Date(occurredAt),
       workerId,
       lineName,
+      className,
       shiftType,
       processName,
       memo,

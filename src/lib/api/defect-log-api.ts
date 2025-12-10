@@ -8,13 +8,23 @@ export interface DefectLogSearchParams {
   endDate?: string
   workerSearch?: string
   lineName?: string
+  className?: string
   processName?: string
   shiftType?: ShiftType
   memo?: string
+  page?: number
+  pageSize?: number
+}
+
+export interface DefectLogSearchResponse {
+  data: DefectLogResponse[]
+  totalCount: number
+  page: number
+  pageSize: number
 }
 
 /**
- * 불량 유출 이력 검색
+ * 불량 유출 이력 검색 (페이징)
  */
 export async function searchDefectLogsApi(params: DefectLogSearchParams) {
   const queryParams = new URLSearchParams()
@@ -23,13 +33,16 @@ export async function searchDefectLogsApi(params: DefectLogSearchParams) {
   if (params.endDate) queryParams.append('endDate', params.endDate)
   if (params.workerSearch) queryParams.append('workerSearch', params.workerSearch)
   if (params.lineName) queryParams.append('lineName', params.lineName)
+  if (params.className) queryParams.append('className', params.className)
   if (params.processName) queryParams.append('processName', params.processName)
   if (params.shiftType) queryParams.append('shiftType', params.shiftType)
   if (params.memo) queryParams.append('memo', params.memo)
+  if (params.page) queryParams.append('page', params.page.toString())
+  if (params.pageSize) queryParams.append('pageSize', params.pageSize.toString())
 
   const url = `/api/defect-log/search${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
 
-  return await apiFetch<ApiResponse<DefectLogResponse[]>>(url, {
+  return await apiFetch<ApiResponse<DefectLogSearchResponse>>(url, {
     method: 'GET',
   })
 }

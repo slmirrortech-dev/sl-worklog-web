@@ -27,6 +27,7 @@ const UserDefect = ({ userId }: { userId: string }) => {
   const [newDate, setNewDate] = useState('')
   const [newTime, setNewTime] = useState('')
   const [newLine, setNewLine] = useState('')
+  const [newClass, setNewClass] = useState('1반') // 기본값 1반
   const [newShift, setNewShift] = useState<ShiftType>(ShiftType.DAY)
   const [newProcess, setNewProcess] = useState('')
   const [newMemo, setNewMemo] = useState('')
@@ -81,7 +82,7 @@ const UserDefect = ({ userId }: { userId: string }) => {
   })
 
   const handleAdd = () => {
-    if (!newDate || !newLine || !newProcess || !newMemo) {
+    if (!newDate || !newLine || !newClass || !newProcess || !newMemo) {
       alert('모든 항목을 입력해주세요')
       return
     }
@@ -90,6 +91,7 @@ const UserDefect = ({ userId }: { userId: string }) => {
       occurredAt: format(new Date(`${newDate} ${newTime}`), "yyyy-MM-dd'T'HH:mm:ss"),
       workerId: userId,
       lineName: newLine,
+      className: newClass,
       shiftType: newShift,
       processName: newProcess,
       memo: newMemo,
@@ -161,6 +163,16 @@ const UserDefect = ({ userId }: { userId: string }) => {
                     value={newLine}
                     onChange={(e) => setNewLine(e.target.value)}
                     placeholder="예: MX5 LH"
+                    className="w-full !text-base h-10"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">반 이름 *</label>
+                  <Input
+                    type="text"
+                    value={newClass}
+                    onChange={(e) => setNewClass(e.target.value)}
+                    placeholder="예: 1반, 2반, 서브반"
                     className="w-full !text-base h-10"
                   />
                 </div>

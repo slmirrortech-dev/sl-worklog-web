@@ -22,7 +22,7 @@ export const useExcelDownload = () => {
   const [isDownloading, setIsDownloading] = useState(false)
 
   const downloadWorkLogExcel = async (
-    data: WorkLogResponseModel[],
+    data: any[], // TODO: 엑셀 다운로드 기능 구현 시 적절한 타입으로 변경
     filename: string = '작업기록',
   ) => {
     try {

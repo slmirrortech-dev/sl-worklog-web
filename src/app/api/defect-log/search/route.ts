@@ -8,7 +8,8 @@ import { DefectLogResponse } from '@/types/defect-log'
 
 /**
  * 불량유출 이력 검색
- * 검색 조건: startDate, endDate, workerSearch, lineName, processName, shiftType, memo
+ * 검색 조건: startDate, endDate, workerSearch, lineName, className, processName, shiftType, memo
+ * 페이징: page, pageSize
  **/
 async function searchDefectLog(request: NextRequest) {
   // 권한 확인
@@ -20,9 +21,15 @@ async function searchDefectLog(request: NextRequest) {
   const endDate = searchParams.get('endDate')
   const workerSearch = searchParams.get('workerSearch')
   const lineName = searchParams.get('lineName')
+  const className = searchParams.get('className')
   const processName = searchParams.get('processName')
   const shiftType = searchParams.get('shiftType') as ShiftType | null
   const memo = searchParams.get('memo')
+
+  // 페이징 파라미터
+  const page = parseInt(searchParams.get('page') || '1', 10)
+  const pageSize = parseInt(searchParams.get('pageSize') || '50', 10)
+  const skip = (page - 1) * pageSize
 
   // where 조건 동적 구성
   const where: any = {}
@@ -53,6 +60,11 @@ async function searchDefectLog(request: NextRequest) {
     where.lineName = { contains: lineName }
   }
 
+  // 반 이름 검색
+  if (className) {
+    where.className = { contains: className }
+  }
+
   // 공정명 검색
   if (processName) {
     where.processName = { contains: processName }
@@ -68,6 +80,10 @@ async function searchDefectLog(request: NextRequest) {
     where.memo = { contains: memo }
   }
 
+  // 총 개수 조회
+  const totalCount = await prisma.defectLog.count({ where })
+
+  // 페이징된 데이터 조회
   const defectLogs = await prisma.defectLog.findMany({
     where,
     orderBy: {
@@ -76,20 +92,31 @@ async function searchDefectLog(request: NextRequest) {
     include: {
       worker: true,
     },
+    skip,
+    take: pageSize,
   })
 
-  const response = defectLogs.map((log) => ({
+  const data = defectLogs.map((log) => ({
     id: log.id,
     occurredAt: log.occurredAt.toISOString(),
     workerName: log.worker.name,
     workerUserId: log.worker.userId,
     lineName: log.lineName,
+    className: log.className,
     shiftType: log.shiftType,
     processName: log.processName,
     memo: log.memo,
   })) as DefectLogResponse[]
 
-  return ApiResponseFactory.success(response, '불량 유출 이력을 가져왔습니다.')
+  return ApiResponseFactory.success(
+    {
+      data,
+      totalCount,
+      page,
+      pageSize,
+    },
+    '불량 유출 이력을 가져왔습니다.',
+  )
 }
 
 export const GET = withErrorHandler(searchDefectLog)

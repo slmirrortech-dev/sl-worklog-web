@@ -63,6 +63,7 @@ model DefectLog {
   worker                   User @relation(fields: [workerId], references: [id])
 
   lineName                 String                            // 라인명
+  className                String                            // 반 이름 (1반, 2반, 서브반 등) - 필수
   shiftType                ShiftType                         // 교대조 타입 (주간/야간)
   processName              String                            // 공정명
   memo                     String                            // 메모
@@ -71,6 +72,19 @@ model DefectLog {
   createdBy                String                            // 기록한 관리자 uuid
 
   @@map("defect_logs")
+}
+
+// ================================
+// WorkplaceSnapshot (작업장 현황 백업)
+// ================================
+model WorkplaceSnapshot {
+  id                       String   @id @default(cuid())     // UUID (PK)
+  data                     Json                              // 전체 작업장 현황 데이터 (JSON)
+
+  createdAt                DateTime @default(now())
+  createdBy                String?                           // 생성자 (자동 백업이면 null)
+
+  @@map("workplace_snapshots")
 }
 
 
@@ -153,7 +167,7 @@ model ProcessSlot {
 
   // 작업자
   workerId     String?
-  workerStatus WorkStatus   @default(NORMAL) // Enum 타입 확인 필요
+  workerStatus WorkerStatus   @default(NORMAL) // Enum 타입 확인 필요
   worker       User?        @relation(fields: [workerId], references: [id])
 
   @@unique([shiftId, name]) // 한 교대조 내에 이름이 겹치면 안됨

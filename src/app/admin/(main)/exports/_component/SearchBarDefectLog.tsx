@@ -2,25 +2,51 @@
 
 import React, { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Download, RotateCcw, Search } from 'lucide-react'
-import { SearchStatesType } from '@/app/admin/(main)/exports/_hooks/useSearchWorkplaceLog'
+import { SearchStatesType } from '@/app/admin/(main)/exports/_hooks/useSearchDefectLog'
 import { CustomDatePicker } from '@/components/CustomDatePicker'
 import { subDays, subMonths } from 'date-fns'
 import { useExcelDownload } from '@/hooks/useExcelDownload'
-import { WorkplaceSnapshotResponse } from '@/types/workplace-snapshot'
+import { DefectLogResponse } from '@/types/defect-log'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 const DATA_RANGE = ['오늘', '1주일', '1개월']
 
-const SearchBarWorkplaceLog = ({
+const SearchBarDefectLog = ({
   searchStates,
   resetFilters,
   logData = [],
 }: {
   searchStates: SearchStatesType
   resetFilters: () => void
-  logData?: WorkplaceSnapshotResponse[]
+  logData?: DefectLogResponse[]
 }) => {
-  const { startDate, setStartDate, endDate, setEndDate, handleSearch } = searchStates
+  const {
+    startDate,
+    setStartDate,
+    endDate,
+    setEndDate,
+    shiftType,
+    setShiftType,
+    lineName,
+    setLineName,
+    className,
+    setClassName,
+    processName,
+    setProcessName,
+    worker,
+    setWorker,
+    memo,
+    setMemo,
+    handleSearch,
+  } = searchStates
 
   // 활성화 된 기간
   const [activeRange, setActiveRange] = useState<(typeof DATA_RANGE)[number]>(DATA_RANGE[0])
@@ -86,7 +112,7 @@ const SearchBarWorkplaceLog = ({
         alert('다운로드할 데이터가 없습니다.')
         return
       }
-      await downloadWorkLogExcel(logData, '작업기록')
+      await downloadWorkLogExcel(logData, '불량유출기록')
     } catch (error) {
       alert('엑셀 다운로드 중 오류가 발생했습니다.')
     }
@@ -97,19 +123,7 @@ const SearchBarWorkplaceLog = ({
       {/* 검색 필터 */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div className="space-y-6">
-          {/*<div className="flex items-end gap-2">*/}
-          {/*  {DATA_RANGE.map((item, index) => (*/}
-          {/*    <Button*/}
-          {/*      key={item + index}*/}
-          {/*      variant={activeRange === item ? 'default' : 'outline'}*/}
-          {/*      size="default"*/}
-          {/*      onClick={() => handleDateRange(index)}*/}
-          {/*    >*/}
-          {/*      {item}*/}
-          {/*    </Button>*/}
-          {/*  ))}*/}
-          {/*</div>*/}
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <CustomDatePicker
               label="검색 시작일"
               date={startDate}
@@ -123,6 +137,64 @@ const SearchBarWorkplaceLog = ({
               min={startDate}
               max={new Date()}
             />
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium text-gray-700">교대조</label>
+              <Select value={shiftType} onValueChange={setShiftType}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="전체" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">전체</SelectItem>
+                  <SelectItem value="DAY">주간</SelectItem>
+                  <SelectItem value="NIGHT">야간</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium text-gray-700">라인명</label>
+              <Input
+                type="text"
+                placeholder="라인명 검색"
+                value={lineName}
+                onChange={(e) => setLineName(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium text-gray-700">반 이름</label>
+              <Input
+                type="text"
+                placeholder="1반, 2반, 서브반 등"
+                value={className}
+                onChange={(e) => setClassName(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium text-gray-700">공정명</label>
+              <Input
+                type="text"
+                placeholder="공정명 검색"
+                value={processName}
+                onChange={(e) => setProcessName(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium text-gray-700">작업자</label>
+              <Input
+                type="text"
+                placeholder="이름 또는 사번"
+                value={worker}
+                onChange={(e) => setWorker(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium text-gray-700">메모</label>
+              <Input
+                type="text"
+                placeholder="메모 검색"
+                value={memo}
+                onChange={(e) => setMemo(e.target.value)}
+              />
+            </div>
           </div>
         </div>
 
@@ -155,4 +227,4 @@ const SearchBarWorkplaceLog = ({
   )
 }
 
-export default SearchBarWorkplaceLog
+export default SearchBarDefectLog
