@@ -1,13 +1,30 @@
 'use client'
 
-import React from 'react'
+import React, { useEffect } from 'react'
 import ClassSettingCard from './_component/ClassSettingCard'
 import ProcessSettingCard from './_component/ProcessSettingCard'
 import LineSettingCard from './_component/LineSettingCard'
-import { useQuery } from '@tanstack/react-query'
-import { getWorkClassesApi } from '@/lib/api/workplace-api'
+import { useLoading } from '@/contexts/LoadingContext'
+import { useIsFetching } from '@tanstack/react-query'
 
 const WorkplaceSettingPage = () => {
+  const { showLoading, hideLoading } = useLoading()
+
+  const isFetchingWorkClasses = useIsFetching({ queryKey: ['getWorkClassesApi'] })
+  const isFetchingFactoryConfig = useIsFetching({ queryKey: ['getFactoryConfigApi'] })
+  const isFetchingFactoryLine = useIsFetching({ queryKey: ['getFactoryLineApi'] })
+
+  const allLoaded =
+    isFetchingWorkClasses === 0 && isFetchingFactoryConfig === 0 && isFetchingFactoryLine == 0
+
+  useEffect(() => {
+    if (allLoaded) {
+      hideLoading()
+    } else {
+      showLoading()
+    }
+  }, [allLoaded])
+
   return (
     <div className="flex flex-col space-y-6 pb-8">
       {/* 반 & 공정 설정 */}
