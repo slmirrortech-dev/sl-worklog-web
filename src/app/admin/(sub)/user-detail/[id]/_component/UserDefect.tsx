@@ -231,7 +231,7 @@ const UserDefect = ({ userId }: { userId: string }) => {
                   size="sm"
                   onClick={() => {
                     setIsAdding(false)
-                    setNewDate('')
+                    setNewDate(new Date())
                     setNewLine('')
                     setNewProcess('')
                     setNewMemo('')
