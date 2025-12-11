@@ -231,13 +231,16 @@ const UserProfile = ({
                 try {
                   // yyyy-MM-dd 형식을 yyyyMMdd 형식으로 변환 (빈 문자열이면 undefined)
                   const formattedHireDate =
-                    editHireDate && editHireDate.trim() !== '' ? editHireDate.replace(/-/g, '') : undefined
+                    editHireDate && editHireDate.trim() !== ''
+                      ? editHireDate.replace(/-/g, '')
+                      : undefined
                   const originalHireDate = freshUser.hireDate || undefined
 
                   const { data } = await updateUserApi(freshUser.id, {
                     name: editName !== freshUser.name ? editName : undefined,
                     role: editRole !== freshUser.role ? editRole : undefined,
-                    hireDate: formattedHireDate !== originalHireDate ? formattedHireDate : undefined,
+                    hireDate:
+                      formattedHireDate !== originalHireDate ? formattedHireDate : undefined,
                   })
                   setFreshUser(data)
                   router.refresh()

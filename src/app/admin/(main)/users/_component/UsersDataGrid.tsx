@@ -57,20 +57,6 @@ const UsersDataGrid = ({ roleFilter, id, canEdit }: UsersDataGridProps) => {
       ),
     },
     {
-      id: 'hireDate',
-      header: '입사일',
-      cell: ({ row }) => {
-        if (!row.original.hireDate) return <div className="text-center">-</div>
-        try {
-          const date = new Date(row.original.hireDate)
-          if (isNaN(date.getTime())) return <div className="text-center">-</div>
-          return <div className="text-center">{format(date, 'yyyy-MM-dd')}</div>
-        } catch {
-          return <div className="text-center">-</div>
-        }
-      },
-    },
-    {
       id: 'licensePhotoUrl',
       header: '공정면허증',
       cell: ({ row }) => {
@@ -83,16 +69,13 @@ const UsersDataGrid = ({ roleFilter, id, canEdit }: UsersDataGridProps) => {
       },
     },
     {
-      id: 'createdAt',
-      header: '등록일',
+      id: 'hireDate',
+      header: '입사일',
       cell: ({ row }) => {
-        if (!row.original.createdAt) return <div className="text-center">-</div>
-        try {
-          const date = new Date(row.original.createdAt)
-          if (isNaN(date.getTime())) return <div className="text-center">-</div>
-          return <div className="text-center">{format(date, 'yyyy-MM-dd')}</div>
-        } catch {
+        if (!row.original.hireDate) {
           return <div className="text-center">-</div>
+        } else {
+          return <div className="text-center">{format(row.original.hireDate, 'yyyy-MM-dd')}</div>
         }
       },
     },

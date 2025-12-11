@@ -1,5 +1,5 @@
 import React from 'react'
-import QueryProvider from '../../../contexts/QueryProvider'
+import QueryProvider from '@/contexts/QueryProvider'
 import SubHeader from '@/components/admin/SubHeader'
 import { getServerSession } from '@/lib/utils/auth-guards'
 import { redirect } from 'next/navigation'
