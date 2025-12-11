@@ -1,6 +1,6 @@
 import React from 'react'
 import { Shield } from 'lucide-react'
-import { SessionUser } from '@/lib/core/session'
+import { SessionUser } from '@/lib/utils/auth-guards'
 
 const MyProfile = ({ currentUser }: { currentUser: SessionUser }) => {
   return (

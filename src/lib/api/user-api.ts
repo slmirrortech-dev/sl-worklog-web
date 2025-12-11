@@ -11,18 +11,35 @@ export async function getCurrentUserApi() {
   })
 }
 
+export interface UsersSearchParams {
+  page?: number
+  pageSize?: number
+  search?: string
+  role?: string
+}
+
+export interface UsersSearchResponse {
+  data: UserResponseDto[]
+  totalCount: number
+  totalPages: number
+  currentPage: number
+  pageSize: number
+}
+
 /**
  * 전체 사용자 조회하기
  */
-export async function getUsersApi(page: number, pageSize: number, search?: string, role?: string) {
-  const params = new URLSearchParams({
-    page: page.toString(),
-    pageSize: pageSize.toString(),
-    ...(search ? { search } : {}),
-    ...(role ? { role } : {}),
-  })
+export async function getUsersApi(params: UsersSearchParams) {
+  const queryParams = new URLSearchParams()
 
-  return await apiFetch<ApiResponse<UserResponseDto[]>>(`/api/users?${params.toString()}`, {
+  if (params.page) queryParams.append('page', params.page.toString())
+  if (params.pageSize) queryParams.append('pageSize', params.pageSize.toString())
+  if (params.search) queryParams.append('search', params.search)
+  if (params.role) queryParams.append('role', params.role)
+
+  const url = `/api/users${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+
+  return await apiFetch<ApiResponse<UsersSearchResponse>>(url, {
     method: 'GET',
   })
 }

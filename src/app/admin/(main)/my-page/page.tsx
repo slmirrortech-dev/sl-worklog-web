@@ -30,6 +30,7 @@ export default async function MyPagePage() {
               userId: session!.userId,
               name: session!.name,
               role: session!.role,
+              mustChangePassword: session!.mustChangePassword,
             }}
           />
         </div>

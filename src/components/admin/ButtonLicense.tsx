@@ -7,6 +7,7 @@ import ModalLicense from '@/components/admin/ModalLicense'
 import { UserResponseDto } from '@/types/user'
 import { uploadLicenseApi } from '@/lib/api/user-api'
 import { ApiResponse } from '@/types/common'
+import { useLoading } from '@/contexts/LoadingContext'
 
 /**
  * 이미지 업로드/모달 보기 컴포넌트
@@ -19,6 +20,7 @@ export default function ButtonLicense({
   targetUser: UserResponseDto
   canEdit: boolean
 }) {
+  const { showLoading, hideLoading } = useLoading()
   const [file, setFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -33,6 +35,7 @@ export default function ButtonLicense({
     const formData = new FormData()
     formData.append('file', file)
 
+    showLoading()
     try {
       const { data }: ApiResponse<{ url: string }> = await uploadLicenseApi(targetUser.id, formData)
       if (data.url) {
@@ -40,12 +43,16 @@ export default function ButtonLicense({
         setPreviewUrl(data.url)
       }
     } catch (e) {
+      alert('이미지 업로드에 실패했습니다.')
       console.error('면허증 등록 실패', e)
+    } finally {
+      hideLoading()
     }
   }
 
   useEffect(() => {
     if (!file) return
+
     fetchUpload(file).then()
   }, [file])
 
@@ -95,6 +102,7 @@ export default function ButtonLicense({
               <input
                 id={`inputFile-${targetUser.id}`}
                 type="file"
+                accept="image/*"
                 onChange={handleFileChange}
                 style={{
                   display: 'none',

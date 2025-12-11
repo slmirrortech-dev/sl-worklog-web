@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // ================================
@@ -12,26 +13,99 @@ datasource db {
 // ================================
 model User {
   id                       String   @id @default(cuid())     // UUID (PK)
+  supabaseUserId           String?  @unique                 // Supabase Auth User ID
+  email                    String?  @unique                 // 이메일 (형식: userId@temp.invalid)
   userId                   String   @unique                 // 사번 (로그인 ID)
-  password                 String                           // 비밀번호 (해시 저장)
   name                     String                           // 사용자 이름
-  birthday                 String                           // 생년월일 (8자리)
+  hireDate                 String?                          // 입사일 (8자리 yyyymmdd, 선택값)
   role                     Role     @default(WORKER)        // 사용자 권한
-  isInitialPasswordChanged Boolean  @default(false)          // 초기 비밀번호 변경 여부
+  mustChangePassword       Boolean  @default(true)          // 초기 비밀번호 변경 필수 여부
   licensePhotoUrl          String?                          // 면허증 이미지 경로
   isActive                 Boolean  @default(true)          // 활성 여부
   deactivatedAt            DateTime?                        // 비활성화 시점
   createdAt                DateTime @default(now())         // 생성 시각
 
   // Relations
-  workLogs         WorkLog[]
-  changeHistories  WorkLogHistory[] @relation("AdminHistory")
-  waitingShifts    ProcessShift[]   @relation("WaitingWorker") // 대기자로 설정된 교대조들
-  editLocks        EditLock[]       @relation("EditLockUser")  // 사용자가 보유한 편집 잠금들
-  cellLocks        CellLock[]       @relation("CellLockUser")  // 사용자가 보유한 셀 잠금들
+  processSlot              ProcessSlot[]
+  DefectLog                DefectLog[]
+  TrainingLog              TrainingLog[]
+  WorkplaceSnapshot        WorkplaceSnapshot[]
 
   @@map("users")
+
 }
+
+// ================================
+// TrainingLog (교육 기록)
+// ================================
+model TrainingLog {
+  id                       String   @id @default(cuid())     // UUID (PK)
+  trainedAt                DateTime @default(now())           // 교육일시
+
+  workerId                 String
+  worker                   User @relation(fields: [workerId], references: [id])
+
+  title                    String                            // 교육명
+  instructor               String                            // 교육자
+
+  createdAt                DateTime @default(now())
+  createdBy                String                            // 기록한 관리자 uuid
+
+  @@map("training_logs")
+}
+
+// ================================
+// DefectLog (불량유출 기록)
+// ================================
+model DefectLog {
+  id                       String   @id @default(cuid())     // UUID (PK)
+  occurredAt               DateTime @default(now())          // 발생 일시
+
+  workerId                 String
+  worker                   User @relation(fields: [workerId], references: [id])
+
+  lineName                 String                            // 라인명
+  className                String                            // 반 이름 (1반, 2반, 서브반 등) - 필수
+  shiftType                ShiftType                         // 교대조 타입 (주간/야간)
+  processName              String                            // 공정명
+  memo                     String                            // 메모
+
+  createdAt                DateTime @default(now())
+  createdBy                String                            // 기록한 관리자 uuid
+
+  @@map("defect_logs")
+}
+
+// ================================
+// WorkplaceSnapshot (작업장 현황 백업)
+// ================================
+model WorkplaceSnapshot {
+  id                       String   @id @default(cuid())     // UUID (PK)
+  data                     Json                              // 전체 작업장 현황 데이터 (JSON)
+
+  createdAt                DateTime @default(now())
+  createdByUserId          String?                           // 생성자 uuid (자동 백업이면 null)
+  createdByUserName        String?                           // 생성자 이름 (삭제 후에도 유지)
+  createdByUserUserId      String?                           // 생성자 사번 (삭제 후에도 유지)
+  createdByUser            User?    @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  @@map("workplace_snapshots")
+}
+
+// ================================
+// BackupSchedule (자동 백업 스케줄)
+// ================================
+model BackupSchedule {
+  id                       String   @id @default(cuid())     // UUID (PK)
+  time                     String                            // 백업 시간 (HH:mm 형식)
+
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  @@unique([time]) // 중복 시간 방지
+  @@map("backup_schedules")
+}
+
 
 // ================================
 // Role (사용자 권한)
@@ -43,154 +117,82 @@ enum Role {
 }
 
 // ================================
-// Line (작업 라인)
+// WorkClass (반)
 // ================================
-model Line {
-  id        String    @id @default(cuid())   // UUID (PK)
-  name      String                           // 라인 이름 (전역 유일)
-  order     Int                              // 라인 순서
-  classNo   Int       @default(1)
-
-  // Relations
-  processes Process[]
-
-  @@unique([name, classNo])
-  @@map("lines")
-}
-
-// ================================
-// Process (작업 공정)
-// ================================
-model Process {
-  id      String   @id @default(cuid())   // UUID (PK)
-  name    String                           // 공정 이름
-  order   Int                              // 공정 순서 (화면 표시용)
-  lineId  String                           // 라인 ID (FK)
-
-  // Relations
-  line    Line     @relation(fields: [lineId], references: [id]) // 공정이 속한 라인
-  shifts  ProcessShift[]                                         // 공정별 주/야 교대조 정보
-
-  @@map("processes")
-}
-
-// ================================
-// ProcessShift (공정 교대조)
-// ================================
-// 한 공정(Process)에 대해 주간/야간 별 상태와 대기자를 관리하는 테이블
-model ProcessShift {
-  id        String   @id @default(cuid())   // UUID (PK)
-  type      ShiftType                       // 교대조 타입 (주간/야간)
-  status    WorkStatus @default(NORMAL)     // 상태 (정상/잔업/연장)
-
-  processId String                          // 공정 ID (FK)
-  process   Process @relation(fields: [processId], references: [id]) // 소속 공정
-
-  // Relations
-  waitingWorkerId String?
-  waitingWorker   User? @relation("WaitingWorker", fields: [waitingWorkerId], references: [id], onDelete: SetNull)
-
-  @@unique([processId, type])               // 한 공정에 대해 주간/야간은 유일해야 함
-  @@map("process_shifts")
-}
-
-
-// ================================
-// WorkLog (작업 기록)
-// ================================
-model WorkLog {
-  id              String   @id @default(cuid())   // UUID (PK)
-
-  // User 정보 (FK + 스냅샷)
-  userId          String?                         // FK (User.id), User 삭제 시 NULL
-  userUserId      String                          // 사번 (스냅샷)
-  userName        String                          // 이름 (스냅샷)
-
-  // 작업 시간
-  startedAt       DateTime @default(now())        // 작업 시작 시각
-  endedAt         DateTime?                       // 종료 시각
-  durationMinutes Int?                            // 작업 시간(분)
-
-  // 불량 여부
-  isDefective     Boolean @default(false)
-
-  // Relations
-  user    User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-
-  // Process/Line 스냅샷
-  processShiftId  String?   // 활성화 여부 판단을 위해 존재
-  processName     String    // 공정 이름 (스냅샷)
-  lineName        String    // 라인 이름 (스냅샷)
-  lineClassNo     Int       // 라인 반 번호 (스냅샷)
-  shiftType       ShiftType // 교대조 타입 (스냅샷)
-  workStatus      WorkStatus // 상태 (스냅샷)
-
-  // 메모
-  memo            String?   // 작업 메모 (optional)
-
-  histories  WorkLogHistory[]
-
-  @@index([userId])
-  @@index([startedAt])
-  @@map("work_log")
-}
-
-// ================================
-// WorkLogHistory (작업 기록 변경 이력)
-// ================================
-model WorkLogHistory {
-  id              String   @id @default(cuid())   // UUID (PK)
-  workLogId       String
-  field           String
-  oldValue        String?
-  newValue        String?
-  changedBy       String                           // 변경자 User.id
-  changedByName   String                           // 변경자 이름 (스냅샷)
-  changedByUserId String                           // 변경자 사번 (스냅샷)
-  changedAt       DateTime @default(now())
-
-  workLog WorkLog @relation(fields: [workLogId], references: [id])
-  admin   User    @relation("AdminHistory", fields: [changedBy], references: [id])
-  @@map("work_log_history")
-}
-
-// ================================
-// EditLock (편집 잠금)
-// ================================
-// 작업장 관리 화면의 편집 모드 상태를 관리하는 테이블
-model EditLock {
+model WorkClass {
   id              String   @id @default(cuid())     // UUID (PK)
-  resourceType    String                           // 잠금 리소스 타입 (예: "setting-line")
-  lockedBy        String                           // 잠금한 사용자 ID (FK)
-  lockedByName    String                           // 잠금한 사용자 이름 (스냅샷)
-  lockedByUserId  String                           // 잠금한 사용자 사번 (스냅샷)
-  lockedAt        DateTime @default(now())         // 잠금 시각
-  heartbeatAt     DateTime @default(now())         // 마지막 하트비트 시각 (세션 유지 확인용)
+  name            String   @unique                  // 이름
+  displayOrder    Int      @default(0)              // 순서
 
-  // Relations
-  user User @relation("EditLockUser", fields: [lockedBy], references: [id], onDelete: Cascade)
+  line FactoryLine[]
 
-  @@unique([resourceType]) // 하나의 리소스에는 하나의 잠금만 존재
-  @@map("edit_locks")
+  @@map("work_classes")
 }
 
 // ================================
-// CellLock (셀 단위 편집 잠금)
+// SystemConfig (전역 설정)
 // ================================
-// 작업자 배치, 상태 변경 등 셀 단위 편집 잠금을 관리하는 테이블
-model CellLock {
-  id            String   @id @default(cuid())     // UUID (PK)
-  cellId        String   @unique                  // 셀 ID (예: "processId-DAY", "lineId-status-NIGHT")
-  lockedBy      String                           // 잠금한 사용자 ID (FK)
-  lockedByName  String                           // 잠금한 사용자 이름 (스냅샷)
-  lockedAt      DateTime @default(now())         // 잠금 시각
+model FactoryConfig {
+  id           String   @id @default("global_config") // 고정 ID 사용
+  processCount Int      @default(7)                   // 공정 하위 프로세스의 고정 개수
 
-  // Relations
-  user User @relation("CellLockUser", fields: [lockedBy], references: [id], onDelete: Cascade)
-
-  @@map("cell_locks")
+  @@map("factory_configs")
 }
 
+
+// ================================
+// FactoryLine (공정라인)
+// ================================
+model FactoryLine {
+  id              String   @id @default(cuid())     // UUID (PK)
+  name            String                            // 이름
+  displayOrder    Int                               // 순서
+
+  workClassId     String
+  workClass       WorkClass   @relation(fields: [workClassId], references: [id], onDelete: Cascade)
+
+  shifts       LineShift[]
+
+  @@map("factory_lines")
+}
+
+// ================================
+// LineShift (근무조 - 주/야 상태관리)
+// ================================
+model LineShift {
+  id              String   @id @default(cuid())     // UUID (PK)
+  type            ShiftType                         // 타입 (주간/야간)
+  status          WorkStatus                        // 상태 (정상/잔업/연장)
+
+  lineId          String                            // 소속 라인 아이디
+  line            FactoryLine @relation(fields: [lineId], references: [id], onDelete: Cascade)
+
+  slots           ProcessSlot[]                      // 이 근무조에 속한 프로세스들
+
+  @@unique([lineId, type]) // 한 라인에 주간/야간 타입은 하나씩만 존재
+  @@map("line_shifts")
+}
+
+// ================================
+// ProcessSlot (공정 프로세스)
+// ================================
+model ProcessSlot {
+  id           String       @id @default(cuid())
+  name         String
+  slotIndex    Int          @default(0)
+
+  shiftId      String
+  shift        LineShift    @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+
+  // 작업자
+  workerId     String?
+  workerStatus WorkerStatus?
+  worker       User?        @relation(fields: [workerId], references: [id])
+
+  @@unique([shiftId, name]) // 한 교대조 내에 이름이 겹치면 안됨
+  @@unique([shiftId, slotIndex]) // 한 교대조 내에 순서가 겹치면 안됨
+  @@map("process_slots")
+}
 
 // ================================
 // Enums
@@ -204,4 +206,9 @@ enum WorkStatus {
   NORMAL    // 정상
   OVERTIME  // 잔업
   EXTENDED  // 연장
+}
+
+enum WorkerStatus {
+  NORMAL    // 정상
+  OVERTIME  // 잔업
 }

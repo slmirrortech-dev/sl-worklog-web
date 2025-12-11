@@ -16,12 +16,14 @@ export function CustomDatePicker({
   onChangeAction,
   min,
   max,
+  className,
 }: {
-  label: string
+  label?: string
   date: Date
   onChangeAction: (value: Date) => void
   min?: Date
   max?: Date
+  className?: string
 }) {
   const [open, setOpen] = React.useState(false)
   //
@@ -33,15 +35,21 @@ export function CustomDatePicker({
   //     .padStart(2, '0')}:${d.getSeconds().toString().padStart(2, '0')}`
 
   return (
-    <div className="flex gap-4">
+    <div className="flex gap-4 flex-1">
       {/* 날짜 선택 */}
       <div className="flex flex-col gap-3 w-full">
-        <Label htmlFor="date-picker" className="px-1">
-          {label}
-        </Label>
+        {label && (
+          <Label htmlFor="date-picker" className="px-1">
+            {label}
+          </Label>
+        )}
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
-            <Button variant="outline" id="date-picker" className="justify-between font-normal">
+            <Button
+              variant="outline"
+              id="date-picker"
+              className={`justify-between font-normal ${className}`}
+            >
               {date ? format(date, 'yyyy-MM-dd', { locale: ko }) : '날짜 선택'}
               <ChevronDownIcon />
             </Button>
@@ -80,7 +88,7 @@ export function CustomDatePicker({
       {/*  </Label>*/}
       {/*  <Input*/}
       {/*    type="time"*/}
-      {/*    id="time-picker"*/}
+      {/*    [id]="time-picker"*/}
       {/*    step="1"*/}
       {/*    value={formatTime(date)}*/}
       {/*    onChange={(e) => {*/}

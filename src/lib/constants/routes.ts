@@ -1,18 +1,13 @@
 export const ROUTES = {
   ADMIN: {
     LOGIN: '/admin/login',
-    SETTING_LINE: '/admin/setting-line',
-    WORK_LOG: '/admin/work-log',
+    CHANGE_PASSWORD: '/admin/change-password',
+    WORKPLACE: '/admin/workplace',
+    WORKPLACE_SETTING: '/admin/workplace-setting',
+    EXPORTS: '/admin/exports',
     USERS: '/admin/users',
-    MONITOR: '/admin/monitor',
+    USER_DETAIL: (id: string) => `/admin/user-detail/${id}`,
     MY_PAGE: '/admin/my-page',
-  },
-  WORKER: {
-    LOGIN: '/worker/login',
-    HOME: '/worker/home',
-    START: '/worker/start',
-    HISTORY: '/worker/history',
-    MY_PAGE: '/worker/my-page',
   },
   MONITOR: '/monitor',
   ERROR: {

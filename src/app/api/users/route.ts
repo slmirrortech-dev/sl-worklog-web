@@ -6,7 +6,7 @@ import { UserResponseDto } from '@/types/user'
 import { Role } from '@prisma/client'
 import { ApiError } from '@/lib/core/errors'
 import { ApiResponseFactory } from '@/lib/core/api-response-factory'
-import bcrypt from 'bcryptjs'
+import { supabaseServer } from '@/lib/supabase/server'
 export const runtime = 'nodejs'
 
 /**
@@ -76,9 +76,8 @@ export async function getUsers(request: NextRequest) {
       id: true,
       userId: true,
       name: true,
-      birthday: true,
+      hireDate: true,
       role: true,
-      isInitialPasswordChanged: true,
       licensePhotoUrl: true,
       isActive: true,
       deactivatedAt: true,
@@ -92,8 +91,7 @@ export async function getUsers(request: NextRequest) {
   // 총 페이지 수 계산
   const totalPages = Math.ceil(totalCount / pageSizeParam)
 
-  return NextResponse.json({
-    success: true,
+  return ApiResponseFactory.success({
     data: users,
     totalCount,
     totalPages,
@@ -115,15 +113,15 @@ async function createUsers(req: NextRequest) {
   const items: Array<{
     userId: string
     name: string
-    birthday: string
+    hireDate?: string
     role: Role
   }> = Array.isArray(body) ? body : [body]
 
   // 최소 검증
-  const invalid = items.filter((i) => !i?.userId || !i?.name || !i?.birthday)
+  const invalid = items.filter((i) => !i?.userId || !i?.name)
   if (invalid.length) {
     throw new ApiError(
-      `userId, name, birthday는 필수입니다. invalid count=${invalid.length}`,
+      `userId, name은 필수입니다. invalid count=${invalid.length}`,
       400,
       'INVALID_PAYLOAD',
     )
@@ -153,7 +151,10 @@ async function createUsers(req: NextRequest) {
 
   for (const item of uniqueItems) {
     const existing = existingUsers.find((u) => u.userId === item.userId)
-    const password = await bcrypt.hash(item.birthday.slice(2), 10) // 초기 비밀번호
+    const isAdminOrManager = item.role === 'ADMIN' || item.role === 'MANAGER'
+
+    // hireDate 처리: 빈 문자열은 undefined로 변환
+    const hireDate = item.hireDate?.trim() || undefined
 
     // 이미 있고 활성화 상태 : skip
     if (existing && existing.isActive) {
@@ -163,13 +164,70 @@ async function createUsers(req: NextRequest) {
 
     // 이미 있고 비활성 상태 : 복구 + 덮어쓰기
     if (existing && !existing.isActive) {
+      // 관리자/반장인 경우에만 Supabase Auth 사용자 생성
+      let supabaseUserId = existing.supabaseUserId
+      let email = existing.email
+
+      if (isAdminOrManager) {
+        // 관리자/반장은 임시 이메일 형식 사용 (userId@temp.invalid)
+        email = `${item.userId}@temp.invalid`
+        const initialPassword = item.userId // 초기 비밀번호 (사번과 동일)
+
+        try {
+          if (existing.supabaseUserId) {
+            // 기존 Supabase 사용자 확인
+            const { data: existingAuthUser } = await supabaseServer.auth.admin.getUserById(
+              existing.supabaseUserId,
+            )
+            if (!existingAuthUser.user) {
+              // Supabase 사용자가 없으면 새로 생성
+              const { data: newAuthUser, error } = await supabaseServer.auth.admin.createUser({
+                email,
+                password: initialPassword,
+                email_confirm: true,
+              })
+              if (error || !newAuthUser.user) {
+                throw new ApiError(`Supabase 사용자 생성 실패: ${error?.message}`, 500)
+              }
+              supabaseUserId = newAuthUser.user.id
+            }
+          } else {
+            // supabaseUserId가 없으면 새로 생성
+            const { data: newAuthUser, error } = await supabaseServer.auth.admin.createUser({
+              email,
+              password: initialPassword,
+              email_confirm: true,
+            })
+            if (error || !newAuthUser.user) {
+              throw new ApiError(`Supabase 사용자 생성 실패: ${error?.message}`, 500)
+            }
+            supabaseUserId = newAuthUser.user.id
+          }
+        } catch (error) {
+          // 에러 발생 시에도 새로 생성 시도
+          const { data: newAuthUser, error: createError } = await supabaseServer.auth.admin.createUser(
+            {
+              email,
+              password: initialPassword,
+              email_confirm: true,
+            },
+          )
+          if (createError || !newAuthUser.user) {
+            throw new ApiError(`Supabase 사용자 생성 실패: ${createError?.message}`, 500)
+          }
+          supabaseUserId = newAuthUser.user.id
+        }
+      }
+
       const updated = await prisma.user.update({
         where: { id: existing.id },
         data: {
+          supabaseUserId,
+          email,
           name: item.name,
-          birthday: item.birthday,
+          hireDate,
           role: item.role ?? 'WORKER',
-          password,
+          mustChangePassword: isAdminOrManager, // 관리자/반장은 비밀번호 변경 필수
           isActive: true,
           deactivatedAt: null,
         },
@@ -179,17 +237,48 @@ async function createUsers(req: NextRequest) {
     }
 
     // 존재하지 않음 : 새로 생성
-    const newUser = await prisma.user.create({
-      data: {
-        userId: item.userId,
-        name: item.name,
-        birthday: item.birthday,
-        role: item.role ?? 'WORKER',
-        password,
-        isActive: true,
-      },
-    })
-    createdUsers.push(newUser)
+    if (isAdminOrManager) {
+      // 관리자/반장: Supabase Auth + Prisma DB에 생성
+      const email = `${item.userId}@temp.invalid`
+      const initialPassword = item.userId // 초기 비밀번호 (사번과 동일)
+
+      const { data: authData, error: authError } = await supabaseServer.auth.admin.createUser({
+        email,
+        password: initialPassword,
+        email_confirm: true,
+      })
+
+      if (authError || !authData.user) {
+        throw new ApiError(`Supabase 사용자 생성 실패: ${authError?.message}`, 500)
+      }
+
+      const newUser = await prisma.user.create({
+        data: {
+          supabaseUserId: authData.user.id,
+          email: authData.user.email,
+          userId: item.userId,
+          name: item.name,
+          hireDate,
+          role: item.role,
+          mustChangePassword: true, // 초기 비밀번호 변경 필수
+          isActive: true,
+        },
+      })
+      createdUsers.push(newUser)
+    } else {
+      // 작업자: Prisma DB에만 생성 (Supabase Auth 사용 안 함)
+      const newUser = await prisma.user.create({
+        data: {
+          userId: item.userId,
+          name: item.name,
+          hireDate,
+          role: 'WORKER',
+          mustChangePassword: false, // 작업자는 로그인하지 않음
+          isActive: true,
+        },
+      })
+      createdUsers.push(newUser)
+    }
   }
 
   return ApiResponseFactory.success(

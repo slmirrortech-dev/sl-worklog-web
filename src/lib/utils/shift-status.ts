@@ -1,4 +1,4 @@
-import { WorkStatus } from '@prisma/client'
+import { WorkStatus, WorkerStatus } from '@prisma/client'
 
 export const displayWorkStatus = (status: WorkStatus) => {
   switch (status) {
@@ -8,6 +8,15 @@ export const displayWorkStatus = (status: WorkStatus) => {
       return '잔업'
     case 'EXTENDED':
       return '연장'
+  }
+}
+
+export const displayWorkerStatus = (status: WorkerStatus) => {
+  switch (status) {
+    case 'NORMAL':
+      return '정상'
+    case 'OVERTIME':
+      return '잔업'
   }
 }
 

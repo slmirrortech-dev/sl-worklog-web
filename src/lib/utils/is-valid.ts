@@ -1,10 +1,14 @@
-export function isValidBirthday(birthday: string): boolean {
+/**
+ * 날짜 형식 검증 (yyyymmdd)
+ * 생년월일, 입사일 등에 사용
+ */
+export function isValidDate(dateStr: string): boolean {
   // 숫자 8자리 검사
-  if (!/^\d{8}$/.test(birthday)) return false
+  if (!/^\d{8}$/.test(dateStr)) return false
 
-  const year = parseInt(birthday.substring(0, 4), 10)
-  const month = parseInt(birthday.substring(4, 6), 10)
-  const day = parseInt(birthday.substring(6, 8), 10)
+  const year = parseInt(dateStr.substring(0, 4), 10)
+  const month = parseInt(dateStr.substring(4, 6), 10)
+  const day = parseInt(dateStr.substring(6, 8), 10)
 
   // 연도 제한 (예: 1900~현재)
   const currentYear = new Date().getFullYear()
@@ -19,3 +23,6 @@ export function isValidBirthday(birthday: string): boolean {
 
   return true
 }
+
+// 하위 호환성을 위한 별칭
+export const isValidBirthday = isValidDate

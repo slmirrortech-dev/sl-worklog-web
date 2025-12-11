@@ -1,13 +1,25 @@
 import React from 'react'
 import AdminHeader from '@/components/admin/AdminHeader'
 import { getServerSession } from '@/lib/utils/auth-guards'
-import QueryProvider from '../../../contexts/QueryProvider'
+import QueryProvider from '@/contexts/QueryProvider'
+import { redirect } from 'next/navigation'
+import { ROUTES } from '@/lib/constants/routes'
 
-// 동적 렌더링 강제
+// 동적 렌더링 강제 (비밀번호 변경 체크 포함)
 export const dynamic = 'force-dynamic'
 
 const AdminLayout = async ({ children }: { children: React.ReactNode }) => {
   const session = await getServerSession()
+
+  // 세션이 없으면 로그인 페이지로
+  if (!session) {
+    redirect(ROUTES.ADMIN.LOGIN)
+  }
+
+  // 비밀번호 변경이 필요하면 비밀번호 변경 페이지로
+  if (session.mustChangePassword) {
+    redirect(ROUTES.ADMIN.CHANGE_PASSWORD)
+  }
 
   return (
     <QueryProvider>

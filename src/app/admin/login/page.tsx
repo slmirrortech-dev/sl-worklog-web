@@ -22,11 +22,19 @@ const AdminLoginPage = () => {
     setIsLoading(true)
     setError('')
     try {
-      await loginAdminApi({
+      const response = await loginAdminApi({
         userId: userId.trim(),
         password: password,
       })
-      router.push(ROUTES.ADMIN.SETTING_LINE)
+
+      // mustChangePassword 플래그 확인
+      if (response.mustChangePassword) {
+        // 초기 비밀번호 변경 필요
+        window.location.href = ROUTES.ADMIN.CHANGE_PASSWORD
+      } else {
+        // 일반 로그인 - 작업장 현황으로 이동
+        window.location.href = ROUTES.ADMIN.WORKPLACE
+      }
     } catch (error) {
       setError((error as Error).message)
     } finally {
@@ -52,16 +60,16 @@ const AdminLoginPage = () => {
 
           <form onSubmit={handleLogin} className="space-y-6">
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="userId" className="block text-sm font-medium text-gray-700 mb-2">
                 사번
               </label>
               <input
-                id="username"
+                id="userId"
                 type="text"
                 value={userId}
                 onChange={(e) => setUserId(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                placeholder="관리자 사번을 입력하세요"
+                placeholder="사번을 입력하세요"
                 required
               />
             </div>
