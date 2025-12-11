@@ -7,6 +7,7 @@ import ModalLicense from '@/components/admin/ModalLicense'
 import { UserResponseDto } from '@/types/user'
 import { uploadLicenseApi } from '@/lib/api/user-api'
 import { ApiResponse } from '@/types/common'
+import { useLoading } from '@/contexts/LoadingContext'
 
 /**
  * 이미지 업로드/모달 보기 컴포넌트
@@ -19,6 +20,7 @@ export default function ButtonLicense({
   targetUser: UserResponseDto
   canEdit: boolean
 }) {
+  const { showLoading, hideLoading } = useLoading()
   const [file, setFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -46,7 +48,12 @@ export default function ButtonLicense({
 
   useEffect(() => {
     if (!file) return
-    fetchUpload(file).then()
+    showLoading()
+    fetchUpload(file)
+      .then()
+      .finally(() => {
+        hideLoading()
+      })
   }, [file])
 
   return (

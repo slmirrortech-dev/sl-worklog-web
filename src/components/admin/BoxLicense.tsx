@@ -7,6 +7,7 @@ import { deleteLicenseApi, getLicenseApi, uploadLicenseApi } from '@/lib/api/use
 import { ApiResponse } from '@/types/common'
 import ModalLicense from '@/components/admin/ModalLicense'
 import { useRouter } from 'next/navigation'
+import { useLoading } from '@/contexts/LoadingContext'
 
 /**
  * 이미지 업로드/모달 보기 컴포넌트
@@ -22,6 +23,7 @@ export default function BoxLicense({
   canEdit: boolean
 }) {
   const router = useRouter()
+  const { showLoading, hideLoading } = useLoading()
   const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState(false)
   const [file, setFile] = useState<File | null>(null)
@@ -59,7 +61,12 @@ export default function BoxLicense({
 
   useEffect(() => {
     if (!file) return
-    fetchUpload(file).then()
+    showLoading()
+    fetchUpload(file)
+      .then()
+      .finally(() => {
+        hideLoading()
+      })
   }, [file])
 
   if (isLoading) {
