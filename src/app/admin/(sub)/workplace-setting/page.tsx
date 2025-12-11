@@ -39,7 +39,7 @@ const WorkplaceSettingPage = () => {
 
       {/* 라인 & 린지원 설정 */}
       <section className="grid grid-cols-1 lg:grid-cols-1 gap-6 items-start">
-        <div className="h-[700px]">
+        <div>
           <LineSettingCard />
         </div>
       </section>
