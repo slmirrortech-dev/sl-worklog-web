@@ -50,23 +50,26 @@ export default function BoxLicense({
     const formData = new FormData()
     formData.append('file', file)
 
-    const { data }: ApiResponse<{ url: string }> = await uploadLicenseApi(targetUser.id, formData)
+    showLoading()
+    try {
+      const { data }: ApiResponse<{ url: string }> = await uploadLicenseApi(targetUser.id, formData)
 
-    if (data.url) {
-      // signed URL
-      setPreviewUrl(data.url)
-      router.refresh()
+      if (data.url) {
+        // signed URL
+        setPreviewUrl(data.url)
+        router.refresh()
+      }
+    } catch {
+      alert('이미지 업로드에 실패했습니다.')
+    } finally {
+      hideLoading()
     }
   }
 
   useEffect(() => {
     if (!file) return
-    showLoading()
-    fetchUpload(file)
-      .then()
-      .finally(() => {
-        hideLoading()
-      })
+
+    fetchUpload(file).then()
   }, [file])
 
   if (isLoading) {
@@ -146,6 +149,7 @@ export default function BoxLicense({
               <input
                 id="inputFile"
                 type="file"
+                accept="image/*"
                 onChange={(e) => {
                   if (e.target.files && e.target.files[0]) {
                     setFile(e.target.files[0])

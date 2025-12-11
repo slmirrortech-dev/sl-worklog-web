@@ -35,6 +35,7 @@ export default function ButtonLicense({
     const formData = new FormData()
     formData.append('file', file)
 
+    showLoading()
     try {
       const { data }: ApiResponse<{ url: string }> = await uploadLicenseApi(targetUser.id, formData)
       if (data.url) {
@@ -42,18 +43,17 @@ export default function ButtonLicense({
         setPreviewUrl(data.url)
       }
     } catch (e) {
+      alert('이미지 업로드에 실패했습니다.')
       console.error('면허증 등록 실패', e)
+    } finally {
+      hideLoading()
     }
   }
 
   useEffect(() => {
     if (!file) return
-    showLoading()
-    fetchUpload(file)
-      .then()
-      .finally(() => {
-        hideLoading()
-      })
+
+    fetchUpload(file).then()
   }, [file])
 
   return (
@@ -102,6 +102,7 @@ export default function ButtonLicense({
               <input
                 id={`inputFile-${targetUser.id}`}
                 type="file"
+                accept="image/*"
                 onChange={handleFileChange}
                 style={{
                   display: 'none',
