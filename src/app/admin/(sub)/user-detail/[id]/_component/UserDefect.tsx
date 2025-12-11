@@ -25,7 +25,7 @@ const UserDefect = ({ userId }: { userId: string }) => {
   const [isAdding, setIsAdding] = useState(false)
 
   // 입력 폼 상태
-  const [newDate, setNewDate] = useState('')
+  const [newDate, setNewDate] = useState<Date | null>(new Date())
   const [newTime, setNewTime] = useState('')
   const [newLine, setNewLine] = useState('')
   const [newClass, setNewClass] = useState('1반') // 기본값 1반
@@ -71,7 +71,7 @@ const UserDefect = ({ userId }: { userId: string }) => {
     },
     onSuccess: () => {
       refetch() // 폼 초기화
-      setNewDate('')
+      setNewDate(new Date())
       setNewLine('')
       setNewProcess('')
       setNewMemo('')
@@ -88,8 +88,12 @@ const UserDefect = ({ userId }: { userId: string }) => {
       return
     }
 
+    // Date 객체와 시간 문자열 결합
+    const dateStr = format(newDate, 'yyyy-MM-dd')
+    const dateTimeStr = newTime ? `${dateStr} ${newTime}` : dateStr
+
     const newRecord: DefectLogCreateRequest = {
-      occurredAt: format(new Date(`${newDate} ${newTime}`), "yyyy-MM-dd'T'HH:mm:ss"),
+      occurredAt: format(new Date(dateTimeStr), "yyyy-MM-dd'T'HH:mm:ss"),
       workerId: userId,
       lineName: newLine,
       className: newClass,
@@ -144,7 +148,7 @@ const UserDefect = ({ userId }: { userId: string }) => {
                     date={newDate}
                     onChangeAction={(e) => setNewDate(e)}
                     className="w-full !text-base h-10"
-                    max={format(new Date(), 'yyyy-MM-dd')}
+                    max={new Date()}
                   />
                 </div>
                 <div>
