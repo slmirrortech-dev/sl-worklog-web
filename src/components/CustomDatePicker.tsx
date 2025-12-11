@@ -18,7 +18,7 @@ export function CustomDatePicker({
   max,
   className,
 }: {
-  label: string
+  label?: string
   date: Date
   onChangeAction: (value: Date) => void
   min?: Date
@@ -38,9 +38,11 @@ export function CustomDatePicker({
     <div className="flex gap-4 flex-1">
       {/* 날짜 선택 */}
       <div className="flex flex-col gap-3 w-full">
-        <Label htmlFor="date-picker" className="px-1">
-          {label}
-        </Label>
+        {label && (
+          <Label htmlFor="date-picker" className="px-1">
+            {label}
+          </Label>
+        )}
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <Button

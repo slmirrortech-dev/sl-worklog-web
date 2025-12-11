@@ -17,6 +17,7 @@ import { format } from 'date-fns'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { useLoading } from '@/contexts/LoadingContext'
+import { CustomDatePicker } from '@/components/CustomDatePicker'
 
 const UserDefect = ({ userId }: { userId: string }) => {
   const { showLoading, hideLoading } = useLoading()
@@ -139,12 +140,11 @@ const UserDefect = ({ userId }: { userId: string }) => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">발생일 *</label>
-                  <Input
-                    type="date"
-                    value={newDate}
-                    max={format(new Date(), 'yyyy-MM-dd')}
-                    onChange={(e) => setNewDate(e.target.value)}
+                  <CustomDatePicker
+                    date={newDate}
+                    onChangeAction={(e) => setNewDate(e)}
                     className="w-full !text-base h-10"
+                    max={format(new Date(), 'yyyy-MM-dd')}
                   />
                 </div>
                 <div>
@@ -210,7 +210,7 @@ const UserDefect = ({ userId }: { userId: string }) => {
                     className="w-full !text-base h-10"
                   />
                 </div>
-                <div>
+                <div className="col-span-full">
                   <label className="block text-sm font-medium text-gray-700 mb-2">메모 *</label>
                   <Input
                     type="text"
