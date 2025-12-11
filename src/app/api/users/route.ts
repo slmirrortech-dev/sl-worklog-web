@@ -91,8 +91,7 @@ export async function getUsers(request: NextRequest) {
   // 총 페이지 수 계산
   const totalPages = Math.ceil(totalCount / pageSizeParam)
 
-  return NextResponse.json({
-    success: true,
+  return ApiResponseFactory.success({
     data: users,
     totalCount,
     totalPages,
@@ -153,6 +152,9 @@ async function createUsers(req: NextRequest) {
   for (const item of uniqueItems) {
     const existing = existingUsers.find((u) => u.userId === item.userId)
     const isAdminOrManager = item.role === 'ADMIN' || item.role === 'MANAGER'
+
+    // hireDate 처리: 빈 문자열은 undefined로 변환
+    const hireDate = item.hireDate?.trim() || undefined
 
     // 이미 있고 활성화 상태 : skip
     if (existing && existing.isActive) {
@@ -223,7 +225,7 @@ async function createUsers(req: NextRequest) {
           supabaseUserId,
           email,
           name: item.name,
-          hireDate: item.hireDate,
+          hireDate,
           role: item.role ?? 'WORKER',
           mustChangePassword: isAdminOrManager, // 관리자/반장은 비밀번호 변경 필수
           isActive: true,
@@ -256,7 +258,7 @@ async function createUsers(req: NextRequest) {
           email: authData.user.email,
           userId: item.userId,
           name: item.name,
-          hireDate: item.hireDate,
+          hireDate,
           role: item.role,
           mustChangePassword: true, // 초기 비밀번호 변경 필수
           isActive: true,
@@ -269,7 +271,7 @@ async function createUsers(req: NextRequest) {
         data: {
           userId: item.userId,
           name: item.name,
-          hireDate: item.hireDate,
+          hireDate,
           role: 'WORKER',
           mustChangePassword: false, // 작업자는 로그인하지 않음
           isActive: true,

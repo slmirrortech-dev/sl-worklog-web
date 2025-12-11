@@ -36,9 +36,14 @@ export default function AddWorkerPopover({
   // 사용자 검색
   const { data: usersData, isLoading: isSearching } = useQuery({
     queryKey: ['users', searchQuery],
-    queryFn: () => getUsersApi(1, 100, searchQuery),
+    queryFn: () =>
+      getUsersApi({
+        page: 1,
+        pageSize: 100,
+        search: searchQuery || undefined,
+      }),
     enabled: searchQuery.length > 0,
-    select: (response) => response.data,
+    select: (response) => response.data.data,
   })
 
   // 작업자 추가

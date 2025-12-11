@@ -1,72 +1,48 @@
-import React from 'react'
+'use client'
+
+import React, { useEffect, useState } from 'react'
 import UsersSummary from '@/app/admin/(main)/users/_component/UsersSummary'
-import { UserResponseDto } from '@/types/user'
-import prisma from '@/lib/core/prisma'
-import UsersDataTable from '@/app/admin/(main)/users/_component/UsersDataTable'
-import { getServerSession } from '@/lib/utils/auth-guards'
-import { redirect } from 'next/navigation'
-import { ROUTES } from '@/lib/constants/routes'
-
-// 동적 렌더링 강제
-export const dynamic = 'force-dynamic'
-
-const INITIAL_SKIP = 0
-const INITIAL_TAKE = 10
+import UsersDataGrid from '@/app/admin/(main)/users/_component/UsersDataGrid'
+import { getCurrentUserApi, getUsersApi } from '@/lib/api/user-api'
 
 /** 사용자 관리 페이지 */
-const AdminUsersPage = async () => {
-  const session = await getServerSession()
+const AdminUsersPage = () => {
+  const [totalCount, setTotalCount] = useState(0)
+  const [adminTotalCount, setAdminTotalCount] = useState(0)
+  const [managerTotalCount, setManagerTotalCount] = useState(0)
+  const [workerTotalCount, setWorkerTotalCount] = useState(0)
+  const [canEdit, setCanEdit] = useState(false)
 
-  // 세션이 없으면 로그인 페이지로 리디렉션
-  if (!session) {
-    redirect(ROUTES.ADMIN.LOGIN)
-  }
+  // 전체 통계 및 현재 사용자 정보 가져오기
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        // 현재 사용자 정보
+        const currentUserResponse = await getCurrentUserApi()
+        setCanEdit(currentUserResponse.data.role === 'ADMIN')
 
-  // 총 데이터 수
-  const totalCount = await prisma.user.count({ where: { isActive: true } })
-  const adminTotalCount = await prisma.user.count({
-    where: { isActive: true, role: 'ADMIN' },
-  })
-  const managerTotalCount = await prisma.user.count({
-    where: { isActive: true, role: 'MANAGER' },
-  })
-  const workerTotalCount = await prisma.user.count({ where: { isActive: true, role: 'WORKER' } })
+        // 전체 직원 수
+        const allResponse = await getUsersApi({ page: 1, pageSize: 1 })
+        setTotalCount(allResponse.data.totalCount)
 
-  const admins = (await prisma.user.findMany({
-    where: { isActive: true, role: { in: ['ADMIN', 'MANAGER'] } },
-    select: {
-      id: true,
-      userId: true,
-      name: true,
-      hireDate: true,
-      role: true,
-      licensePhotoUrl: true,
-      isActive: true,
-      deactivatedAt: true,
-      createdAt: true,
-    },
-    skip: INITIAL_SKIP,
-    take: INITIAL_TAKE,
-    orderBy: [{ createdAt: 'desc' }],
-  })) as UserResponseDto[]
+        // 관리자 수
+        const adminResponse = await getUsersApi({ page: 1, pageSize: 1, role: 'ADMIN' })
+        setAdminTotalCount(adminResponse.data.totalCount)
 
-  const workers = (await prisma.user.findMany({
-    where: { isActive: true, role: 'WORKER' },
-    select: {
-      id: true,
-      userId: true,
-      name: true,
-      hireDate: true,
-      role: true,
-      licensePhotoUrl: true,
-      isActive: true,
-      deactivatedAt: true,
-      createdAt: true,
-    },
-    skip: INITIAL_SKIP,
-    take: INITIAL_TAKE,
-    orderBy: [{ createdAt: 'desc' }, { userId: 'desc' }, { name: 'asc' }],
-  })) as UserResponseDto[]
+        // 반장 수
+        const managerResponse = await getUsersApi({ page: 1, pageSize: 1, role: 'MANAGER' })
+        setManagerTotalCount(managerResponse.data.totalCount)
+
+        // 작업자 수
+        const workerResponse = await getUsersApi({ page: 1, pageSize: 1, role: 'WORKER' })
+        setWorkerTotalCount(workerResponse.data.totalCount)
+      } catch (error) {
+        console.error('통계 데이터 가져오기 실패:', error)
+      }
+    }
+
+    fetchStats()
+  }, [])
 
   return (
     <div className="flex flex-col space-y-6 mb-24">
@@ -77,42 +53,17 @@ const AdminUsersPage = async () => {
         managerTotalCount={managerTotalCount}
         workerTotalCount={workerTotalCount}
       />
+
+      {/* 관리자 목록 */}
       <div className="space-y-4">
         <h2 className="text-xl font-bold">관리자 목록</h2>
-        {/* 관리자 목록 */}
-        <UsersDataTable
-          id="admins"
-          currentUser={{
-            id: session!.id,
-            userId: session!.userId,
-            name: session!.name,
-            role: session!.role,
-            mustChangePassword: session!.mustChangePassword || false,
-          }}
-          initialData={admins}
-          skip={INITIAL_SKIP}
-          take={INITIAL_TAKE}
-          totalCount={adminTotalCount + managerTotalCount}
-        />
+        <UsersDataGrid roleFilter="ADMIN;MANAGER" id="admins" canEdit={canEdit} />
       </div>
 
+      {/* 작업자 목록 */}
       <div className="space-y-4">
         <h2 className="text-xl font-bold">작업자 목록</h2>
-        {/* 사용자 목록 */}
-        <UsersDataTable
-          id="workers"
-          currentUser={{
-            id: session!.id,
-            userId: session!.userId,
-            name: session!.name,
-            role: session!.role,
-            mustChangePassword: session!.mustChangePassword || false,
-          }}
-          initialData={workers}
-          skip={INITIAL_SKIP}
-          take={INITIAL_TAKE}
-          totalCount={workerTotalCount}
-        />
+        <UsersDataGrid roleFilter="WORKER" id="workers" canEdit={canEdit} />
       </div>
     </div>
   )
