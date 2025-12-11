@@ -346,7 +346,7 @@ export default function LineSettingCard() {
       </CardHeader>
 
       <CardContent className="flex-1 flex flex-col min-h-0">
-        <div className="h-full flex flex-col">
+        <div className="h-full flex flex-col min-h-[500px] max-h-[500px] overflow-y">
           {/* 커스텀 탭 버튼 */}
           <div className="flex bg-gray-200 rounded-full p-1 w-fit mb-4">
             {classesData &&
