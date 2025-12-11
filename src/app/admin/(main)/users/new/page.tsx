@@ -14,7 +14,6 @@ import {
 } from '@/components/ui/select'
 import { Role } from '@prisma/client'
 import { ROUTES } from '@/lib/constants/routes'
-import { isValidBirthday } from '@/lib/utils/is-valid'
 import { getCurrentUserApi, uploadLicenseApi } from '@/lib/api/user-api'
 import { CustomDatePicker } from '@/components/CustomDatePicker'
 import { format } from 'date-fns'
@@ -23,7 +22,7 @@ interface NewEmployee {
   userId: string
   name: string
   hireDate: Date | null
-  role: 'ADMIN' | 'WORKER'
+  role: Role
   licensePhotoFile: File | null
   licensePreviewUrl: string | null
 }
@@ -51,9 +50,11 @@ const NewUsersPage = () => {
     fetchUserRole().then()
   }, [])
 
-  const updateEmployee = (
-    field: keyof Omit<NewEmployee, 'licensePhotoFile' | 'licensePreviewUrl'>,
-    value: string,
+  const updateEmployee = <
+    K extends keyof Omit<NewEmployee, 'licensePhotoFile' | 'licensePreviewUrl'>,
+  >(
+    field: K,
+    value: NewEmployee[K],
   ) => {
     setEmployee({ ...employee, [field]: value })
   }
