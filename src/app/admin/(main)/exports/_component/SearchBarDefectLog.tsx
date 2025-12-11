@@ -102,7 +102,21 @@ const SearchBarDefectLog = ({
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
       <div className="space-y-4">
         {/* 첫 번째 줄: 기간 선택, 시작일, 종료일만 */}
-        <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-end">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* 날짜 선택 */}
+          <CustomDatePicker
+            label="검색 시작일"
+            date={startDate}
+            onChangeAction={setStartDate}
+            max={startDate <= endDate ? endDate : undefined}
+          />
+          <CustomDatePicker
+            label="검색 종료일"
+            date={endDate}
+            onChangeAction={setEndDate}
+            min={startDate}
+            max={new Date()}
+          />
           {/* 기간 선택 버튼 */}
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium text-gray-700">기간 선택</label>
@@ -120,21 +134,6 @@ const SearchBarDefectLog = ({
               ))}
             </div>
           </div>
-
-          {/* 날짜 선택 */}
-          <CustomDatePicker
-            label="검색 시작일"
-            date={startDate}
-            onChangeAction={setStartDate}
-            max={startDate <= endDate ? endDate : undefined}
-          />
-          <CustomDatePicker
-            label="검색 종료일"
-            date={endDate}
-            onChangeAction={setEndDate}
-            min={startDate}
-            max={new Date()}
-          />
         </div>
 
         {/* 두 번째 줄부터: 나머지 필터들 4-column grid */}

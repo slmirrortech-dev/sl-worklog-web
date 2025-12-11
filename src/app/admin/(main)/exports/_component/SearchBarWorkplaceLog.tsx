@@ -77,7 +77,21 @@ const SearchBarWorkplaceLog = ({
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
       <div className="space-y-4">
         {/* 검색 조건 */}
-        <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-end">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* 날짜 선택 */}
+          <CustomDatePicker
+            label="검색 시작일"
+            date={startDate}
+            onChangeAction={setStartDate}
+            max={startDate <= endDate ? endDate : undefined}
+          />
+          <CustomDatePicker
+            label="검색 종료일"
+            date={endDate}
+            onChangeAction={setEndDate}
+            min={startDate}
+            max={new Date()}
+          />
           {/* 기간 선택 버튼 */}
           <div className="flex flex-col gap-2">
             <Label className="text-sm text-gray-700">기간 선택</Label>
@@ -96,23 +110,8 @@ const SearchBarWorkplaceLog = ({
             </div>
           </div>
 
-          {/* 날짜 선택 */}
-          <CustomDatePicker
-            label="검색 시작일"
-            date={startDate}
-            onChangeAction={setStartDate}
-            max={startDate <= endDate ? endDate : undefined}
-          />
-          <CustomDatePicker
-            label="검색 종료일"
-            date={endDate}
-            onChangeAction={setEndDate}
-            min={startDate}
-            max={new Date()}
-          />
-
           {/* 액션 버튼 */}
-          <div className="flex gap-2 ml-auto">
+          <div className="flex items-end justify-end gap-2">
             <Button variant="outline" size="sm" onClick={resetFilters}>
               <RotateCcw className="w-4 h-4 mr-1" />
               초기화
