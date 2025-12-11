@@ -83,11 +83,11 @@ const AdminHeader = () => {
 
           {/* 네비게이션 메뉴 */}
           <nav className="hidden md:flex items-center gap-1">
-            {navItems.map((item) => {
+            {navItems.map((item, index) => {
               const isActive = pathname === item.href
               return (
                 <Link
-                  key={item.name}
+                  key={item.name + index}
                   href={item.href}
                   className="group"
                   onClick={() => handleNavClick(item.href)}

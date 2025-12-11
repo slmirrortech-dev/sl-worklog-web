@@ -1,7 +1,7 @@
 import React from 'react'
 import AdminHeader from '@/components/admin/AdminHeader'
 import { getServerSession } from '@/lib/utils/auth-guards'
-import QueryProvider from '../../../contexts/QueryProvider'
+import QueryProvider from '@/contexts/QueryProvider'
 import { redirect } from 'next/navigation'
 import { ROUTES } from '@/lib/constants/routes'
 
