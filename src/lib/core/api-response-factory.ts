@@ -7,7 +7,15 @@ export class ApiResponseFactory {
     return NextResponse.json({ success: true, message, data }, { status })
   }
 
-  static error(error: unknown) {
+  static error(error: unknown, statusCode?: number) {
+    // 문자열 메시지와 상태 코드가 직접 전달된 경우
+    if (typeof error === 'string' && statusCode) {
+      return NextResponse.json(
+        { success: false, code: 'ERROR', message: error },
+        { status: statusCode },
+      )
+    }
+
     if (error instanceof ApiError) {
       return NextResponse.json(
         { success: false, code: error.code, message: error.message },

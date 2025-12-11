@@ -28,14 +28,16 @@ async function getWorkplaceSnapshotDetail(
     throw new ApiError('스냅샷을 찾을 수 없습니다.', 404, 'NOT_FOUND')
   }
 
+  const dataArray = snapshot.data as any[]
+
   const response: WorkplaceSnapshotDetailResponse = {
     id: snapshot.id,
-    snapshotDate: snapshot.snapshotDate,
-    snapshotTime: snapshot.snapshotTime,
-    recordCount: snapshot.recordCount,
+    recordCount: Array.isArray(dataArray) ? dataArray.length : 0,
     createdAt: snapshot.createdAt.toISOString(),
-    createdBy: snapshot.createdBy,
-    data: snapshot.data as any, // JSON 데이터 (WorkplaceSnapshotRow[])
+    createdByUserId: snapshot.createdByUserId,
+    createdByUserName: snapshot.createdByUserName,
+    createdByUserUserId: snapshot.createdByUserUserId,
+    data: dataArray, // JSON 데이터 (WorkplaceSnapshotRow[])
   }
 
   return ApiResponseFactory.success(response, '스냅샷 상세 정보를 가져왔습니다.')
