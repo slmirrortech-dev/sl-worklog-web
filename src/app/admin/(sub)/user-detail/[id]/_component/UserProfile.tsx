@@ -201,7 +201,7 @@ const UserProfile = ({
                   label={'입사일'}
                   date={editHireDate}
                   onChangeAction={(e) => setEditHireDate(e)}
-                  className="!h-12 !text-lg bg-white border-gray-300 "
+                  className="!h-12 !text-lg bg-white border-gray-300"
                 />
               ) : (
                 <div className="text-lg font-mono text-gray-900 bg-gray-50 px-4 py-2 rounded-lg">
