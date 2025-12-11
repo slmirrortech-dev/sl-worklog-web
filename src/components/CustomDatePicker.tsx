@@ -16,12 +16,14 @@ export function CustomDatePicker({
   onChangeAction,
   min,
   max,
+  className,
 }: {
   label: string
   date: Date
   onChangeAction: (value: Date) => void
   min?: Date
   max?: Date
+  className?: string
 }) {
   const [open, setOpen] = React.useState(false)
   //
@@ -41,7 +43,11 @@ export function CustomDatePicker({
         </Label>
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
-            <Button variant="outline" id="date-picker" className="justify-between font-normal">
+            <Button
+              variant="outline"
+              id="date-picker"
+              className={`justify-between font-normal ${className}`}
+            >
               {date ? format(date, 'yyyy-MM-dd', { locale: ko }) : '날짜 선택'}
               <ChevronDownIcon />
             </Button>

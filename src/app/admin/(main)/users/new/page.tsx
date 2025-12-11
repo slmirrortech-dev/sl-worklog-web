@@ -16,11 +16,13 @@ import { Role } from '@prisma/client'
 import { ROUTES } from '@/lib/constants/routes'
 import { isValidBirthday } from '@/lib/utils/is-valid'
 import { getCurrentUserApi, uploadLicenseApi } from '@/lib/api/user-api'
+import { CustomDatePicker } from '@/components/CustomDatePicker'
+import { format } from 'date-fns'
 
 interface NewEmployee {
   userId: string
   name: string
-  hireDate: string
+  hireDate: Date | null
   role: 'ADMIN' | 'WORKER'
   licensePhotoFile: File | null
   licensePreviewUrl: string | null
@@ -34,7 +36,7 @@ const NewUsersPage = () => {
   const [employee, setEmployee] = useState<NewEmployee>({
     userId: '',
     name: '',
-    hireDate: '',
+    hireDate: null,
     role: 'WORKER',
     licensePhotoFile: null,
     licensePreviewUrl: null,
@@ -85,11 +87,6 @@ const NewUsersPage = () => {
       alert('이름은 필수입니다.')
       return false
     }
-    // 입사일 유효성 검사 (선택값이므로 입력된 경우에만 검사)
-    if (employee.hireDate.trim() && !isValidBirthday(employee.hireDate)) {
-      alert('유효한 입사일을 입력해주세요 (yyyymmdd 형식)')
-      return false
-    }
 
     return true
   }
@@ -107,7 +104,7 @@ const NewUsersPage = () => {
         {
           userId: employee.userId.trim(),
           name: employee.name.trim(),
-          hireDate: employee.hireDate.trim() || undefined,
+          hireDate: format(employee.hireDate, 'yyyy-MM-dd') || null,
           role: employee.role,
         },
       ]
@@ -260,15 +257,13 @@ const NewUsersPage = () => {
 
                   {/* 입사일 */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      입사일 (ex.20240301) <span className="text-gray-500 text-sm">(선택)</span>
-                    </label>
-                    <Input
-                      type="text"
-                      value={employee.hireDate}
-                      onChange={(e) => updateEmployee('hireDate', e.target.value)}
-                      placeholder="입사일 8자리를 입력하세요"
-                      className="block w-full py-6 md:text-lg bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                    <CustomDatePicker
+                      label={'입사일'}
+                      date={employee.hireDate}
+                      onChangeAction={(e) => {
+                        updateEmployee('hireDate', e)
+                      }}
+                      className="!h-12 !text-lg bg-white border-gray-300 "
                     />
                   </div>
 

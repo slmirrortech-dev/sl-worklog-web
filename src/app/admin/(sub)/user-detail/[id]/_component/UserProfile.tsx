@@ -21,6 +21,8 @@ import { Role } from '@prisma/client'
 import { useRouter } from 'next/navigation'
 import { ROUTES } from '@/lib/constants/routes'
 import { SessionUser } from '@/lib/utils/auth-guards'
+import { CustomDatePicker } from '@/components/CustomDatePicker'
+import { useMutation } from '@tanstack/react-query'
 
 /** 기본 정보 */
 const UserProfile = ({
@@ -35,22 +37,14 @@ const UserProfile = ({
   const [isEditing, setIsEditing] = useState<boolean>(false)
   const [editName, setEditName] = useState<string>(freshUser.name)
   const [editRole, setEditRole] = useState<Role>(freshUser.role)
-  const [editHireDate, setEditHireDate] = useState<string>(
-    freshUser.hireDate
-      ? `${freshUser.hireDate.slice(0, 4)}-${freshUser.hireDate.slice(4, 6)}-${freshUser.hireDate.slice(6, 8)}`
-      : '',
-  )
+  const [editHireDate, setEditHireDate] = useState<Date | null>(freshUser.hireDate)
   const [isSaving, setIsSaving] = useState<boolean>(false)
 
   // freshUser가 업데이트되면 편집 상태도 동기화
   useEffect(() => {
     setEditName(freshUser.name)
     setEditRole(freshUser.role)
-    setEditHireDate(
-      freshUser.hireDate
-        ? `${freshUser.hireDate.slice(0, 4)}-${freshUser.hireDate.slice(4, 6)}-${freshUser.hireDate.slice(6, 8)}`
-        : '',
-    )
+    setEditHireDate(freshUser.hireDate)
   }, [freshUser])
 
   const canEdit = () => {
@@ -65,6 +59,24 @@ const UserProfile = ({
 
     return false
   }
+
+  const { mutate: updateMutate } = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<updateUserRequestModel> }) =>
+      updateUserApi(id, data),
+    onMutate: () => {
+      setIsSaving(true)
+    },
+    onSuccess: (response) => {
+      setFreshUser(response.data)
+    },
+    onError: () => {
+      alert('사용자 정보 수정에 실패했습니다.')
+    },
+    onSettled: () => {
+      setIsSaving(false)
+      setIsEditing(false)
+    },
+  })
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
@@ -184,19 +196,16 @@ const UserProfile = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">입사일</label>
               {isEditing ? (
-                <Input
-                  type="date"
-                  value={editHireDate}
-                  onChange={(e) => setEditHireDate(e.target.value)}
-                  className="md:text-lg h-12 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                <CustomDatePicker
+                  label={'입사일'}
+                  date={editHireDate}
+                  onChangeAction={(e) => setEditHireDate(e)}
+                  className="!h-12 !text-lg bg-white border-gray-300 "
                 />
               ) : (
                 <div className="text-lg font-mono text-gray-900 bg-gray-50 px-4 py-2 rounded-lg">
-                  {freshUser.hireDate
-                    ? `${freshUser.hireDate.slice(0, 4)}-${freshUser.hireDate.slice(4, 6)}-${freshUser.hireDate.slice(6, 8)}`
-                    : '-'}
+                  {freshUser.hireDate ? `${format(freshUser.hireDate, 'yyyy-MM-dd')}` : '-'}
                 </div>
               )}
             </div>
@@ -226,27 +235,15 @@ const UserProfile = ({
               취소
             </Button>
             <Button
-              onClick={async () => {
-                setIsSaving(true)
-                try {
-                  // yyyy-MM-dd 형식을 yyyyMMdd 형식으로 변환 (빈 문자열이면 undefined)
-                  const formattedHireDate =
-                    editHireDate && editHireDate.trim() !== '' ? editHireDate.replace(/-/g, '') : undefined
-                  const originalHireDate = freshUser.hireDate || undefined
-
-                  const { data } = await updateUserApi(freshUser.id, {
+              onClick={() => {
+                updateMutate({
+                  id: freshUser.id,
+                  data: {
                     name: editName !== freshUser.name ? editName : undefined,
                     role: editRole !== freshUser.role ? editRole : undefined,
-                    hireDate: formattedHireDate !== originalHireDate ? formattedHireDate : undefined,
-                  })
-                  setFreshUser(data)
-                  router.refresh()
-                } catch (error: any) {
-                  alert(`${error ? error : '수정 실패했습니다.'}`)
-                } finally {
-                  setIsSaving(false)
-                  setIsEditing(false)
-                }
+                    hireDate: editHireDate !== freshUser.hireDate ? editHireDate : null,
+                  },
+                })
               }}
               disabled={isSaving}
               className="bg-blue-600 text-white hover:bg-blue-700"
