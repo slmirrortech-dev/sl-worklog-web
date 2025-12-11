@@ -21,7 +21,7 @@ const UserTraining = ({ userId }: { userId: string }) => {
   const [isAdding, setIsAdding] = useState(false)
 
   // 입력 폼 상태
-  const [newDate, setNewDate] = useState('')
+  const [newDate, setNewDate] = useState<Date | null>(new Date())
   const [newTrainingName, setNewTrainingName] = useState('')
   const [newInstructor, setNewInstructor] = useState('')
 
@@ -64,7 +64,7 @@ const UserTraining = ({ userId }: { userId: string }) => {
     onSuccess: () => {
       refetch()
       // 폼 초기화
-      setNewDate('')
+      setNewDate(new Date())
       setNewTrainingName('')
       setNewInstructor('')
       setIsAdding(false)
@@ -81,7 +81,7 @@ const UserTraining = ({ userId }: { userId: string }) => {
     }
 
     const newRecord: TrainingLogCreateRequest = {
-      trainedAt: format(new Date(newDate), "yyyy-MM-dd'T'HH:mm:ss"),
+      trainedAt: format(newDate, "yyyy-MM-dd'T'HH:mm:ss"),
       workerId: userId,
       title: newTrainingName,
       instructor: newInstructor,
@@ -133,7 +133,7 @@ const UserTraining = ({ userId }: { userId: string }) => {
                     date={newDate}
                     onChangeAction={(e) => setNewDate(e)}
                     className="w-full !text-base h-10"
-                    max={format(new Date(), 'yyyy-MM-dd')}
+                    max={new Date()}
                   />
                 </div>
                 <div>
@@ -163,7 +163,7 @@ const UserTraining = ({ userId }: { userId: string }) => {
                   size="sm"
                   onClick={() => {
                     setIsAdding(false)
-                    setNewDate('')
+                    setNewDate(new Date())
                     setNewTrainingName('')
                     setNewInstructor('')
                   }}

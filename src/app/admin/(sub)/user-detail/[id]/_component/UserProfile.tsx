@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 
-import { UserResponseDto } from '@/types/user'
+import { UserResponseDto, updateUserRequestModel } from '@/types/user'
 import { Edit, Trash2, User, Calendar } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -37,14 +37,16 @@ const UserProfile = ({
   const [isEditing, setIsEditing] = useState<boolean>(false)
   const [editName, setEditName] = useState<string>(freshUser.name)
   const [editRole, setEditRole] = useState<Role>(freshUser.role)
-  const [editHireDate, setEditHireDate] = useState<Date | null>(freshUser.hireDate)
+  const [editHireDate, setEditHireDate] = useState<Date | null>(
+    freshUser.hireDate ? new Date(freshUser.hireDate) : null
+  )
   const [isSaving, setIsSaving] = useState<boolean>(false)
 
   // freshUser가 업데이트되면 편집 상태도 동기화
   useEffect(() => {
     setEditName(freshUser.name)
     setEditRole(freshUser.role)
-    setEditHireDate(freshUser.hireDate)
+    setEditHireDate(freshUser.hireDate ? new Date(freshUser.hireDate) : null)
   }, [freshUser])
 
   const canEdit = () => {
@@ -236,12 +238,13 @@ const UserProfile = ({
             </Button>
             <Button
               onClick={() => {
+                const hireDateStr = editHireDate ? format(editHireDate, 'yyyy-MM-dd') : null
                 updateMutate({
                   id: freshUser.id,
                   data: {
                     name: editName !== freshUser.name ? editName : undefined,
                     role: editRole !== freshUser.role ? editRole : undefined,
-                    hireDate: editHireDate !== freshUser.hireDate ? editHireDate : null,
+                    hireDate: hireDateStr !== freshUser.hireDate ? hireDateStr : undefined,
                   },
                 })
               }}

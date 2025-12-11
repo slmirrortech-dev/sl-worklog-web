@@ -1,9 +1,9 @@
 import { apiFetch } from '@/lib/api/api-fetch'
 import {
-  WorkplaceSnapshotCreateRequest,
   WorkplaceSnapshotDetailResponse,
   WorkplaceSnapshotSearchParams,
   WorkplaceSnapshotSearchResponse,
+  WorkplaceSnapshotResponse,
 } from '@/types/workplace-snapshot'
 import { ApiResponse } from '@/types/common'
 
@@ -41,12 +41,11 @@ export async function getWorkplaceSnapshotDetailApi(snapshotId: string) {
  * 작업장 현황 스냅샷 생성
  * 현재 작업장 현황을 자동으로 캡처하여 저장
  */
-export async function createWorkplaceSnapshotApi(data: WorkplaceSnapshotCreateRequest) {
-  return await apiFetch<ApiResponse<WorkplaceSnapshotDetailResponse>>(
+export async function createWorkplaceSnapshotApi() {
+  return await apiFetch<ApiResponse<WorkplaceSnapshotResponse>>(
     '/api/workplace-snapshot',
     {
       method: 'POST',
-      body: JSON.stringify(data),
     },
   )
 }
