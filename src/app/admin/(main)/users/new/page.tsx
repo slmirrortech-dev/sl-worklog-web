@@ -104,7 +104,7 @@ const NewUsersPage = () => {
         {
           userId: employee.userId.trim(),
           name: employee.name.trim(),
-          hireDate: format(employee.hireDate, 'yyyy-MM-dd') || null,
+          hireDate: employee.hireDate ? format(employee.hireDate, 'yyyy-MM-dd') : null,
           role: employee.role,
         },
       ]
