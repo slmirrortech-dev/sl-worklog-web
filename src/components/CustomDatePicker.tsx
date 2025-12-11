@@ -19,7 +19,7 @@ export function CustomDatePicker({
   className,
 }: {
   label?: string
-  date: Date
+  date: Date | null
   onChangeAction: (value: Date) => void
   min?: Date
   max?: Date
@@ -57,7 +57,7 @@ export function CustomDatePicker({
           <PopoverContent className="w-auto overflow-hidden p-0" align="start">
             <Calendar
               mode="single"
-              selected={date}
+              selected={date || undefined}
               captionLayout="dropdown"
               locale={ko}
               disabled={
@@ -67,8 +67,8 @@ export function CustomDatePicker({
               }
               onSelect={(selectedDate) => {
                 if (selectedDate) {
-                  // 기존 시간 유지 + 날짜만 교체
-                  const newDate = new Date(date)
+                  // 기존 시간 유지 + 날짜만 교체 (date가 null이면 현재 시간 사용)
+                  const newDate = date ? new Date(date) : new Date()
                   newDate.setFullYear(selectedDate.getFullYear())
                   newDate.setMonth(selectedDate.getMonth())
                   newDate.setDate(selectedDate.getDate())
