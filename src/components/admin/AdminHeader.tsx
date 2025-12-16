@@ -133,7 +133,7 @@ const AdminHeader = () => {
               <User className="w-4 h-4 text-gray-600 transition-colors" />
               <span className="text-xs font-medium text-gray-900 transition-colors">
                 <span>{currentUser?.name}</span>{' '}
-                <span className="text-gray-500">({currentUser?.id})</span>
+                <span className="text-gray-500">({currentUser?.userId})</span>
               </span>
             </Link>
           </div>
