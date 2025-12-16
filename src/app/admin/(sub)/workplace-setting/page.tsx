@@ -1,13 +1,14 @@
 'use client'
 
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect } from 'react'
 import ClassSettingCard from './_component/ClassSettingCard'
 import ProcessSettingCard from './_component/ProcessSettingCard'
 import LineSettingCard from './_component/LineSettingCard'
 import { useLoading } from '@/contexts/LoadingContext'
 import { useIsFetching, useQuery } from '@tanstack/react-query'
-import { supabaseClient } from '@/lib/supabase/client'
 import { getCurrentUserApi } from '@/lib/api/user-api'
+import { usePresenceTracking } from '@/hooks/usePresenceTracking'
+import { PRESENCE_CHANNELS } from '@/lib/constants/presence'
 
 const WorkplaceSettingPage = () => {
   const { showLoading, hideLoading } = useLoading()
@@ -27,8 +28,6 @@ const WorkplaceSettingPage = () => {
     }
   }, [allLoaded])
 
-  const tabIdRef = useRef(crypto.randomUUID())
-
   // 현재 로그인한 사용자 정보 가져오기
   const { data: currentUser } = useQuery({
     queryKey: ['getCurrentUserApi'],
@@ -36,39 +35,18 @@ const WorkplaceSettingPage = () => {
     select: (response) => response.data,
   })
 
-  useEffect(() => {
-    if (!currentUser) return
-
-    const channel = supabaseClient.channel('presence:workplace-setting', {
-      config: {
-        presence: {
-          key: currentUser.id,
-        },
-      },
-    })
-
-    channel
-      .on('presence', { event: 'sync' }, () => {
-        const state = channel.presenceState()
-        console.log('현재 접속자', state)
-      })
-      .subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') {
-          await channel.track({
-            userId: currentUser.id,
-            name: currentUser.name,
-            userIdString: currentUser.userId,
-            tabId: tabIdRef.current,
-            page: 'workplace-setting',
-            joinedAt: Date.now(),
-          })
+  // Presence tracking (현재 사용자가 설정 페이지에 있음을 broadcast)
+  usePresenceTracking(
+    PRESENCE_CHANNELS.WORKPLACE_SETTING,
+    currentUser
+      ? {
+          userId: currentUser.id,
+          name: currentUser.name,
+          userIdString: currentUser.userId,
+          page: 'workplace-setting',
         }
-      })
-
-    return () => {
-      supabaseClient.removeChannel(channel)
-    }
-  }, [currentUser])
+      : null,
+  )
 
   return (
     <div className="flex flex-col space-y-6 pb-8">
