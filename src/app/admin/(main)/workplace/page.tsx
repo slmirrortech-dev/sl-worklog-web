@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import ShiftStatusLabel from '@/components/admin/ShiftStatusLabel'
 import ShiftStatusSelect from '@/components/admin/ShiftStatusSelect'
 import { Settings, Save } from 'lucide-react'
@@ -58,6 +58,45 @@ const WorkPlacePage = () => {
     select: (response) => response.data,
   })
 
+  // 작업장 설정 페이지 presence 구독
+  const settingPageUsers = usePresenceSubscription(PRESENCE_CHANNELS.WORKPLACE_SETTING)
+
+  // useMemo로 메모이제이션하여 불필요한 재렌더링 방지
+  const settingPageUser = useMemo(() => {
+    if (!settingPageUsers[0]) return null
+
+    return {
+      name: settingPageUsers[0].name,
+      userId: settingPageUsers[0].userIdString,
+    }
+  }, [settingPageUsers[0]?.name, settingPageUsers[0]?.userIdString])
+
+  const prevUserRef = useRef<typeof settingPageUser>(null)
+
+  // 설정 페이지에서 나갈 때(null로 전환) 데이터 갱신
+  useEffect(() => {
+    const wasPresent = prevUserRef.current !== null
+    const isPresent = settingPageUser !== null
+
+    // null로 전환된 경우 (설정 완료 후 나갈 때)
+    if (wasPresent && !isPresent) {
+      queryClient.invalidateQueries({
+        queryKey: ['getWorkClassesApi'],
+        refetchType: 'active',
+      })
+      queryClient.invalidateQueries({
+        queryKey: ['getAllFactoryLineApi'],
+        refetchType: 'active',
+      })
+      queryClient.invalidateQueries({
+        queryKey: ['getFactoryConfigApi'],
+        refetchType: 'active',
+      })
+    }
+
+    prevUserRef.current = settingPageUser
+  }, [settingPageUser, queryClient])
+
   const [classes, setClasses] = useState<WorkClassResponse[]>([])
   const [selectedClassId, setSelectedClassId] = useState<string>('')
   const [filteredLines, setFilteredLines] = useState<typeof allFactoryLineData>([])
@@ -69,15 +108,6 @@ const WorkPlacePage = () => {
     workerStatus: 'NORMAL' | 'OVERTIME' | null
     width?: number
   } | null>(null)
-
-  // 작업장 설정 페이지 presence 구독
-  const settingPageUsers = usePresenceSubscription(PRESENCE_CHANNELS.WORKPLACE_SETTING)
-  const settingPageUser = settingPageUsers[0]
-    ? {
-        name: settingPageUsers[0].name,
-        userId: settingPageUsers[0].userIdString,
-      }
-    : null
 
   // 드래그 앤 드롭을 위한 센서 설정
   const sensors = useSensors(

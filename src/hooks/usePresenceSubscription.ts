@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { supabaseClient } from '@/lib/supabase/client'
 import type { PresenceChannelKey } from '@/lib/constants/presence'
 
@@ -24,6 +24,7 @@ export interface PresenceData {
  */
 export function usePresenceSubscription(channelKey: PresenceChannelKey, enabled = true) {
   const [users, setUsers] = useState<PresenceData[]>([])
+  const prevUsersRef = useRef<string>('[]')
 
   useEffect(() => {
     if (!enabled) return
@@ -39,17 +40,23 @@ export function usePresenceSubscription(channelKey: PresenceChannelKey, enabled 
     const updatePresence = () => {
       const state = channel.presenceState()
 
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`[${channelKey}] Presence updated:`, state)
-      }
-
       // 모든 presence 평탄화 (타입 단언)
       const allPresences = Object.values(state).flat() as PresenceData[]
 
       // userId 기준으로 중복 제거 (탭 여러 개 방지)
       const uniqueUsersMap = new Map(allPresences.map((p) => [p.userId, p]))
+      const newUsers = Array.from(uniqueUsersMap.values())
 
-      setUsers(Array.from(uniqueUsersMap.values()))
+      // 실제로 변경된 경우에만 state 업데이트 (userId 기준으로 비교)
+      const newUsersKey = JSON.stringify(newUsers.map((u) => u.userId).sort())
+
+      if (prevUsersRef.current !== newUsersKey) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`[${channelKey}] Presence changed:`, newUsers)
+        }
+        setUsers(newUsers)
+        prevUsersRef.current = newUsersKey
+      }
     }
 
     channel

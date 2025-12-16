@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import ClassSettingCard from './_component/ClassSettingCard'
 import ProcessSettingCard from './_component/ProcessSettingCard'
 import LineSettingCard from './_component/LineSettingCard'
@@ -35,18 +35,20 @@ const WorkplaceSettingPage = () => {
     select: (response) => response.data,
   })
 
+  // useMemo로 userData 메모이제이션 (불필요한 재구독 방지)
+  const presenceData = useMemo(() => {
+    if (!currentUser) return null
+
+    return {
+      userId: currentUser.id,
+      name: currentUser.name,
+      userIdString: currentUser.userId,
+      page: 'workplace-setting',
+    }
+  }, [currentUser?.id, currentUser?.name, currentUser?.userId])
+
   // Presence tracking (현재 사용자가 설정 페이지에 있음을 broadcast)
-  usePresenceTracking(
-    PRESENCE_CHANNELS.WORKPLACE_SETTING,
-    currentUser
-      ? {
-          userId: currentUser.id,
-          name: currentUser.name,
-          userIdString: currentUser.userId,
-          page: 'workplace-setting',
-        }
-      : null,
-  )
+  usePresenceTracking(PRESENCE_CHANNELS.WORKPLACE_SETTING, presenceData)
 
   return (
     <div className="flex flex-col space-y-6 pb-8">
