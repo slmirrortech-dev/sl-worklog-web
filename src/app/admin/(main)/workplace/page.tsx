@@ -33,12 +33,14 @@ import { Progress } from '@/components/ui/progress'
 import { WorkStatus } from '@prisma/client'
 import { usePresenceSubscription } from '@/hooks/usePresenceSubscription'
 import { PRESENCE_CHANNELS } from '@/lib/constants/presence'
+import { useFactoryLineRealtime } from '@/hooks/useAllFactoryLineRealtime'
 
 const WorkPlacePage = () => {
   const router = useRouter()
   const { showLoading, hideLoading } = useLoading()
   const queryClient = useQueryClient()
   const [saveProgress, setSaveProgress] = useState(0)
+  useFactoryLineRealtime()
 
   const { data: classesData, isPending: isPendingClasses } = useQuery({
     queryKey: ['getWorkClassesApi'],
