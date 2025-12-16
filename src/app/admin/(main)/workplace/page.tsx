@@ -592,7 +592,7 @@ const WorkPlacePage = () => {
           setIsOpen={setIsConfirmDialogOpen}
           isLoading={false}
           title="작업장 설정"
-          desc={`설정창에 진입하면 다른 관리자의 작업장 현황 페이지 사용이 일시 중지됩니다.\n계속하시겠습니까?`}
+          desc={`설정창에 진입하면 다른 관리자의\n 작업장 현황 페이지 사용이 일시 중지됩니다.\n계속하시겠습니까?`}
           btnCancel={{ btnText: '취소' }}
           btnConfirm={{ btnText: '확인', fn: handleConfirmNavigate }}
         />
