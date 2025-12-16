@@ -31,6 +31,18 @@ import {
 import { addWorkerToSlotApi } from '@/lib/api/process-slot-api'
 import { Progress } from '@/components/ui/progress'
 import { WorkStatus } from '@prisma/client'
+import { supabaseClient } from '@/lib/supabase/client'
+
+// Presence 데이터 타입 정의
+interface PresenceData {
+  userId: string
+  name: string
+  userIdString: string
+  tabId: string
+  page: string
+  joinedAt: number
+  presence_ref: string
+}
 
 const WorkPlacePage = () => {
   const router = useRouter()
@@ -67,6 +79,11 @@ const WorkPlacePage = () => {
     workerStatus: 'NORMAL' | 'OVERTIME' | null
     width?: number
   } | null>(null)
+  // 편집중인 사용자
+  const [settingPageUser, setSettingPageUser] = useState<{
+    name: string
+    userId: string
+  } | null>(null)
 
   // 드래그 앤 드롭을 위한 센서 설정
   const sensors = useSensors(
@@ -99,6 +116,66 @@ const WorkPlacePage = () => {
       hideLoading()
     }
   }, [isPendingClasses, isPendingAllFactoryLineData, isPendingFactoryConfig])
+
+  // 작업장 설정 페이지 presence 구독
+  useEffect(() => {
+    const channel = supabaseClient.channel('presence:workplace-setting', {
+      config: {
+        presence: {
+          key: 'observer',
+        },
+      },
+    })
+
+    const logState = () => {
+      const state = channel.presenceState()
+
+      // 개발 환경에서만 로그 출력
+      if (process.env.NODE_ENV === 'development') {
+        console.log('설정 페이지 접속자', state)
+      }
+
+      // 모든 presence 평탄화 (타입 단언)
+      const allPresences = Object.values(state).flat() as PresenceData[]
+
+      // userId 기준으로 중복 제거 (탭 여러 개 방지)
+      const uniqueUsersMap = new Map(allPresences.map((p) => [p.userId, p]))
+
+      // 첫 번째 사용자 추출
+      const firstUser = uniqueUsersMap.values().next().value as PresenceData | undefined
+
+      // 편집자 정보 설정
+      setSettingPageUser(
+        firstUser
+          ? {
+              name: firstUser.name,
+              userId: firstUser.userIdString, // userIdString이 사번
+            }
+          : null,
+      )
+    }
+
+    channel
+      // 최초 동기화
+      .on('presence', { event: 'sync' }, logState)
+
+      // 나중에 들어온 사용자
+      .on('presence', { event: 'join' }, logState)
+
+      // 나간 사용자
+      .on('presence', { event: 'leave' }, logState)
+
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          // sync 이벤트 놓쳤을 경우 대비
+          setTimeout(logState, 0)
+        }
+      })
+
+    return () => {
+      supabaseClient.removeChannel(channel)
+    }
+  }, [])
 
   // 교대조 상태 변경
   const updateShiftStatusMutation = useMutation({
@@ -270,7 +347,7 @@ const WorkPlacePage = () => {
         setTimeout(() => setSaveProgress(0), 500)
       }, 300)
     },
-    onError: (error: Error, variables, context) => {
+    onError: (error: Error, _variables, context) => {
       setSaveProgress(0)
       // 에러 발생 시 롤백
       if (context?.previousData) {
@@ -412,22 +489,35 @@ const WorkPlacePage = () => {
                 </button>
               ))}
             </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => createSnapshotMutation.mutate()}
-                disabled={createSnapshotMutation.isPending}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Save className="w-4 h-4" />
-                현재 상태 백업
-              </button>
-              <button
-                onClick={handleSettingClick}
-                className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-colors shadow-sm"
-              >
-                <Settings className="w-4 h-4" />
-                작업장 설정
-              </button>
+            <div className="flex flex-col items-end gap-2">
+              {/* 작업장 설정 페이지 현재 작업자 표시 */}
+              {settingPageUser && (
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                  </span>
+                  <span className="font-medium">설정 작업 중:</span>
+                  <span>{settingPageUser.name}</span>
+                </div>
+              )}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => createSnapshotMutation.mutate()}
+                  disabled={createSnapshotMutation.isPending}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Save className="w-4 h-4" />
+                  현재 상태 백업
+                </button>
+                <button
+                  onClick={handleSettingClick}
+                  className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-colors shadow-sm"
+                >
+                  <Settings className="w-4 h-4" />
+                  작업장 설정
+                </button>
+              </div>
             </div>
           </div>
         </section>
