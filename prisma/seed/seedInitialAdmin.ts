@@ -35,7 +35,7 @@ export async function seedInitialAdmin() {
 
     // 먼저 기존 사용자 확인
     const { data: existingUsers } = await supabase.auth.admin.listUsers()
-    let authUser = existingUsers?.users?.find(u => u.email === email)
+    let authUser = existingUsers?.users?.find((u) => u.email === email)
 
     if (authUser) {
       console.log('  ✅ 기존 Supabase Auth 사용자 발견')
@@ -67,11 +67,8 @@ export async function seedInitialAdmin() {
     // supabaseUserId 또는 userId로 조회
     let user = await prisma.user.findFirst({
       where: {
-        OR: [
-          { supabaseUserId: authUser.id },
-          { userId: userId }
-        ]
-      }
+        OR: [{ supabaseUserId: authUser.id }, { userId: userId }],
+      },
     })
 
     if (user) {

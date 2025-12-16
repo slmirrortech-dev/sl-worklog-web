@@ -38,7 +38,7 @@ const UserProfile = ({
   const [editName, setEditName] = useState<string>(freshUser.name)
   const [editRole, setEditRole] = useState<Role>(freshUser.role)
   const [editHireDate, setEditHireDate] = useState<Date | null>(
-    freshUser.hireDate ? new Date(freshUser.hireDate) : null
+    freshUser.hireDate ? new Date(freshUser.hireDate) : null,
   )
   const [isSaving, setIsSaving] = useState<boolean>(false)
 

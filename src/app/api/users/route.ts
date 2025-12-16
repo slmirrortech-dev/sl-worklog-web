@@ -205,13 +205,12 @@ async function createUsers(req: NextRequest) {
           }
         } catch (error) {
           // 에러 발생 시에도 새로 생성 시도
-          const { data: newAuthUser, error: createError } = await supabaseServer.auth.admin.createUser(
-            {
+          const { data: newAuthUser, error: createError } =
+            await supabaseServer.auth.admin.createUser({
               email,
               password: initialPassword,
               email_confirm: true,
-            },
-          )
+            })
           if (createError || !newAuthUser.user) {
             throw new ApiError(`Supabase 사용자 생성 실패: ${createError?.message}`, 500)
           }

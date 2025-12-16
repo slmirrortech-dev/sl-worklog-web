@@ -42,10 +42,7 @@ export async function getWorkplaceSnapshotDetailApi(snapshotId: string) {
  * 현재 작업장 현황을 자동으로 캡처하여 저장
  */
 export async function createWorkplaceSnapshotApi() {
-  return await apiFetch<ApiResponse<WorkplaceSnapshotResponse>>(
-    '/api/workplace-snapshot',
-    {
-      method: 'POST',
-    },
-  )
+  return await apiFetch<ApiResponse<WorkplaceSnapshotResponse>>('/api/workplace-snapshot', {
+    method: 'POST',
+  })
 }

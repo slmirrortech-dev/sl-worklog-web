@@ -36,16 +36,19 @@ supabase db push
 ## 정책 개요
 
 ### Users 테이블
+
 - **조회**: 본인 정보 또는 ADMIN/MANAGER
 - **생성**: ADMIN만
 - **수정**: 본인 정보(비밀번호 변경 등) 또는 ADMIN(권한 변경 등)
 - **삭제**: ADMIN만
 
 ### WorkClass, FactoryLine 테이블
+
 - **조회**: 모든 인증된 사용자 + 익명 사용자(모니터 모드)
 - **생성/수정/삭제**: ADMIN만
 
 ### LineShift, ProcessSlot 테이블
+
 - **조회**: 모든 인증된 사용자 + 익명 사용자(모니터 모드)
 - **생성/수정/삭제**: ADMIN/MANAGER
 
@@ -60,6 +63,7 @@ RLS 정책 파일에는 다음의 헬퍼 함수가 포함되어 있습니다:
 ## 모니터 모드
 
 익명 사용자(로그인하지 않은 사용자)도 다음 테이블을 조회할 수 있습니다:
+
 - work_classes
 - factory_lines
 - line_shifts

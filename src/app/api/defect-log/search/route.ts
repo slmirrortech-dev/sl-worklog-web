@@ -48,10 +48,7 @@ async function searchDefectLog(request: NextRequest) {
   // 작업자 이름 또는 사번 검색
   if (workerSearch) {
     where.worker = {
-      OR: [
-        { name: { contains: workerSearch } },
-        { userId: { contains: workerSearch } },
-      ],
+      OR: [{ name: { contains: workerSearch } }, { userId: { contains: workerSearch } }],
     }
   }
 

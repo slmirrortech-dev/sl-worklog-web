@@ -10,7 +10,7 @@ export async function getTrainingLogsByWorkerApi(workerId: string) {
     `/api/training-log/by-worker/${workerId}`,
     {
       method: 'GET',
-    }
+    },
   )
 }
 

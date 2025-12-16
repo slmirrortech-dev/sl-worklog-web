@@ -33,6 +33,7 @@ SL미러텍 공장 관리 시스템의 인증은 Supabase Auth를 기반으로 �
 ## 1. 직원 등록
 
 ### API Endpoint
+
 - **POST** `/api/users`
 - **권한**: ADMIN, MANAGER
 
@@ -67,6 +68,7 @@ SL미러텍 공장 관리 시스템의 인증은 Supabase Auth를 기반으로 �
 ### 처리 로직
 
 #### 관리자/반장 등록 시
+
 1. 이메일 생성: `${userId}@temp.invalid`
 2. 초기 비밀번호 생성: `birthday.slice(2)` (yymmdd 형식)
    - 예: 생년월일 19900101 → 초기 비밀번호 900101
@@ -75,6 +77,7 @@ SL미러텍 공장 관리 시스템의 인증은 Supabase Auth를 기반으로 �
 5. `mustChangePassword: true` 설정
 
 #### 작업자 등록 시
+
 1. Prisma DB에만 정보 저장
 2. Supabase Auth 사용 안 함
 3. `mustChangePassword: false` 설정
@@ -100,6 +103,7 @@ SL미러텍 공장 관리 시스템의 인증은 Supabase Auth를 기반으로 �
 ## 2. 로그인
 
 ### API Endpoint
+
 - **POST** `/api/auth/login`
 - **권한**: 공개 (미인증)
 
@@ -153,6 +157,7 @@ if (response.mustChangePassword) {
 ## 3. 비밀번호 변경
 
 ### API Endpoint
+
 - **POST** `/api/auth/change-password`
 - **권한**: 인증된 사용자
 
@@ -193,7 +198,9 @@ if (response.mustChangePassword) {
 
 export async function middleware(req: NextRequest) {
   const { supabase, response } = createMiddlewareClient(req)
-  const { data: { session } } = await supabase.auth.getSession()
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
 
   // 1. 비로그인 사용자 → 로그인 페이지로 리디렉션
   if (!session && pathname.startsWith('/admin')) {
@@ -208,7 +215,7 @@ export async function middleware(req: NextRequest) {
   // 3. mustChangePassword 체크
   if (session && pathname !== ROUTES.ADMIN.CHANGE_PASSWORD) {
     const user = await prisma.user.findUnique({
-      where: { supabaseUserId: session.user.id }
+      where: { supabaseUserId: session.user.id },
     })
 
     if (user?.mustChangePassword) {
@@ -267,6 +274,7 @@ export async function middleware(req: NextRequest) {
 ### 신규 관리자 등록 및 로그인
 
 1. **등록**
+
    ```bash
    POST /api/users
    {
@@ -292,6 +300,7 @@ export async function middleware(req: NextRequest) {
 ### 작업자 등록
 
 1. **등록**
+
    ```bash
    POST /api/users
    {
@@ -317,7 +326,7 @@ import { loginAdminApi } from '@/lib/api/auth-api'
 
 const response = await loginAdminApi({
   userId: '2024001',
-  password: 'password123'
+  password: 'password123',
 })
 ```
 
@@ -328,7 +337,7 @@ import { changePasswordApi } from '@/lib/api/auth-api'
 
 await changePasswordApi({
   currentPassword: '900101',
-  newPassword: 'new_secure_password'
+  newPassword: 'new_secure_password',
 })
 ```
 
@@ -369,6 +378,7 @@ DATABASE_URL=postgresql://...
 **증상**: "사번 또는 비밀번호가 일치하지 않습니다" 에러
 
 **해결**:
+
 1. Supabase Dashboard에서 사용자 확인
 2. 이메일 형식 확인: `${userId}@temp.invalid`
 3. 비밀번호가 생년월일 뒤 6자리인지 확인
@@ -378,6 +388,7 @@ DATABASE_URL=postgresql://...
 **증상**: 비밀번호 변경 후에도 계속 비밀번호 변경 페이지로 이동
 
 **해결**:
+
 1. DB에서 `mustChangePassword` 플래그 확인
 2. API가 정상적으로 `false`로 업데이트하는지 확인
 3. 브라우저 캐시 삭제
@@ -387,22 +398,26 @@ DATABASE_URL=postgresql://...
 **증상**: Edge Runtime에서 Prisma 사용 불가
 
 **해결**:
+
 - 미들웨어에서 Prisma 사용 대신 Supabase client로 조회
 - 또는 API Route에서 검증
 
 ## 10. 향후 개선 사항
 
 ### 단기
+
 - [ ] 비밀번호 강도 검증 강화
 - [ ] 로그인 실패 횟수 제한
 - [ ] 비밀번호 찾기 기능 (관리자 재설정)
 
 ### 중기
+
 - [ ] 2FA (이중 인증) 추가
 - [ ] 세션 활동 로그
 - [ ] 비밀번호 변경 이력
 
 ### 장기
+
 - [ ] 실제 이메일 주소 사용
 - [ ] 이메일 인증
 - [ ] 소셜 로그인 (선택사항)

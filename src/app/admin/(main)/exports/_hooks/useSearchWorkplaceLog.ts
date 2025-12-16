@@ -38,7 +38,9 @@ const useSearchWorkplaceLog = () => {
   const [pageSize, setPageSize] = useState(() => getInitialNumber('pageSize', 50))
 
   // 실제 쿼리에 사용되는 검색 조건 (검색 버튼을 눌렀을 때만 업데이트)
-  const [appliedStartDate, setAppliedStartDate] = useState(() => getInitialDate('startDate', oneMonthAgo))
+  const [appliedStartDate, setAppliedStartDate] = useState(() =>
+    getInitialDate('startDate', oneMonthAgo),
+  )
   const [appliedEndDate, setAppliedEndDate] = useState(() => getInitialDate('endDate', today))
 
   // 데이터 조회 결과
@@ -73,10 +75,13 @@ const useSearchWorkplaceLog = () => {
     setAppliedEndDate(endDate)
 
     // URL 업데이트
-    updateURL({
-      startDate,
-      endDate,
-    }, true)
+    updateURL(
+      {
+        startDate,
+        endDate,
+      },
+      true,
+    )
   }
 
   const updatePage = (value: number) => {

@@ -63,14 +63,18 @@ const useSearchDefectLog = () => {
   const [pageSize, setPageSize] = useState(() => getInitialNumber('pageSize', 50))
 
   // 실제 쿼리에 사용되는 검색 조건 (검색 버튼을 눌렀을 때만 업데이트)
-  const [appliedStartDate, setAppliedStartDate] = useState(() => getInitialDate('startDate', oneMonthAgo))
+  const [appliedStartDate, setAppliedStartDate] = useState(() =>
+    getInitialDate('startDate', oneMonthAgo),
+  )
   const [appliedEndDate, setAppliedEndDate] = useState(() => getInitialDate('endDate', today))
   const [appliedShiftType, setAppliedShiftType] = useState<ShiftType | 'ALL'>(
     () => getInitialString('shiftType', 'ALL') as ShiftType | 'ALL',
   )
   const [appliedLineName, setAppliedLineName] = useState(() => getInitialString('lineName', ''))
   const [appliedClassName, setAppliedClassName] = useState(() => getInitialString('className', ''))
-  const [appliedProcessName, setAppliedProcessName] = useState(() => getInitialString('processName', ''))
+  const [appliedProcessName, setAppliedProcessName] = useState(() =>
+    getInitialString('processName', ''),
+  )
   const [appliedWorker, setAppliedWorker] = useState(() => getInitialString('worker', ''))
   const [appliedMemo, setAppliedMemo] = useState(() => getInitialString('memo', ''))
 
@@ -112,16 +116,19 @@ const useSearchDefectLog = () => {
     setAppliedMemo(memo)
 
     // URL 업데이트
-    updateURL({
-      startDate,
-      endDate,
-      shiftType,
-      lineName,
-      className,
-      processName,
-      worker,
-      memo,
-    }, true)
+    updateURL(
+      {
+        startDate,
+        endDate,
+        shiftType,
+        lineName,
+        className,
+        processName,
+        worker,
+        memo,
+      },
+      true,
+    )
   }
 
   const updatePage = (value: number) => {

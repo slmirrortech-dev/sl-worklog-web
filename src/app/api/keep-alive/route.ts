@@ -15,10 +15,7 @@ export async function GET(request: NextRequest) {
     const cronSecret = process.env.CRON_SECRET
 
     if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-      return NextResponse.json(
-        { ok: false, error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 })
     }
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -28,9 +25,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         {
           ok: false,
-          error: 'Supabase 환경변수가 설정되지 않았습니다.'
+          error: 'Supabase 환경변수가 설정되지 않았습니다.',
         },
-        { status: 500 }
+        { status: 500 },
       )
     }
 
@@ -38,8 +35,8 @@ export async function GET(request: NextRequest) {
     const response = await fetch(`${supabaseUrl}/rest/v1/`, {
       method: 'GET',
       headers: {
-        'apikey': supabaseKey,
-        'Authorization': `Bearer ${supabaseKey}`,
+        apikey: supabaseKey,
+        Authorization: `Bearer ${supabaseKey}`,
       },
     })
 
@@ -47,9 +44,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         {
           ok: false,
-          error: `Supabase ping 실패: ${response.status} ${response.statusText}`
+          error: `Supabase ping 실패: ${response.status} ${response.statusText}`,
         },
-        { status: response.status }
+        { status: response.status },
       )
     }
 
@@ -63,9 +60,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         ok: false,
-        error: errorMessage
+        error: errorMessage,
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

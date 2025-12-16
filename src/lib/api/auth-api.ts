@@ -29,11 +29,8 @@ export async function changePasswordApi(data: {
   name: string
   newPassword: string
 }) {
-  return apiFetch<ApiResponse<{ success: boolean; message: string }>>(
-    '/api/auth/change-password',
-    {
-      method: 'POST',
-      body: JSON.stringify(data),
-    },
-  )
+  return apiFetch<ApiResponse<{ success: boolean; message: string }>>('/api/auth/change-password', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
 }

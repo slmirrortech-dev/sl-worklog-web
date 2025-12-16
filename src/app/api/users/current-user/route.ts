@@ -31,7 +31,10 @@ async function getCurrentUser(req: NextRequest) {
   })
 
   if (!user) {
-    return NextResponse.json({ success: false, message: '사용자 정보를 찾을 수 없습니다' }, { status: 404 })
+    return NextResponse.json(
+      { success: false, message: '사용자 정보를 찾을 수 없습니다' },
+      { status: 404 },
+    )
   }
 
   return ApiResponseFactory.success(user, '로그인한 사용자 정보 조회 성공')

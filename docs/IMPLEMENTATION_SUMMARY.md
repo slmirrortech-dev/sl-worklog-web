@@ -26,12 +26,14 @@ model User {
 **파일**: `src/app/api/users/route.ts`
 
 #### 관리자/반장 등록
+
 - 이메일 형식: `${userId}@temp.invalid`
 - 초기 비밀번호: `birthday.slice(2)` (yymmdd 형식)
 - Supabase Auth 사용자 생성
 - `mustChangePassword: true` 설정
 
 #### 작업자 등록
+
 - Prisma DB에만 저장
 - Supabase Auth 미사용
 - `mustChangePassword: false` 설정
@@ -41,6 +43,7 @@ model User {
 **파일**: `src/app/api/auth/login/route.ts`
 
 #### 기능
+
 - 사번을 이메일 형식으로 자동 변환
 - Supabase Auth 인증
 - 권한 확인 (ADMIN, MANAGER만)
@@ -71,6 +74,7 @@ model User {
 **파일**: `src/app/api/auth/change-password/route.ts`
 
 #### 기능
+
 - 현재 비밀번호 확인
 - Supabase Auth 비밀번호 업데이트
 - `mustChangePassword: false` 설정
@@ -81,6 +85,7 @@ model User {
 **파일**: `src/app/admin/change-password/page.tsx`
 
 #### UI 구성
+
 - 현재 비밀번호 입력
 - 새 비밀번호 입력
 - 새 비밀번호 확인
@@ -88,6 +93,7 @@ model User {
 - 성공 시 자동 리디렉션
 
 #### 보안 기능
+
 - 필수 페이지 (건너뛸 수 없음)
 - 미들웨어에서 강제 리디렉션
 - 변경 완료 후 작업장 현황으로 이동
@@ -97,6 +103,7 @@ model User {
 **파일**: `src/app/admin/login/page.tsx`
 
 #### 변경사항
+
 - 이메일 → 사번 입력으로 변경
 - `mustChangePassword` 플래그 체크
 - 조건부 리디렉션:
@@ -108,6 +115,7 @@ model User {
 **파일**: `src/middleware.ts`
 
 #### 추가된 기능
+
 - `mustChangePassword` 체크
 - 비밀번호 변경 필요 시 강제 리디렉션
 - 비밀번호 변경 페이지 제외 모든 admin 경로 보호
@@ -131,12 +139,14 @@ if (pathname !== ROUTES.ADMIN.CHANGE_PASSWORD && pathname.startsWith('/admin')) 
 **파일**: `prisma/rls/setup-rls.sql`
 
 #### 정책 개요
+
 - Users: 본인 정보 조회, ADMIN/MANAGER 전체 조회
 - WorkClass, FactoryLine: ADMIN만 수정
 - LineShift, ProcessSlot: ADMIN/MANAGER 수정
 - 모니터 모드: 익명 읽기 가능
 
 **파일**: `prisma/rls/README.md`
+
 - RLS 정책 적용 방법
 - 헬퍼 함수 설명
 - 문제 해결 가이드
@@ -144,6 +154,7 @@ if (pathname !== ROUTES.ADMIN.CHANGE_PASSWORD && pathname.startsWith('/admin')) 
 ### 9. 문서화
 
 **파일**: `docs/AUTHENTICATION.md`
+
 - 완전한 인증 시스템 문서
 - API 사용 예시
 - 테스트 시나리오
@@ -167,6 +178,7 @@ if (pathname !== ROUTES.ADMIN.CHANGE_PASSWORD && pathname.startsWith('/admin')) 
 ### 시나리오 1: 신규 관리자 등록 및 로그인
 
 1. **직원 등록**
+
    ```bash
    POST /api/users
    {
@@ -194,6 +206,7 @@ if (pathname !== ROUTES.ADMIN.CHANGE_PASSWORD && pathname.startsWith('/admin')) 
 ### 시나리오 2: 작업자 등록
 
 1. **직원 등록**
+
    ```bash
    POST /api/users
    {
@@ -212,6 +225,7 @@ if (pathname !== ROUTES.ADMIN.CHANGE_PASSWORD && pathname.startsWith('/admin')) 
 ## 보안 고려사항
 
 ### 1. 초기 비밀번호 보안
+
 - **약점**: 생년월일 기반이라 추측 가능
 - **대책**:
   - 최초 로그인 시 필수 변경
@@ -219,11 +233,13 @@ if (pathname !== ROUTES.ADMIN.CHANGE_PASSWORD && pathname.startsWith('/admin')) 
   - 변경 전까지 다른 페이지 접근 불가
 
 ### 2. 임시 이메일 사용
+
 - **형식**: `userId@temp.invalid`
 - **이유**: Supabase Auth가 이메일 필수
 - **주의**: `.invalid` TLD는 실제 도메인 아님 (RFC 2606)
 
 ### 3. RLS 정책
+
 - 데이터베이스 레벨 보안
 - 애플리케이션 레벨 보안과 이중화
 - 역할별 세밀한 접근 제어
@@ -231,6 +247,7 @@ if (pathname !== ROUTES.ADMIN.CHANGE_PASSWORD && pathname.startsWith('/admin')) 
 ## 파일 변경 사항 요약
 
 ### 새로 생성된 파일
+
 1. `src/app/api/auth/change-password/route.ts` - 비밀번호 변경 API
 2. `src/app/admin/change-password/page.tsx` - 비밀번호 변경 페이지
 3. `prisma/rls/setup-rls.sql` - RLS 정책 SQL
@@ -239,6 +256,7 @@ if (pathname !== ROUTES.ADMIN.CHANGE_PASSWORD && pathname.startsWith('/admin')) 
 6. `docs/IMPLEMENTATION_SUMMARY.md` - 구현 완료 요약 (이 파일)
 
 ### 수정된 파일
+
 1. `prisma/schema.prisma` - `mustChangePassword` 필드 추가
 2. `src/app/api/users/route.ts` - 등록 로직 개선
 3. `src/app/api/auth/login/route.ts` - 사번 기반 로그인
@@ -251,16 +269,19 @@ if (pathname !== ROUTES.ADMIN.CHANGE_PASSWORD && pathname.startsWith('/admin')) 
 ## 다음 단계 (향후 개선)
 
 ### 단기
+
 - [ ] 실제 직원 데이터로 테스트
 - [ ] 비밀번호 강도 검증 강화
 - [ ] 로그인 실패 횟수 제한
 
 ### 중기
+
 - [ ] 비밀번호 찾기 기능 (관리자 재설정)
 - [ ] 세션 활동 로그
 - [ ] 비밀번호 변경 이력
 
 ### 장기
+
 - [ ] 실제 이메일 주소 사용
 - [ ] 이메일 인증
 - [ ] 2FA (이중 인증)

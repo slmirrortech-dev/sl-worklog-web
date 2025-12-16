@@ -14,11 +14,8 @@ import { cookies } from 'next/headers'
  * 3. mustChangePassword 플래그를 false로 업데이트
  **/
 export async function changePassword(req: NextRequest) {
-  const {
-    userId,
-    name,
-    newPassword,
-  }: { userId: string; name: string; newPassword: string } = await req.json()
+  const { userId, name, newPassword }: { userId: string; name: string; newPassword: string } =
+    await req.json()
 
   // 유효성 검사
   if (!userId || !name || !newPassword) {
