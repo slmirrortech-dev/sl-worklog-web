@@ -428,7 +428,10 @@ export default function LineSettingCard() {
               value={newLineName}
               onChange={(e) => setNewLineName(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') handleAddLine()
+                if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
+                  e.preventDefault()
+                  handleAddLine()
+                }
               }}
               className="flex-1 h-12 !text-base"
             />

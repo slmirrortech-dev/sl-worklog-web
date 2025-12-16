@@ -7,7 +7,7 @@ import useSearchWorkplaceLog from '@/app/admin/(main)/exports/_hooks/useSearchWo
 import SearchBarWorkplaceLog from '@/app/admin/(main)/exports/_component/SearchBarWorkplaceLog'
 import { WorkplaceSnapshotResponse } from '@/types/workplace-snapshot'
 import { format } from 'date-fns'
-import * as XLSX from 'xlsx'
+import ExcelJS from 'exceljs'
 import { getMergedSnapshotsApi, getAllSnapshotIdsApi } from '@/lib/api/workplace-api'
 import { displayWorkerStatus, displayWorkStatus } from '@/lib/utils/shift-status'
 import { Download, Plus, Settings, XIcon, Save, X } from 'lucide-react'
@@ -195,34 +195,41 @@ const WorkplaceLog = () => {
       }))
 
       // 워크북 생성
-      const workbook = XLSX.utils.book_new()
+      const workbook = new ExcelJS.Workbook()
+      const worksheet = workbook.addWorksheet('작업장 현황 백업')
 
-      // 워크시트 생성
-      const worksheet = XLSX.utils.json_to_sheet(excelData)
-
-      // 컬럼 너비 설정
-      worksheet['!cols'] = [
-        { wch: 12 }, // 백업날짜
-        { wch: 12 }, // 백업시간
-        { wch: 12 }, // 반이름
-        { wch: 15 }, // 라인이름
-        { wch: 15 }, // 공정이름
-        { wch: 12 }, // 교대조타입
-        { wch: 12 }, // 라인상태
-        { wch: 12 }, // 작업자이름
-        { wch: 12 }, // 작업자사번
-        { wch: 12 }, // 작업자상태
+      // 헤더 정의
+      worksheet.columns = [
+        { header: '백업날짜', key: '백업날짜', width: 15 },
+        { header: '백업시간', key: '백업시간', width: 12 },
+        { header: '반', key: '반', width: 12 },
+        { header: '라인', key: '라인', width: 15 },
+        { header: '교대조', key: '교대조', width: 12 },
+        { header: '라인상태', key: '라인상태', width: 12 },
+        { header: '공정', key: '공정', width: 15 },
+        { header: '작업자', key: '작업자', width: 12 },
+        { header: '사번', key: '사번', width: 12 },
+        { header: '작업자상태', key: '작업자상태', width: 12 },
       ]
 
-      // 워크시트를 워크북에 추가
-      XLSX.utils.book_append_sheet(workbook, worksheet, '작업장 현황 백업')
+      // 데이터 추가
+      worksheet.addRows(excelData)
 
       // 파일명 생성
       const currentDate = format(new Date(), 'yyyyMMdd_HHmmss')
       const filename = `작업장현황_병합_${currentDate}.xlsx`
 
       // 엑셀 파일 다운로드
-      XLSX.writeFile(workbook, filename)
+      const buffer = await workbook.xlsx.writeBuffer()
+      const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      })
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = filename
+      link.click()
+      window.URL.revokeObjectURL(url)
 
       alert(`${response.data.snapshotCount}개 스냅샷의 데이터가 다운로드되었습니다.`)
 

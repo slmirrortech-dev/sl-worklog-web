@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import ShiftStatusLabel from '@/components/admin/ShiftStatusLabel'
 import ShiftStatusSelect from '@/components/admin/ShiftStatusSelect'
 import { Settings, Save } from 'lucide-react'
@@ -31,6 +31,8 @@ import {
 import { addWorkerToSlotApi } from '@/lib/api/process-slot-api'
 import { Progress } from '@/components/ui/progress'
 import { WorkStatus } from '@prisma/client'
+import { usePresenceSubscription } from '@/hooks/usePresenceSubscription'
+import { PRESENCE_CHANNELS } from '@/lib/constants/presence'
 
 const WorkPlacePage = () => {
   const router = useRouter()
@@ -55,6 +57,45 @@ const WorkPlacePage = () => {
     queryFn: getFactoryConfigApi,
     select: (response) => response.data,
   })
+
+  // 작업장 설정 페이지 presence 구독
+  const settingPageUsers = usePresenceSubscription(PRESENCE_CHANNELS.WORKPLACE_SETTING)
+
+  // useMemo로 메모이제이션하여 불필요한 재렌더링 방지
+  const settingPageUser = useMemo(() => {
+    if (!settingPageUsers[0]) return null
+
+    return {
+      name: settingPageUsers[0].name,
+      userId: settingPageUsers[0].userIdString,
+    }
+  }, [settingPageUsers[0]?.name, settingPageUsers[0]?.userIdString])
+
+  const prevUserRef = useRef<typeof settingPageUser>(null)
+
+  // 설정 페이지에서 나갈 때(null로 전환) 데이터 갱신
+  useEffect(() => {
+    const wasPresent = prevUserRef.current !== null
+    const isPresent = settingPageUser !== null
+
+    // null로 전환된 경우 (설정 완료 후 나갈 때)
+    if (wasPresent && !isPresent) {
+      queryClient.invalidateQueries({
+        queryKey: ['getWorkClassesApi'],
+        refetchType: 'active',
+      })
+      queryClient.invalidateQueries({
+        queryKey: ['getAllFactoryLineApi'],
+        refetchType: 'active',
+      })
+      queryClient.invalidateQueries({
+        queryKey: ['getFactoryConfigApi'],
+        refetchType: 'active',
+      })
+    }
+
+    prevUserRef.current = settingPageUser
+  }, [settingPageUser, queryClient])
 
   const [classes, setClasses] = useState<WorkClassResponse[]>([])
   const [selectedClassId, setSelectedClassId] = useState<string>('')
@@ -270,7 +311,7 @@ const WorkPlacePage = () => {
         setTimeout(() => setSaveProgress(0), 500)
       }, 300)
     },
-    onError: (error: Error, variables, context) => {
+    onError: (error: Error, _variables, context) => {
       setSaveProgress(0)
       // 에러 발생 시 롤백
       if (context?.previousData) {
@@ -412,22 +453,47 @@ const WorkPlacePage = () => {
                 </button>
               ))}
             </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => createSnapshotMutation.mutate()}
-                disabled={createSnapshotMutation.isPending}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Save className="w-4 h-4" />
-                현재 상태 백업
-              </button>
-              <button
-                onClick={handleSettingClick}
-                className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-colors shadow-sm"
-              >
-                <Settings className="w-4 h-4" />
-                작업장 설정
-              </button>
+            <div className="flex flex-col items-end gap-2">
+              {/* 작업장 설정 페이지 현재 작업자 표시 */}
+              {settingPageUser && (
+                <div className="fixed top-0 left-0 right-0 bottom-0 z-10 bg-black/40">
+                  <div className="flex items-center justify-center h-full">
+                    <div className="bg-white rounded-lg shadow-xl border border-yellow-200 p-8">
+                      <div className="flex items-center gap-4">
+                        <div className="w-18 h-18 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0 animate-pulse">
+                          <div className="text-3xl text-yellow-600">🔒</div>
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-2xl text-gray-900">
+                            <strong>{settingPageUser.name}</strong>님 작업장 설정 중
+                          </h3>
+                          <p className="text-lg text-gray-500 mt-0.5">
+                            작업장 현황 사용이 일시적으로 제한됩니다.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => createSnapshotMutation.mutate()}
+                  disabled={createSnapshotMutation.isPending}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Save className="w-4 h-4" />
+                  현재 상태 백업
+                </button>
+                <button
+                  disabled={settingPageUser !== null}
+                  onClick={handleSettingClick}
+                  className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-colors shadow-sm"
+                >
+                  <Settings className="w-4 h-4" />
+                  작업장 설정
+                </button>
+              </div>
             </div>
           </div>
         </section>
@@ -556,7 +622,7 @@ const WorkPlacePage = () => {
           setIsOpen={setIsConfirmDialogOpen}
           isLoading={false}
           title="작업장 설정"
-          desc={`설정창에 진입하면 다른 관리자의 작업장 현황 페이지 사용이 일시 중지됩니다.\n계속하시겠습니까?`}
+          desc={`설정창에 진입하면 다른 관리자의\n 작업장 현황 페이지 사용이 일시 중지됩니다.\n계속하시겠습니까?`}
           btnCancel={{ btnText: '취소' }}
           btnConfirm={{ btnText: '확인', fn: handleConfirmNavigate }}
         />
