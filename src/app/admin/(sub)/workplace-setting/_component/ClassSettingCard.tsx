@@ -327,7 +327,10 @@ export default function ClassSettingCard() {
                   value={newClassName}
                   onChange={(e) => setNewClassName(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleAddClass()
+                    if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
+                      e.preventDefault()
+                      handleAddClass()
+                    }
                   }}
                   className="flex-1 h-12 !text-base"
                 />
