@@ -257,7 +257,7 @@ const WorkPlacePage = () => {
         if (!toShift) return old
 
         // 도착지 slot 찾기
-        let toSlot = toShift.slots?.find((slot: any) => slot.slotIndex === toSlotIndex)
+        const toSlot = toShift.slots?.find((slot: any) => slot.slotIndex === toSlotIndex)
 
         if (toWorkerId && toSlot && toSlot.worker) {
           // 스왑: 두 작업자 위치 교환

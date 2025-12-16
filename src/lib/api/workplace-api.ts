@@ -11,7 +11,6 @@ import {
 } from '@/types/workplace'
 import {
   WorkplaceSnapshotResponse,
-  WorkplaceSnapshotRow,
   WorkplaceSnapshotRowWithBackupTime,
 } from '@/types/workplace-snapshot'
 
@@ -66,7 +65,7 @@ export async function getFactoryLineApi() {
  * 라인 수정하기
  **/
 export async function updateFactoryLineApi(lines: FactoryLineRequest[]) {
-  return apiFetch<ApiResponse<{}>>('/api/factory-line', {
+  return apiFetch<ApiResponse<Record<string, never>>>('/api/factory-line', {
     method: 'PUT',
     body: JSON.stringify(lines),
   })
@@ -85,7 +84,7 @@ export async function getAllFactoryLineApi() {
  * 교대조 상태 변경하기
  **/
 export async function updateShiftStatusApi(shiftId: string, status: WorkStatus) {
-  return apiFetch<ApiResponse<{}>>('/api/shift-status', {
+  return apiFetch<ApiResponse<Record<string, never>>>('/api/shift-status', {
     method: 'PUT',
     body: JSON.stringify({ shiftId, status }),
   })

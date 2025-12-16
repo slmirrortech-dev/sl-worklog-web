@@ -35,7 +35,20 @@ export const useFactoryLineRealtime = () => {
     channel.subscribe((status, err) => {
       if (status === 'SUBSCRIBED') {
         console.log(`[Realtime] Successfully subscribed to ${REALTIME_CHANNELS.FACTORY_LINE}`)
+      } else if (status === 'CHANNEL_ERROR') {
+        console.error(
+          '[Realtime] Channel error. Realtime이 활성화되지 않았을 수 있습니다.',
+          '\n해결방법: prisma/enable-realtime.sql 파일을 Supabase SQL Editor에서 실행하세요.',
+        )
+        if (err) {
+          console.error('[Realtime] Error details:', err)
+        }
+      } else if (status === 'TIMED_OUT') {
+        console.error('[Realtime] Subscription timed out')
+      } else if (status === 'CLOSED') {
+        console.log('[Realtime] Channel closed')
       }
+
       if (err) {
         console.error('[Realtime] Subscription error:', err)
       }
