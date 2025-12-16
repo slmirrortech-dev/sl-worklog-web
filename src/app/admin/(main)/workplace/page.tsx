@@ -426,13 +426,24 @@ const WorkPlacePage = () => {
             <div className="flex flex-col items-end gap-2">
               {/* 작업장 설정 페이지 현재 작업자 표시 */}
               {settingPageUser && (
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
-                  </span>
-                  <span className="font-medium">설정 작업 중:</span>
-                  <span>{settingPageUser.name}</span>
+                <div className="fixed top-0 left-0 right-0 bottom-0 z-10 bg-black/40">
+                  <div className="flex items-center justify-center h-full">
+                    <div className="bg-white rounded-lg shadow-xl border border-yellow-200 p-8">
+                      <div className="flex items-center gap-4">
+                        <div className="w-18 h-18 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0 animate-pulse">
+                          <div className="text-3xl text-yellow-600">🔒</div>
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-2xl text-gray-900">
+                            <strong>{settingPageUser.name}</strong>님 작업장 설정 중
+                          </h3>
+                          <p className="text-lg text-gray-500 mt-0.5">
+                            작업장 현황 사용이 일시적으로 제한됩니다.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
               <div className="flex gap-2">
@@ -445,6 +456,7 @@ const WorkPlacePage = () => {
                   현재 상태 백업
                 </button>
                 <button
+                  disabled={settingPageUser !== null}
                   onClick={handleSettingClick}
                   className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-colors shadow-sm"
                 >
