@@ -103,6 +103,21 @@ const WorkPlacePage = () => {
   const [selectedClassId, setSelectedClassId] = useState<string>('')
   const [filteredLines, setFilteredLines] = useState<typeof allFactoryLineData>([])
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false)
+  const [confirmDialogInfo, setConfirmDialogInfo] = useState<{
+    title: string
+    desc: string
+    btnCancel: { btnText: string; fn?: () => void }
+    btnConfirm: { btnText: string; fn?: () => void }
+  }>({
+    title: '',
+    desc: '',
+    btnCancel: {
+      btnText: '취소',
+    },
+    btnConfirm: {
+      btnText: '확인',
+    },
+  })
   const [activeWorker, setActiveWorker] = useState<{
     id: string
     name: string
@@ -170,11 +185,30 @@ const WorkPlacePage = () => {
     mutationFn: async () => {
       await createWorkplaceSnapshotApi()
     },
+    onMutate: () => {
+      showLoading()
+    },
     onSuccess: () => {
-      alert('작업장 현황이 백업되었습니다.')
+      setIsConfirmDialogOpen(true)
+      setConfirmDialogInfo({
+        title: '작업장 현황 백업 완료',
+        desc: `백업 내역을 이력 관리에서 확인하시겠습니까?`,
+        btnCancel: {
+          btnText: '취소',
+        },
+        btnConfirm: {
+          btnText: '확인',
+          fn: () => {
+            router.push(ROUTES.ADMIN.EXPORTS)
+          },
+        },
+      })
     },
     onError: (error: Error) => {
       alert(`백업 실패: ${error.message}`)
+    },
+    onSettled: () => {
+      hideLoading()
     },
   })
 
@@ -406,6 +440,17 @@ const WorkPlacePage = () => {
 
   const handleSettingClick = () => {
     setIsConfirmDialogOpen(true)
+    setConfirmDialogInfo({
+      title: '작업장 설정',
+      desc: `설정창에 진입하면 다른 관리자의\n 작업장 현황 페이지 사용이 일시 중지됩니다.\n계속하시겠습니까?`,
+      btnCancel: {
+        btnText: '취소',
+      },
+      btnConfirm: {
+        btnText: '확인',
+        fn: handleConfirmNavigate,
+      },
+    })
   }
 
   const handleConfirmNavigate = () => {
@@ -623,10 +668,13 @@ const WorkPlacePage = () => {
           isOpen={isConfirmDialogOpen}
           setIsOpen={setIsConfirmDialogOpen}
           isLoading={false}
-          title="작업장 설정"
-          desc={`설정창에 진입하면 다른 관리자의\n 작업장 현황 페이지 사용이 일시 중지됩니다.\n계속하시겠습니까?`}
-          btnCancel={{ btnText: '취소' }}
-          btnConfirm={{ btnText: '확인', fn: handleConfirmNavigate }}
+          title={confirmDialogInfo.title}
+          desc={confirmDialogInfo.desc}
+          btnCancel={{ btnText: confirmDialogInfo.btnCancel.btnText }}
+          btnConfirm={{
+            btnText: confirmDialogInfo.btnConfirm.btnText,
+            fn: confirmDialogInfo.btnConfirm.fn,
+          }}
         />
       </>
 
