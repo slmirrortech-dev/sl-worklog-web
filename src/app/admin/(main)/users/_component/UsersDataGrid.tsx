@@ -17,10 +17,9 @@ import RoleLabel from '@/components/admin/RoleLabel'
 interface UsersDataGridProps {
   roleFilter: 'ADMIN;MANAGER' | 'WORKER'
   id: string
-  canEdit: boolean
 }
 
-const UsersDataGrid = ({ roleFilter, id, canEdit }: UsersDataGridProps) => {
+const UsersDataGrid = ({ roleFilter, id }: UsersDataGridProps) => {
   const router = useRouter()
 
   // 개별 상태 관리
@@ -63,7 +62,7 @@ const UsersDataGrid = ({ roleFilter, id, canEdit }: UsersDataGridProps) => {
         const user = row.original as UserResponseDto
         return (
           <div className="text-center">
-            <ButtonLicense targetUser={user} canEdit={canEdit} />
+            <ButtonLicense targetUser={user} canEdit={true} />
           </div>
         )
       },
