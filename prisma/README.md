@@ -83,14 +83,28 @@ WHERE pubname = 'supabase_realtime';
 [Realtime] Successfully subscribed to realtime:factory-line
 ```
 
-## 3. 자동 백업 설정 (pg_cron)
+## 3. 자동 백업 설정 (pg_cron + Trigger)
 
 ### 목적
 - Vercel Free 플랜의 Function Invocation 제한 회피
-- Supabase에서 직접 매분마다 백업 시간 체크
-- `backup_schedules` 테이블의 시간과 일치하면 자동 백업 실행
+- Supabase pg_cron으로 정확한 시간에 백업 실행
+- **UI에서 시간 변경 → 자동으로 cron job 재생성 (Trigger)**
 
-### 설정 단계
+### 동작 방식
+
+```
+관리자 UI에서 시간 변경 (예: 18:40 추가)
+  ↓
+backup_schedules 테이블 변경 (INSERT/DELETE)
+  ↓
+🔥 Trigger 자동 실행
+  ↓
+기존 cron job 삭제 → 최신 데이터로 재생성
+  ↓
+매일 18:40(KST)에 자동 백업 실행
+```
+
+### 설정 단계 (1회만)
 
 #### Step 1: CRON_SECRET 생성
 
@@ -120,35 +134,47 @@ SELECT vault.create_secret('CRON_SECRET', 'Ab12Cd34Ef56Gh78Ij90Kl12Mn34Op56Qr78S
 
 > **참고**: Vault를 사용하지 않고 SQL에 직접 하드코딩해도 동작하지만, 보안상 Vault 사용을 권장합니다.
 
-#### Step 4: Supabase pg_cron 설정
+#### Step 4: Supabase Trigger 설정 (자동화)
 
 1. Supabase Dashboard > SQL Editor
-2. `prisma/setup-pg-cron.sql` 파일 열기
-3. 다음 값을 실제 값으로 수정:
+2. `prisma/setup-backup-trigger.sql` 파일 열기
+3. **60번 줄** cron_secret 값을 실제 값으로 수정:
    ```sql
-   -- 실제 Vercel 배포 URL로 변경
-   api_url TEXT := 'https://your-project.vercel.app/api/cron/backup-workplace';
-
-   -- Option A: 하드코딩 (간단하지만 보안 취약)
    cron_secret TEXT := 'YOUR_CRON_SECRET_HERE';
-
-   -- Option B: Vault 사용 (권장)
-   -- cron_secret TEXT := vault.get_secret('CRON_SECRET');
    ```
-4. 전체 SQL 실행
+   → Step 1에서 생성한 CRON_SECRET으로 변경
 
-#### Step 5: 백업 시간 등록
+4. **전체 SQL 실행** (Run 클릭)
 
-SQL Editor에서 실행:
+**이 SQL이 하는 일:**
+- ✅ Extension 활성화 (pg_cron, pg_net)
+- ✅ `refresh_backup_cron_jobs()` 함수 생성
+- ✅ Trigger 생성 (backup_schedules 변경 시 자동 실행)
+- ✅ 초기 cron job 생성
+
+**한 번만 실행하면 됩니다!** 이후에는 UI에서 시간만 변경하면 자동으로 cron job이 재생성됩니다.
+
+#### Step 5: 백업 시간 관리
+
+**Option A: 관리자 UI에서 설정 (권장)** ⭐
+
+관리자 페이지 > 백업 설정 화면에서:
+1. 백업 시간 입력 (예: 18:40)
+2. 저장 버튼 클릭
+3. 🔥 자동으로 cron job 재생성됨
+
+**Option B: SQL로 직접 추가**
+
+Supabase SQL Editor:
 ```sql
 -- 매일 저녁 6시 40분에 백업
 INSERT INTO backup_schedules (id, time)
 VALUES (gen_random_uuid()::text, '18:40');
 
--- 추가 시간대 설정 가능 (예: 오전 6시)
-INSERT INTO backup_schedules (id, time)
-VALUES (gen_random_uuid()::text, '06:00');
+-- 🔥 Trigger가 자동으로 cron job 재생성함
 ```
+
+**두 방법 모두 동일하게 동작합니다!**
 
 ### 확인 방법
 

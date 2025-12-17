@@ -1,19 +1,12 @@
 -- ============================================
--- Supabase pg_cron 동적 백업 스케줄 설정
+-- backup_schedules 자동 Cron Job 재생성 Trigger
 -- ============================================
 --
 -- 목적:
--- backup_schedules 테이블의 각 시간(HH:mm)을 읽어
--- 정확한 시간에 실행되는 개별 cron job을 생성
+-- backup_schedules 테이블 데이터 변경 시
+-- 자동으로 pg_cron job을 재생성
 --
--- 동작:
--- 1. backup_schedules에 "05:00", "18:40" 같은 시간 저장
--- 2. 각 시간마다 별도의 cron job 생성
--- 3. KST → UTC 자동 변환
--- 4. pg_net으로 Vercel API 호출
---
--- 재실행 안전:
--- - 기존 backup- 관련 job 모두 삭제 후 재생성
+-- UI에서 시간 추가/수정/삭제 → 즉시 cron job 반영
 -- ============================================
 
 -- ============================================
@@ -24,10 +17,11 @@ CREATE EXTENSION IF NOT EXISTS pg_cron;
 CREATE EXTENSION IF NOT EXISTS pg_net;
 
 -- ============================================
--- 2. 동적 Cron Job 생성
+-- 2. Cron Job 재생성 함수
 -- ============================================
 
-DO $$
+CREATE OR REPLACE FUNCTION refresh_backup_cron_jobs()
+RETURNS void AS $$
 DECLARE
   rec RECORD;
   kst_time TIMESTAMP;
@@ -37,7 +31,7 @@ DECLARE
   job_name TEXT;
   cron_schedule TEXT;
   api_url TEXT := 'https://factory-worklog.vercel.app/api/cron/backup-workplace';
-  cron_secret TEXT := '3lCTBt0h/dSkuajiTefchUIQnUYFtms1CHB1bZ6Qg40=';
+  cron_secret TEXT := 'YOUR_CRON_SECRET_HERE'; -- 실제 값으로 변경 필요
   sql_cmd TEXT;
 BEGIN
   -- ========================================
@@ -55,7 +49,7 @@ BEGIN
   END LOOP;
 
   -- ========================================
-  -- Step 2: backup_schedules 테이블 순회
+  -- Step 2: backup_schedules 테이블 순회하며 재생성
   -- ========================================
   RAISE NOTICE '';
   RAISE NOTICE '=== 새 cron job 생성 시작 ===';
@@ -65,42 +59,21 @@ BEGIN
     FROM backup_schedules
     ORDER BY time
   LOOP
-    -- ----------------------------------------
-    -- 2-1. KST 시간을 UTC로 변환
-    -- ----------------------------------------
-    -- "05:00" → TIMESTAMP '2000-01-01 05:00:00'
+    -- KST → UTC 변환
     kst_time := ('2000-01-01 ' || rec.time || ':00')::TIMESTAMP;
-
-    -- KST → UTC 변환 (KST는 UTC+9)
-    -- 예: KST 05:00 → UTC 20:00 (전날)
-    -- 예: KST 18:40 → UTC 09:40 (같은 날)
-    -- AT TIME ZONE 한 번만 사용 (이중 적용 방지)
     utc_time := kst_time AT TIME ZONE 'Asia/Seoul';
 
-    -- ----------------------------------------
-    -- 2-2. UTC 시, 분 추출
-    -- ----------------------------------------
+    -- UTC 시, 분 추출
     cron_minute := EXTRACT(minute FROM utc_time)::TEXT;
     cron_hour := EXTRACT(hour FROM utc_time)::TEXT;
 
-    -- ----------------------------------------
-    -- 2-3. Cron 표현식 생성
-    -- ----------------------------------------
-    -- 형식: "분 시 * * *"
-    -- 예: "0 20 * * *" (매일 UTC 20:00 = KST 05:00)
+    -- Cron 표현식 생성
     cron_schedule := cron_minute || ' ' || cron_hour || ' * * *';
 
-    -- ----------------------------------------
-    -- 2-4. Job 이름 생성
-    -- ----------------------------------------
-    -- KST 기준 시간으로 명명 (가독성)
-    -- : 제거하여 안전성 확보
-    -- 예: "backup-0500", "backup-1840"
+    -- Job 이름 생성 (: 제거)
     job_name := 'backup-' || replace(rec.time, ':', '');
 
-    -- ----------------------------------------
-    -- 2-5. HTTP POST 명령 생성
-    -- ----------------------------------------
+    -- HTTP POST 명령 생성
     sql_cmd := format(
       'SELECT net.http_post(
         url := %L,
@@ -114,9 +87,7 @@ BEGIN
       cron_secret
     );
 
-    -- ----------------------------------------
-    -- 2-6. Cron Job 등록
-    -- ----------------------------------------
+    -- Cron Job 등록
     PERFORM cron.schedule(
       job_name,
       cron_schedule,
@@ -135,19 +106,39 @@ BEGIN
   RAISE NOTICE '총 % 개의 스케줄이 등록되었습니다.',
     (SELECT COUNT(*) FROM backup_schedules);
 
-END $$;
+END;
+$$ LANGUAGE plpgsql;
 
 -- ============================================
--- 3. 생성된 Cron Job 확인
+-- 3. Trigger 생성
 -- ============================================
 
+-- 기존 Trigger 삭제 (재실행 시 에러 방지)
+DROP TRIGGER IF EXISTS backup_schedule_auto_refresh ON backup_schedules;
+
+-- Trigger 생성: INSERT, UPDATE, DELETE 발생 시 자동 재생성
+CREATE TRIGGER backup_schedule_auto_refresh
+AFTER INSERT OR UPDATE OR DELETE ON backup_schedules
+FOR EACH STATEMENT
+EXECUTE FUNCTION refresh_backup_cron_jobs();
+
+-- ============================================
+-- 4. 초기 실행 (현재 데이터 기준으로 cron job 생성)
+-- ============================================
+
+SELECT refresh_backup_cron_jobs();
+
+-- ============================================
+-- 5. 확인
+-- ============================================
+
+-- Cron Job 목록 확인
 SELECT
   jobname AS "Job 이름",
   schedule AS "Cron 표현식 (UTC)",
   active AS "활성화",
   CASE
     WHEN schedule ~ '^\d+ \d+ \* \* \*$' THEN
-      -- UTC → KST 변환해서 표시 (참고용)
       to_char(
         (('2000-01-01 ' ||
           split_part(schedule, ' ', 2) || ':' ||
@@ -164,65 +155,45 @@ WHERE jobname LIKE 'backup-%'
 ORDER BY schedule;
 
 -- ============================================
--- 4. 최근 실행 로그 확인
--- ============================================
-
-SELECT
-  j.jobname AS "Job 이름",
-  r.start_time AS "시작 시간",
-  r.end_time AS "종료 시간",
-  r.status AS "상태",
-  r.return_message AS "결과"
-FROM cron.job_run_details r
-JOIN cron.job j ON j.jobid = r.jobid
-WHERE j.jobname LIKE 'backup-%'
-ORDER BY r.start_time DESC
-LIMIT 20;
-
--- ============================================
--- 동작 흐름 요약
+-- 동작 방식
 -- ============================================
 --
 -- [초기 설정]
--- 1. backup_schedules 테이블에 백업 시간 등록:
---    INSERT INTO backup_schedules (id, time)
---    VALUES (gen_random_uuid()::text, '18:40');
+-- 1. 이 SQL을 Supabase SQL Editor에서 실행 (1회만)
+-- 2. cron_secret 값만 실제 값으로 변경 필요
 --
--- 2. 위 SQL 실행 → 각 시간마다 개별 cron job 생성
---
--- [실행 흐름]
--- 시간이 되면:
+-- [이후 사용]
+-- UI에서 백업 시간 추가/수정/삭제:
 --   ┌─────────────────────────────────────┐
---   │ UTC 09:40 (= KST 18:40)             │
---   │ pg_cron이 'backup-18:40' 실행       │
+--   │ 관리자 페이지에서 시간 변경         │
+--   │ (예: 18:40 추가)                    │
 --   └────────────┬────────────────────────┘
 --                │
 --                ▼
 --   ┌─────────────────────────────────────┐
---   │ pg_net.http_post()                  │
---   │ → Vercel API 호출                   │
---   │   POST /api/cron/backup-workplace   │
+--   │ backup_schedules 테이블 변경        │
+--   │ INSERT/UPDATE/DELETE                │
 --   └────────────┬────────────────────────┘
 --                │
 --                ▼
 --   ┌─────────────────────────────────────┐
---   │ API: 현재 KST 시간 = 18:40          │
---   │ backup_schedules 확인 → 일치!       │
---   │ → 백업 실행                         │
+--   │ Trigger 자동 실행                   │
+--   │ refresh_backup_cron_jobs()          │
+--   └────────────┬────────────────────────┘
+--                │
+--                ▼
+--   ┌─────────────────────────────────────┐
+--   │ 1. 기존 cron job 전체 삭제          │
+--   │ 2. 최신 데이터로 cron job 재생성    │
+--   │ 3. backup-1840 등록 완료            │
 --   └─────────────────────────────────────┘
 --
--- [시간 추가 시]
--- backup_schedules에 새 시간 INSERT 후
--- 위 SQL 재실행 → 기존 job 삭제 후 전체 재생성
+-- ✅ 관리자는 SQL 몰라도 됨
+-- ✅ UI에서 시간만 변경하면 자동 반영
+-- ✅ 실시간 동기화
 --
 -- [주의사항]
--- - 실행 전 반드시 수정 필요:
---   1. api_url: 실제 Vercel 배포 URL로 변경
---   2. cron_secret: 두 가지 방법 중 선택
---      Option A (간단): 직접 입력 'YOUR_CRON_SECRET_HERE'
---      Option B (권장): Vault 사용
---        먼저 실행: SELECT vault.create_secret('CRON_SECRET', 'actual-secret');
---        그 다음: cron_secret TEXT := vault.get_secret('CRON_SECRET');
--- - KST ↔ UTC 변환은 자동 처리
--- - 재실행 시 안전하게 덮어쓰기됨
+-- - Trigger는 1회만 설정하면 됨 (재배포 불필요)
+-- - cron_secret는 반드시 실제 값으로 변경
+-- - 대량 변경 시 Trigger가 여러 번 실행될 수 있음 (문제없음)
 -- ============================================
