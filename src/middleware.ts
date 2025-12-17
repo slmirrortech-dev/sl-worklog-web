@@ -6,13 +6,13 @@ import { createMiddlewareClient } from '@/lib/supabase/server'
 export async function middleware(req: NextRequest) {
   const { supabase, response } = createMiddlewareClient(req)
   const {
-    data: { session },
-  } = await supabase.auth.getSession()
+    data: { user },
+  } = await supabase.auth.getUser()
 
   const { pathname } = req.nextUrl
 
   // 비로그인 사용자 처리
-  if (!session) {
+  if (!user) {
     // 접근하려는 페이지가 보호된 admin 경로이고, 로그인 페이지가 아닌 경우
     if (pathname.startsWith('/admin') && pathname !== ROUTES.ADMIN.LOGIN) {
       // 로그인 페이지로 리디렉션

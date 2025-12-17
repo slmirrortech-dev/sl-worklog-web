@@ -91,22 +91,22 @@ export async function getServerSession(): Promise<SessionUser | null> {
   try {
     const supabase = await createServerSupabaseClient()
 
-    // getSession()을 먼저 시도 (쿠키에서 세션 읽기)
+    // getUser()로 서버 검증 (보안)
     const {
-      data: { session },
-    } = await supabase.auth.getSession()
+      data: { user: authUser },
+    } = await supabase.auth.getUser()
 
-    if (!session?.user) {
+    if (!authUser) {
       console.log('[getServerSession] 세션 없음')
       return null
     }
 
-    console.log('[getServerSession] Supabase User ID:', session.user.id)
+    console.log('[getServerSession] Supabase User ID:', authUser.id)
 
     // Prisma DB에서 사용자 정보 조회
     const user = await prisma.user.findUnique({
       where: {
-        supabaseUserId: session.user.id,
+        supabaseUserId: authUser.id,
       },
       select: {
         id: true,
@@ -118,7 +118,7 @@ export async function getServerSession(): Promise<SessionUser | null> {
     })
 
     if (!user) {
-      console.log('[getServerSession] DB에 사용자 없음:', session.user.id)
+      console.log('[getServerSession] DB에 사용자 없음:', authUser.id)
       return null
     }
 
