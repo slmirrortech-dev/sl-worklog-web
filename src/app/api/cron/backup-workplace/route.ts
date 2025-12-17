@@ -10,7 +10,7 @@ export const runtime = 'nodejs'
  * Supabase pg_cron에서 정확한 시간에 호출됩니다.
  * pg_cron이 이미 시간 판단을 완료했으므로, 이 API는 무조건 백업만 실행합니다.
  */
-export async function GET(request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
     // pg_cron 요청 검증 (보안)
     const authHeader = request.headers.get('authorization')
