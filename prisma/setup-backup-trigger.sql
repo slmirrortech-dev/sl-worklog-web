@@ -21,7 +21,7 @@ CREATE EXTENSION IF NOT EXISTS pg_net;
 -- ============================================
 
 CREATE OR REPLACE FUNCTION refresh_backup_cron_jobs()
-RETURNS void AS $$
+RETURNS TRIGGER AS $$
 DECLARE
   rec RECORD;
   kst_time TIMESTAMP;
@@ -31,7 +31,7 @@ DECLARE
   job_name TEXT;
   cron_schedule TEXT;
   api_url TEXT := 'https://factory-worklog.vercel.app/api/cron/backup-workplace';
-  cron_secret TEXT := 'YOUR_CRON_SECRET_HERE'; -- 실제 값으로 변경 필요
+  cron_secret TEXT := '3lCTBt0h/dSkuajiTefchUIQnUYFtms1CHB1bZ6Qg40=';
   sql_cmd TEXT;
 BEGIN
   -- ========================================
@@ -106,6 +106,8 @@ BEGIN
   RAISE NOTICE '총 % 개의 스케줄이 등록되었습니다.',
     (SELECT COUNT(*) FROM backup_schedules);
 
+  -- AFTER 트리거이므로 NULL 반환
+  RETURN NULL;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -126,7 +128,59 @@ EXECUTE FUNCTION refresh_backup_cron_jobs();
 -- 4. 초기 실행 (현재 데이터 기준으로 cron job 생성)
 -- ============================================
 
-SELECT refresh_backup_cron_jobs();
+DO $$
+DECLARE
+  rec RECORD;
+  kst_time TIMESTAMP;
+  utc_time TIMESTAMP;
+  cron_minute TEXT;
+  cron_hour TEXT;
+  job_name TEXT;
+  cron_schedule TEXT;
+  api_url TEXT := 'https://factory-worklog.vercel.app/api/cron/backup-workplace';
+  cron_secret TEXT := '3lCTBt0h/dSkuajiTefchUIQnUYFtms1CHB1bZ6Qg40=';
+  sql_cmd TEXT;
+BEGIN
+  RAISE NOTICE '=== 초기 cron job 생성 시작 ===';
+
+  -- 기존 job 삭제
+  FOR rec IN
+    SELECT jobname FROM cron.job WHERE jobname LIKE 'backup-%'
+  LOOP
+    PERFORM cron.unschedule(rec.jobname);
+    RAISE NOTICE '✓ 삭제됨: %', rec.jobname;
+  END LOOP;
+
+  -- 새 job 생성
+  FOR rec IN SELECT id, time FROM backup_schedules ORDER BY time
+  LOOP
+    kst_time := ('2000-01-01 ' || rec.time || ':00')::TIMESTAMP;
+    utc_time := kst_time AT TIME ZONE 'Asia/Seoul';
+    cron_minute := EXTRACT(minute FROM utc_time)::TEXT;
+    cron_hour := EXTRACT(hour FROM utc_time)::TEXT;
+    cron_schedule := cron_minute || ' ' || cron_hour || ' * * *';
+    job_name := 'backup-' || replace(rec.time, ':', '');
+
+    sql_cmd := format(
+      'SELECT net.http_post(
+        url := %L,
+        headers := jsonb_build_object(
+          ''Content-Type'', ''application/json'',
+          ''Authorization'', ''Bearer %s''
+        ),
+        body := ''{}''::jsonb
+      )',
+      api_url,
+      cron_secret
+    );
+
+    PERFORM cron.schedule(job_name, cron_schedule, sql_cmd);
+    RAISE NOTICE '✓ 생성됨: % | UTC: % | KST: %', job_name, cron_schedule, rec.time;
+  END LOOP;
+
+  RAISE NOTICE '=== 초기 cron job 생성 완료 ===';
+  RAISE NOTICE '총 % 개의 스케줄이 등록되었습니다.', (SELECT COUNT(*) FROM backup_schedules);
+END $$;
 
 -- ============================================
 -- 5. 확인
