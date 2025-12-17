@@ -9,6 +9,7 @@ import SearchBarDefectLog from '@/app/admin/(main)/exports/_component/SearchBarD
 import { DefectLogResponse } from '@/types/defect-log'
 import { Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import ShiftTypeLabel from '@/components/admin/ShiftTypeLabel'
 
 const DefectLog = () => {
   // 개별 상태 관리
@@ -45,7 +46,7 @@ const DefectLog = () => {
       cell: ({ row }) => (
         <div className="text-center">
           {row.original.workerName}
-          <span className="text-xs text-gray-500 ml-1">({row.original.workerUserId})</span>
+          <span className="text-sm text-gray-500 ml-1">({row.original.workerUserId})</span>
         </div>
       ),
     },
@@ -64,15 +65,7 @@ const DefectLog = () => {
       header: '교대조',
       cell: ({ row }) => (
         <div className="text-center">
-          <span
-            className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-              row.original.shiftType === 'DAY'
-                ? 'bg-yellow-100 text-yellow-800'
-                : 'bg-blue-100 text-blue-800'
-            }`}
-          >
-            {row.original.shiftType === 'DAY' ? '주간' : '야간'}
-          </span>
+          <ShiftTypeLabel shiftType={row.original.shiftType} size={'sm'} />
         </div>
       ),
     },
@@ -85,7 +78,7 @@ const DefectLog = () => {
       id: 'memo',
       header: '메모',
       cell: ({ row }) => (
-        <div className="text-left max-w-xs truncate" title={row.original.memo}>
+        <div className="text-center max-w-xs truncate" title={row.original.memo}>
           {row.original.memo}
         </div>
       ),
