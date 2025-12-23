@@ -17,7 +17,6 @@ import { Maximize, Minimize } from 'lucide-react'
 import { colorWorkStatus, displayWorkStatus } from '@/lib/utils/shift-status'
 import { ShiftType } from '@prisma/client'
 import AreaWaitingWorker from '@/app/monitor/_component/AreaWaitingWorker'
-// import useMonitorLineDataSync from '@/hooks/useMonitorLineDataSync'
 import { useLoading } from '@/contexts/LoadingContext'
 import { useFactoryLineRealtime } from '@/hooks/useAllFactoryLineRealtime'
 
@@ -26,8 +25,6 @@ const MonitorPage = () => {
   const { showLoading, hideLoading } = useLoading()
   const [viewType, setViewType] = useState<ShiftType>('DAY')
   const [viewClassId, setViewClassId] = useState<string>('')
-
-  const [maxLength, setMaxLength] = useState<number>(0)
   const [filteredFactoryLines, setFilteredFactoryLines] = useState<any[]>([])
 
   // api 호출
@@ -70,31 +67,6 @@ const MonitorPage = () => {
       setFilteredFactoryLines(allFactoryLineData.filter((item) => item.workClassId === viewClassId))
     }
   }, [allFactoryLineData, viewClassId])
-
-  // const { data, refetch, isPending } = useQuery({
-  //   queryKey: ['monitor', viewClassId],
-  //   queryFn: getMonitorLineWithProcessApi,
-  //   select: (response) => {
-  //     return response.data.filter((item) => item.classNo === viewClassId)
-  //   },
-  // })
-
-  // useEffect(() => {
-  //   if (isPending) {
-  //     showLoading()
-  //   } else {
-  //     hideLoading()
-  //   }
-  // }, [isPending])
-  //
-  // // 실시간 데이터 동기화
-  // useMonitorLineDataSync(() => refetch())
-  //
-  // useEffect(() => {
-  //   if (data) {
-  //     setMaxLength(Math.max(...data.flatMap((item) => item.processes.length)))
-  //   }
-  // }, [data])
 
   const [isFullscreen, setIsFullscreen] = useState(false)
 
