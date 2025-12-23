@@ -168,7 +168,7 @@ export default function ProcessSlotCard({
                 </span>
                 {slot.worker!.name}
               </p>
-              <span className="text-sm text-gray-600">사번 : {slot.worker!.userId}</span>
+              <span className="text-sm text-gray-600">({slot.worker!.userId})</span>
             </div>
           </PopoverTrigger>
           <PopoverContent className="w-80">

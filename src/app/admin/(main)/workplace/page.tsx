@@ -689,7 +689,7 @@ const WorkPlacePage = () => {
               </span>
               {activeWorker.name}
             </p>
-            <span className="text-sm text-gray-600">사번 : {activeWorker.userId}</span>
+            <span className="text-sm text-gray-600">({activeWorker.userId})</span>
           </div>
         ) : null}
       </DragOverlay>
