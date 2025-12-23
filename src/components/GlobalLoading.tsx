@@ -13,7 +13,7 @@ const GlobalLoading = () => {
   if (!isLoading) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+    <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/50">
       <div className="bg-white rounded-lg p-8 shadow-xl">
         <div className="flex flex-col items-center space-y-4">
           <div className="w-12 h-12 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin" />
