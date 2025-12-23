@@ -84,14 +84,17 @@ openssl rand -base64 32
 3. **SQL Editor** 클릭
 4. `prisma/setup-backup-trigger.sql` 파일 내용 복사
 5. **60번 줄** 수정:
+
    ```sql
    cron_secret TEXT := 'YOUR_CRON_SECRET_HERE';
    ```
+
    → Step 1에서 생성한 값으로 변경
 
 6. **Run** 버튼 클릭
 
 **예상 출력:**
+
 ```
 === 기존 cron job 삭제 시작 ===
 === 새 cron job 생성 시작 ===
@@ -104,6 +107,7 @@ openssl rand -base64 32
 ### Step 4: 확인
 
 Supabase SQL Editor에서 실행:
+
 ```sql
 -- Trigger 확인
 SELECT
@@ -118,6 +122,7 @@ SELECT * FROM cron.job WHERE jobname LIKE 'backup-%';
 ```
 
 **예상 결과:**
+
 ```
 trigger_name                  | event_manipulation | event_object_table
 ------------------------------|-------------------|-------------------
@@ -173,6 +178,7 @@ WHERE jobname LIKE 'backup-%';
 ```
 
 **예상 결과:**
+
 ```
 jobname      | schedule    | active
 -------------|-------------|--------
@@ -203,6 +209,7 @@ LIMIT 10;
 ### Q: Trigger가 실행되지 않는다
 
 **확인:**
+
 ```sql
 SELECT * FROM information_schema.triggers
 WHERE trigger_name = 'backup_schedule_auto_refresh';
@@ -215,6 +222,7 @@ WHERE trigger_name = 'backup_schedule_auto_refresh';
 ### Q: Cron Job이 생성되지 않는다
 
 **확인:**
+
 ```sql
 -- Extension 활성화 확인
 SELECT * FROM pg_extension
@@ -222,6 +230,7 @@ WHERE extname IN ('pg_cron', 'pg_net');
 ```
 
 **해결:**
+
 ```sql
 CREATE EXTENSION IF NOT EXISTS pg_cron;
 CREATE EXTENSION IF NOT EXISTS pg_net;
@@ -232,12 +241,15 @@ CREATE EXTENSION IF NOT EXISTS pg_net;
 ### Q: 백업이 실행되지 않는다
 
 **확인:**
+
 1. Cron Job 등록 확인:
+
    ```sql
    SELECT * FROM cron.job WHERE jobname LIKE 'backup-%';
    ```
 
 2. 실행 로그 확인:
+
    ```sql
    SELECT * FROM cron.job_run_details
    ORDER BY start_time DESC
@@ -270,13 +282,13 @@ src/app/api/
 
 ## 🎯 핵심 요약
 
-| 항목 | 설명 |
-|------|------|
-| **초기 설정** | Supabase에서 1회만 `setup-backup-trigger.sql` 실행 |
-| **시간 관리** | 관리자 UI에서 추가/삭제 (SQL 불필요) |
-| **자동화** | backup_schedules 변경 시 Trigger가 자동으로 cron job 재생성 |
-| **실행 시간** | KST 기준 정확한 시간에 실행 |
-| **비용** | Vercel Free 플랜 제한 없음 (pg_cron 사용) |
+| 항목          | 설명                                                        |
+| ------------- | ----------------------------------------------------------- |
+| **초기 설정** | Supabase에서 1회만 `setup-backup-trigger.sql` 실행          |
+| **시간 관리** | 관리자 UI에서 추가/삭제 (SQL 불필요)                        |
+| **자동화**    | backup_schedules 변경 시 Trigger가 자동으로 cron job 재생성 |
+| **실행 시간** | KST 기준 정확한 시간에 실행                                 |
+| **비용**      | Vercel Free 플랜 제한 없음 (pg_cron 사용)                   |
 
 ---
 

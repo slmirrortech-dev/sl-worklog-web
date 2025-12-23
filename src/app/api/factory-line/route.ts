@@ -93,7 +93,14 @@ async function updateFactoryLine(request: NextRequest) {
 
     const dbLines = await tx.factoryLine.findMany()
     console.log('DB에 있는 라인 수:', dbLines.length)
-    console.log('DB 라인:', JSON.stringify(dbLines.map(l => ({ id: l.id, name: l.name, workClassId: l.workClassId })), null, 2))
+    console.log(
+      'DB 라인:',
+      JSON.stringify(
+        dbLines.map((l) => ({ id: l.id, name: l.name, workClassId: l.workClassId })),
+        null,
+        2,
+      ),
+    )
 
     const processedDbIds = new Set()
 
@@ -136,7 +143,10 @@ async function updateFactoryLine(request: NextRequest) {
 
     // 필요 없는 거 삭제
     const linesToDelete = dbLines.filter((db) => !processedDbIds.has(db.id))
-    console.log('삭제할 라인:', linesToDelete.map(l => ({ id: l.id, name: l.name, workClassId: l.workClassId })))
+    console.log(
+      '삭제할 라인:',
+      linesToDelete.map((l) => ({ id: l.id, name: l.name, workClassId: l.workClassId })),
+    )
 
     await tx.factoryLine.deleteMany({
       where: {

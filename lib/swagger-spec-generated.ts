@@ -32,10 +32,7 @@ export const swaggerSpec = {
           },
           role: {
             type: 'string',
-            enum: [
-              'WORKER',
-              'ADMIN',
-            ],
+            enum: ['WORKER', 'ADMIN'],
             description: '사용자 역할',
           },
           isSuperAdmin: {
@@ -46,10 +43,7 @@ export const swaggerSpec = {
       },
       LoginRequest: {
         type: 'object',
-        required: [
-          'id',
-          'password',
-        ],
+        required: ['id', 'password'],
         properties: {
           id: {
             type: 'string',

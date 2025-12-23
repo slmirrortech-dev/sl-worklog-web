@@ -1,6 +1,7 @@
 # Prisma 및 Supabase 설정 가이드
 
 ## 목차
+
 1. [RLS (Row Level Security) 설정](#1-rls-row-level-security-설정)
 2. [Realtime 활성화](#2-realtime-활성화)
 3. [자동 백업 설정 (pg_cron)](#3-자동-백업-설정-pg_cron)
@@ -15,6 +16,7 @@
 ## 1. RLS (Row Level Security) 설정
 
 ### 목적
+
 - 모니터 화면: 로그인 없이 READ 가능
 - 관리자 화면: 로그인 필요, WRITE 가능
 
@@ -33,12 +35,15 @@ cat prisma/setup-rls.sql
 ## 2. Realtime 활성화
 
 ### 문제 증상
+
 콘솔에 다음과 같은 에러가 표시됨:
+
 ```
 [Realtime] Subscription error: Error: "Unknown Error on Channel"
 ```
 
 ### 원인
+
 Supabase Realtime replication이 활성화되지 않음
 
 ### 해결 방법
@@ -86,6 +91,7 @@ WHERE pubname = 'supabase_realtime';
 ## 3. 자동 백업 설정 (pg_cron + Trigger)
 
 ### 목적
+
 - Vercel Free 플랜의 Function Invocation 제한 회피
 - Supabase pg_cron으로 정확한 시간에 백업 실행
 - **UI에서 시간 변경 → 자동으로 cron job 재생성 (Trigger)**
@@ -109,6 +115,7 @@ backup_schedules 테이블 변경 (INSERT/DELETE)
 #### Step 1: CRON_SECRET 생성
 
 랜덤 문자열 생성:
+
 ```bash
 openssl rand -base64 32
 ```
@@ -127,6 +134,7 @@ openssl rand -base64 32
 #### Step 3: Supabase Vault에 Secret 저장 (권장)
 
 Supabase Dashboard > SQL Editor:
+
 ```sql
 -- Vault에 CRON_SECRET 저장
 SELECT vault.create_secret('CRON_SECRET', 'Ab12Cd34Ef56Gh78Ij90Kl12Mn34Op56Qr78St90Uv12Wx34==');
@@ -139,14 +147,17 @@ SELECT vault.create_secret('CRON_SECRET', 'Ab12Cd34Ef56Gh78Ij90Kl12Mn34Op56Qr78S
 1. Supabase Dashboard > SQL Editor
 2. `prisma/setup-backup-trigger.sql` 파일 열기
 3. **60번 줄** cron_secret 값을 실제 값으로 수정:
+
    ```sql
    cron_secret TEXT := 'YOUR_CRON_SECRET_HERE';
    ```
+
    → Step 1에서 생성한 CRON_SECRET으로 변경
 
 4. **전체 SQL 실행** (Run 클릭)
 
 **이 SQL이 하는 일:**
+
 - ✅ Extension 활성화 (pg_cron, pg_net)
 - ✅ `refresh_backup_cron_jobs()` 함수 생성
 - ✅ Trigger 생성 (backup_schedules 변경 시 자동 실행)
@@ -159,6 +170,7 @@ SELECT vault.create_secret('CRON_SECRET', 'Ab12Cd34Ef56Gh78Ij90Kl12Mn34Op56Qr78S
 **Option A: 관리자 UI에서 설정 (권장)** ⭐
 
 관리자 페이지 > 백업 설정 화면에서:
+
 1. 백업 시간 입력 (예: 18:40)
 2. 저장 버튼 클릭
 3. 🔥 자동으로 cron job 재생성됨
@@ -166,6 +178,7 @@ SELECT vault.create_secret('CRON_SECRET', 'Ab12Cd34Ef56Gh78Ij90Kl12Mn34Op56Qr78S
 **Option B: SQL로 직접 추가**
 
 Supabase SQL Editor:
+
 ```sql
 -- 매일 저녁 6시 40분에 백업
 INSERT INTO backup_schedules (id, time)
@@ -179,11 +192,13 @@ VALUES (gen_random_uuid()::text, '18:40');
 ### 확인 방법
 
 #### Cron Job 등록 확인
+
 ```sql
 SELECT * FROM cron.job;
 ```
 
 예상 결과:
+
 ```
 jobname                | schedule   | active
 -----------------------|------------|--------
@@ -191,6 +206,7 @@ backup-workplace-auto  | * * * * *  | t
 ```
 
 #### 실행 로그 확인
+
 ```sql
 SELECT
   start_time,
@@ -242,16 +258,19 @@ LIMIT 10;
 #### Cron이 실행되지 않는 경우
 
 1. Extension 활성화 확인:
+
 ```sql
 SELECT * FROM pg_extension WHERE extname IN ('pg_cron', 'pg_net');
 ```
 
 2. Cron Job 활성화 확인:
+
 ```sql
 SELECT jobname, active FROM cron.job;
 ```
 
 3. 에러 로그 확인:
+
 ```sql
 SELECT * FROM cron.job_run_details
 WHERE status = 'failed'
@@ -262,10 +281,13 @@ ORDER BY start_time DESC;
 
 1. Vercel Logs 확인
 2. `backup_schedules` 테이블에 시간 등록 확인:
+
 ```sql
 SELECT * FROM backup_schedules;
 ```
+
 3. API 응답 확인 (Vercel Logs):
+
 ```json
 {
   "ok": true,

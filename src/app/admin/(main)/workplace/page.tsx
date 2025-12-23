@@ -439,7 +439,8 @@ const WorkPlacePage = () => {
     showDialog({
       type: 'warning',
       title: '작업장 설정',
-      description: '설정창에 진입하면 다른 관리자의\n작업장 현황 페이지 사용이 일시 중지됩니다.\n계속하시겠습니까?',
+      description:
+        '설정창에 진입하면 다른 관리자의\n작업장 현황 페이지 사용이 일시 중지됩니다.\n계속하시겠습니까?',
       showCancel: true,
       cancelText: '취소',
       confirmText: '확인',

@@ -66,7 +66,9 @@ const GlobalDialog = () => {
       <AlertDialogContent onClick={(e) => e.stopPropagation()}>
         <AlertDialogHeader>
           <div className="flex flex-col items-center space-y-4">
-            <div className={`w-14 h-14 ${config.bgColor} rounded-full flex items-center justify-center`}>
+            <div
+              className={`w-14 h-14 ${config.bgColor} rounded-full flex items-center justify-center`}
+            >
               {config.icon}
             </div>
             <AlertDialogTitle className="text-center text-xl font-bold">{title}</AlertDialogTitle>
