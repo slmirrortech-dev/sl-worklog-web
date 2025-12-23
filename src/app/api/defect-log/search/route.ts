@@ -25,8 +25,9 @@ async function searchDefectLog(request: NextRequest) {
   const processName = searchParams.get('processName')
   const shiftType = searchParams.get('shiftType') as ShiftType | null
   const memo = searchParams.get('memo')
+  const allIds = searchParams.get('allIds') === 'true'
 
-  // 페이징 파라미터
+  // 페이징 파라미터 (allIds가 true면 페이징 무시)
   const page = parseInt(searchParams.get('page') || '1', 10)
   const pageSize = parseInt(searchParams.get('pageSize') || '50', 10)
   const skip = (page - 1) * pageSize
@@ -79,6 +80,24 @@ async function searchDefectLog(request: NextRequest) {
 
   // 총 개수 조회
   const totalCount = await prisma.defectLog.count({ where })
+
+  // allIds가 true면 ID만 반환
+  if (allIds) {
+    const defectLogs = await prisma.defectLog.findMany({
+      where,
+      select: {
+        id: true,
+      },
+      orderBy: {
+        occurredAt: 'desc',
+      },
+    })
+
+    return ApiResponseFactory.success({
+      ids: defectLogs.map((log) => log.id),
+      totalCount,
+    })
+  }
 
   // 페이징된 데이터 조회
   const defectLogs = await prisma.defectLog.findMany({

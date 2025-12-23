@@ -238,6 +238,16 @@ const useSearchDefectLog = () => {
     pageSize,
     setPageSize: updatePageSize,
     totalCount,
+    appliedFilters: {
+      startDate: `${format(appliedStartDate, 'yyyy-MM-dd')} 00:00:00`,
+      endDate: `${format(appliedEndDate, 'yyyy-MM-dd')} 23:59:59`,
+      shiftType: appliedShiftType === 'ALL' ? undefined : appliedShiftType,
+      lineName: appliedLineName || undefined,
+      className: appliedClassName || undefined,
+      processName: appliedProcessName || undefined,
+      workerSearch: appliedWorker || undefined,
+      memo: appliedMemo || undefined,
+    },
   }
 }
 

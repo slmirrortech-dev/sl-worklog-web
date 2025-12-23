@@ -7,6 +7,55 @@ import { findUserOrThrow } from '@/lib/service/user.servie'
 import { DefectLogCreateRequest } from '@/types/defect-log'
 
 /**
+ * 선택된 ID로 불량 유출 이력 조회 (엑셀 다운로드용)
+ */
+async function getDefectLogsByIds(request: NextRequest) {
+  await requireManagerOrAdmin(request)
+
+  const { searchParams } = new URL(request.url)
+  const idsParam = searchParams.get('ids')
+
+  if (!idsParam) {
+    throw new Error('ID 목록이 필요합니다.')
+  }
+
+  const ids = idsParam.split(',')
+
+  const defectLogs = await prisma.defectLog.findMany({
+    where: {
+      id: {
+        in: ids,
+      },
+    },
+    include: {
+      worker: {
+        select: {
+          userId: true,
+          name: true,
+        },
+      },
+    },
+    orderBy: {
+      occurredAt: 'desc',
+    },
+  })
+
+  const response = defectLogs.map((log) => ({
+    id: log.id,
+    occurredAt: log.occurredAt,
+    workerName: log.worker.name,
+    workerUserId: log.worker.userId,
+    lineName: log.lineName,
+    className: log.className,
+    shiftType: log.shiftType,
+    processName: log.processName,
+    memo: log.memo,
+  }))
+
+  return ApiResponseFactory.success(response)
+}
+
+/**
  * 불량 유출 이력 생성
  */
 async function createDefectLog(request: NextRequest) {
@@ -43,4 +92,5 @@ async function createDefectLog(request: NextRequest) {
   return ApiResponseFactory.success(defectLog.id, '불량 유출 이력이 등록되었습니다.')
 }
 
+export const GET = withErrorHandler(getDefectLogsByIds)
 export const POST = withErrorHandler(createDefectLog)
