@@ -11,8 +11,8 @@ import { removeWorkerFromSlotApi, updateWorkerStatusApi } from '@/lib/api/proces
 import { useLoading } from '@/contexts/LoadingContext'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
-import CustomConfirmDialog from '@/components/CustomConfirmDialog'
 import { useDraggable, useDroppable } from '@dnd-kit/core'
+import useDialogStore from '@/store/useDialogStore'
 
 interface ProcessSlotCardProps {
   slot?: ProcessSlot
@@ -28,9 +28,9 @@ export default function ProcessSlotCard({
   slotIndex,
 }: ProcessSlotCardProps) {
   const [isOpen, setIsOpen] = useState(false)
-  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false)
   const queryClient = useQueryClient()
   const { showLoading, hideLoading } = useLoading()
+  const { showDialog } = useDialogStore()
 
   const bgColor = shiftType === 'DAY' ? 'bg-gray-50' : 'bg-gray-100'
 
@@ -101,12 +101,17 @@ export default function ProcessSlotCard({
   })
 
   const handleRemoveWorker = () => {
-    setIsConfirmDialogOpen(true)
-  }
-
-  const handleConfirmRemove = () => {
-    removeWorkerMutation.mutate()
-    setIsConfirmDialogOpen(false)
+    showDialog({
+      type: 'warning',
+      title: '작업자 제외',
+      description: '이 작업자를 제외하시겠습니까?',
+      showCancel: true,
+      cancelText: '취소',
+      confirmText: '제외하기',
+      onConfirm: () => {
+        removeWorkerMutation.mutate()
+      },
+    })
   }
 
   const handleStatusChange = (value: string) => {
@@ -244,16 +249,6 @@ export default function ProcessSlotCard({
           />
         </Popover>
       )}
-
-      <CustomConfirmDialog
-        isOpen={isConfirmDialogOpen}
-        setIsOpen={setIsConfirmDialogOpen}
-        isLoading={removeWorkerMutation.isPending}
-        title="작업자 제외"
-        desc="이 작업자를 제외하시겠습니까?"
-        btnCancel={{ btnText: '취소' }}
-        btnConfirm={{ btnText: '제외하기', fn: handleConfirmRemove }}
-      />
     </div>
   )
 }

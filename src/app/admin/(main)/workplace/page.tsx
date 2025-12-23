@@ -6,8 +6,8 @@ import ShiftStatusSelect from '@/components/admin/ShiftStatusSelect'
 import { Settings, Save } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { ROUTES } from '@/lib/constants/routes'
-import CustomConfirmDialog from '@/components/CustomConfirmDialog'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import useDialogStore from '@/store/useDialogStore'
 import {
   getAllFactoryLineApi,
   getFactoryConfigApi,
@@ -40,6 +40,7 @@ const WorkPlacePage = () => {
   const { showLoading, hideLoading } = useLoading()
   const queryClient = useQueryClient()
   const [saveProgress, setSaveProgress] = useState(0)
+  const { showDialog } = useDialogStore()
   useFactoryLineRealtime()
 
   const { data: classesData, isPending: isPendingClasses } = useQuery({
@@ -102,22 +103,6 @@ const WorkPlacePage = () => {
   const [classes, setClasses] = useState<WorkClassResponse[]>([])
   const [selectedClassId, setSelectedClassId] = useState<string>('')
   const [filteredLines, setFilteredLines] = useState<typeof allFactoryLineData>([])
-  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false)
-  const [confirmDialogInfo, setConfirmDialogInfo] = useState<{
-    title: string
-    desc: string
-    btnCancel: { btnText: string; fn?: () => void }
-    btnConfirm: { btnText: string; fn?: () => void }
-  }>({
-    title: '',
-    desc: '',
-    btnCancel: {
-      btnText: '취소',
-    },
-    btnConfirm: {
-      btnText: '확인',
-    },
-  })
   const [activeWorker, setActiveWorker] = useState<{
     id: string
     name: string
@@ -189,18 +174,15 @@ const WorkPlacePage = () => {
       showLoading()
     },
     onSuccess: () => {
-      setIsConfirmDialogOpen(true)
-      setConfirmDialogInfo({
+      showDialog({
+        type: 'success',
         title: '작업장 현황 백업 완료',
-        desc: `백업 내역을 이력 관리에서 확인하시겠습니까?`,
-        btnCancel: {
-          btnText: '취소',
-        },
-        btnConfirm: {
-          btnText: '확인',
-          fn: () => {
-            router.push(ROUTES.ADMIN.EXPORTS)
-          },
+        description: '백업 내역을 이력 관리에서 확인하시겠습니까?',
+        showCancel: true,
+        cancelText: '취소',
+        confirmText: '확인',
+        onConfirm: () => {
+          router.push(ROUTES.ADMIN.EXPORTS)
         },
       })
     },
@@ -439,23 +421,17 @@ const WorkPlacePage = () => {
   }
 
   const handleSettingClick = () => {
-    setIsConfirmDialogOpen(true)
-    setConfirmDialogInfo({
+    showDialog({
+      type: 'warning',
       title: '작업장 설정',
-      desc: `설정창에 진입하면 다른 관리자의\n 작업장 현황 페이지 사용이 일시 중지됩니다.\n계속하시겠습니까?`,
-      btnCancel: {
-        btnText: '취소',
-      },
-      btnConfirm: {
-        btnText: '확인',
-        fn: handleConfirmNavigate,
+      description: '설정창에 진입하면 다른 관리자의\n작업장 현황 페이지 사용이 일시 중지됩니다.\n계속하시겠습니까?',
+      showCancel: true,
+      cancelText: '취소',
+      confirmText: '확인',
+      onConfirm: () => {
+        router.push(ROUTES.ADMIN.WORKPLACE_SETTING)
       },
     })
-  }
-
-  const handleConfirmNavigate = () => {
-    setIsConfirmDialogOpen(false)
-    router.push(ROUTES.ADMIN.WORKPLACE_SETTING)
   }
 
   // 공정 개수 (동적으로 변경 가능)
@@ -663,19 +639,6 @@ const WorkPlacePage = () => {
             </div>
           </div>
         </div>
-
-        <CustomConfirmDialog
-          isOpen={isConfirmDialogOpen}
-          setIsOpen={setIsConfirmDialogOpen}
-          isLoading={false}
-          title={confirmDialogInfo.title}
-          desc={confirmDialogInfo.desc}
-          btnCancel={{ btnText: confirmDialogInfo.btnCancel.btnText }}
-          btnConfirm={{
-            btnText: confirmDialogInfo.btnConfirm.btnText,
-            fn: confirmDialogInfo.btnConfirm.fn,
-          }}
-        />
       </>
 
       <DragOverlay dropAnimation={null} style={{ width: activeWorker?.width || 127 }}>

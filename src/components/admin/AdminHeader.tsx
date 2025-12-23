@@ -16,17 +16,11 @@ const AdminHeader = () => {
   const pathname = usePathname()
 
   const { data: currentUser } = useQuery({
-    queryKey: ['currentUser'],
-    queryFn: async () => {
-      const response = await getCurrentUserApi()
-      if (response.success) {
-        return response.data
-      }
-      throw new Error('사용자 정보 조회 실패')
-    },
+    queryKey: ['AdminHeaderCurrentUser'],
+    queryFn: getCurrentUserApi,
     refetchOnWindowFocus: true,
     refetchOnMount: true,
-    staleTime: 0,
+    select: (response) => response.data,
   })
 
   const handleNavClick = (href: string) => {

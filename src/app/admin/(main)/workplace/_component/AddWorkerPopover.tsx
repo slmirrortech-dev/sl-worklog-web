@@ -10,7 +10,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getUsersApi } from '@/lib/api/user-api'
 import { addWorkerToSlotApi } from '@/lib/api/process-slot-api'
 import { useLoading } from '@/contexts/LoadingContext'
-import CustomConfirmDialog from '@/components/CustomConfirmDialog'
+import useDialogStore from '@/store/useDialogStore'
 
 interface AddWorkerPopoverProps {
   lineId: string
@@ -27,11 +27,10 @@ export default function AddWorkerPopover({
 }: AddWorkerPopoverProps) {
   const [searchText, setSearchText] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
-  const [isReassignDialogOpen, setIsReassignDialogOpen] = useState(false)
   const [reassignWorkerId, setReassignWorkerId] = useState<string | null>(null)
-  const [conflictMessage, setConflictMessage] = useState('')
   const queryClient = useQueryClient()
   const { showLoading, hideLoading } = useLoading()
+  const { showDialog } = useDialogStore()
 
   // 사용자 검색
   const { data: usersData, isLoading: isSearching } = useQuery({
@@ -61,8 +60,19 @@ export default function AddWorkerPopover({
     onError: (error: Error & { status?: number }) => {
       if (error.status === 409) {
         // 중복 배치 에러 - 재배치 확인 다이얼로그 표시
-        setConflictMessage(error.message)
-        setIsReassignDialogOpen(true)
+        showDialog({
+          type: 'warning',
+          title: '작업자 재배치',
+          description: `${error.message}\n선택한 위치에 다시 배치하시겠습니까?`,
+          showCancel: true,
+          cancelText: '취소',
+          confirmText: '재배치',
+          onConfirm: () => {
+            if (reassignWorkerId) {
+              addWorkerMutation.mutate({ workerId: reassignWorkerId, force: true })
+            }
+          },
+        })
       } else {
         alert(`작업자 추가 실패: ${error.message}`)
       }
@@ -79,13 +89,6 @@ export default function AddWorkerPopover({
   const handleAddWorker = (workerId: string) => {
     setReassignWorkerId(workerId)
     addWorkerMutation.mutate({ workerId, force: false })
-  }
-
-  const handleConfirmReassign = () => {
-    if (reassignWorkerId) {
-      setIsReassignDialogOpen(false)
-      addWorkerMutation.mutate({ workerId: reassignWorkerId, force: true })
-    }
   }
 
   return (
@@ -149,16 +152,6 @@ export default function AddWorkerPopover({
           </div>
         </div>
       </PopoverContent>
-
-      <CustomConfirmDialog
-        isOpen={isReassignDialogOpen}
-        setIsOpen={setIsReassignDialogOpen}
-        isLoading={addWorkerMutation.isPending}
-        title="작업자 재배치"
-        desc={`${conflictMessage}\n선택한 위치에 다시 배치하시겠습니까?`}
-        btnCancel={{ btnText: '취소' }}
-        btnConfirm={{ btnText: '재배치', fn: handleConfirmReassign }}
-      />
     </>
   )
 }

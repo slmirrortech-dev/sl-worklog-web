@@ -25,7 +25,6 @@ import { CSS } from '@dnd-kit/utilities'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { getWorkClassesApi, updateWorkClassApi } from '@/lib/api/workplace-api'
 import { WorkClassResponseDto } from '@/types/workplace'
-import CustomConfirmDialog from '@/components/CustomConfirmDialog'
 import { useLoading } from '@/contexts/LoadingContext'
 
 type ClassItem = WorkClassResponseDto
