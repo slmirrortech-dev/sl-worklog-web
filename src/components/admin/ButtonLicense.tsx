@@ -8,6 +8,7 @@ import { UserResponseDto } from '@/types/user'
 import { uploadLicenseApi } from '@/lib/api/user-api'
 import { ApiResponse } from '@/types/common'
 import { useLoading } from '@/contexts/LoadingContext'
+import useDialogStore from '@/store/useDialogStore'
 
 /**
  * 이미지 업로드/모달 보기 컴포넌트
@@ -21,6 +22,7 @@ export default function ButtonLicense({
   canEdit: boolean
 }) {
   const { showLoading, hideLoading } = useLoading()
+  const { showDialog } = useDialogStore()
   const [file, setFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -43,7 +45,12 @@ export default function ButtonLicense({
         setPreviewUrl(data.url)
       }
     } catch (e) {
-      alert('이미지 업로드에 실패했습니다.')
+      showDialog({
+        type: 'error',
+        title: '업로드 실패',
+        description: '이미지 업로드에 실패했습니다.',
+        confirmText: '확인',
+      })
       console.error('면허증 등록 실패', e)
     } finally {
       hideLoading()

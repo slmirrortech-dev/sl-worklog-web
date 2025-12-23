@@ -14,9 +14,11 @@ import { TrainingLogCreateRequest } from '@/types/training-log'
 import { format } from 'date-fns'
 import { useLoading } from '@/contexts/LoadingContext'
 import { CustomDatePicker } from '@/components/CustomDatePicker'
+import useDialogStore from '@/store/useDialogStore'
 
 const UserTraining = ({ userId }: { userId: string }) => {
   const { showLoading, hideLoading } = useLoading()
+  const { showDialog } = useDialogStore()
 
   const [isAdding, setIsAdding] = useState(false)
 
@@ -43,7 +45,12 @@ const UserTraining = ({ userId }: { userId: string }) => {
       showLoading()
     },
     onError: () => {
-      alert('교육 이력 삭제 실패')
+      showDialog({
+        type: 'error',
+        title: '삭제 실패',
+        description: '교육 이력 삭제에 실패했습니다.',
+        confirmText: '확인',
+      })
     },
     onSuccess: () => {
       refetch()
@@ -59,7 +66,12 @@ const UserTraining = ({ userId }: { userId: string }) => {
       showLoading()
     },
     onError: () => {
-      alert('교육 이력 추가 실패')
+      showDialog({
+        type: 'error',
+        title: '추가 실패',
+        description: '교육 이력 추가에 실패했습니다.',
+        confirmText: '확인',
+      })
     },
     onSuccess: () => {
       refetch()
@@ -76,7 +88,12 @@ const UserTraining = ({ userId }: { userId: string }) => {
 
   const handleAdd = () => {
     if (!newDate || !newTrainingName || !newInstructor) {
-      alert('모든 항목을 입력해주세요')
+      showDialog({
+        type: 'warning',
+        title: '입력 필요',
+        description: '모든 항목을 입력해주세요.',
+        confirmText: '확인',
+      })
       return
     }
 

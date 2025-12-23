@@ -74,7 +74,12 @@ export default function AddWorkerPopover({
           },
         })
       } else {
-        alert(`작업자 추가 실패: ${error.message}`)
+        showDialog({
+          type: 'error',
+          title: '작업자 추가 실패',
+          description: error.message,
+          confirmText: '확인',
+        })
       }
     },
     onSettled: () => {

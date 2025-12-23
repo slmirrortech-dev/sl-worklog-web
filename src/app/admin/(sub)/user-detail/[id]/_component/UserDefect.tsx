@@ -18,9 +18,11 @@ import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { useLoading } from '@/contexts/LoadingContext'
 import { CustomDatePicker } from '@/components/CustomDatePicker'
+import useDialogStore from '@/store/useDialogStore'
 
 const UserDefect = ({ userId }: { userId: string }) => {
   const { showLoading, hideLoading } = useLoading()
+  const { showDialog } = useDialogStore()
 
   const [isAdding, setIsAdding] = useState(false)
 
@@ -51,7 +53,12 @@ const UserDefect = ({ userId }: { userId: string }) => {
       showLoading()
     },
     onError: () => {
-      alert('불량유출 이력 삭제 실패')
+      showDialog({
+        type: 'error',
+        title: '삭제 실패',
+        description: '불량유출 이력 삭제에 실패했습니다.',
+        confirmText: '확인',
+      })
     },
     onSuccess: () => {
       refetch()
@@ -67,7 +74,12 @@ const UserDefect = ({ userId }: { userId: string }) => {
       showLoading()
     },
     onError: () => {
-      alert('불량유출 이력 추가 실패')
+      showDialog({
+        type: 'error',
+        title: '추가 실패',
+        description: '불량유출 이력 추가에 실패했습니다.',
+        confirmText: '확인',
+      })
     },
     onSuccess: () => {
       refetch() // 폼 초기화
@@ -84,7 +96,12 @@ const UserDefect = ({ userId }: { userId: string }) => {
 
   const handleAdd = () => {
     if (!newDate || !newLine || !newClass || !newProcess || !newMemo) {
-      alert('모든 항목을 입력해주세요')
+      showDialog({
+        type: 'warning',
+        title: '입력 필요',
+        description: '모든 항목을 입력해주세요.',
+        confirmText: '확인',
+      })
       return
     }
 

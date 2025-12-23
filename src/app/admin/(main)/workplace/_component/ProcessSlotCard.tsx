@@ -74,7 +74,12 @@ export default function ProcessSlotCard({
       setIsOpen(false)
     },
     onError: (error: Error) => {
-      alert(`작업자 제거 실패: ${error.message}`)
+      showDialog({
+        type: 'error',
+        title: '작업자 제거 실패',
+        description: error.message,
+        confirmText: '확인',
+      })
     },
     onSettled: () => {
       hideLoading()
@@ -93,7 +98,12 @@ export default function ProcessSlotCard({
       queryClient.invalidateQueries({ queryKey: ['getAllFactoryLineApi'] })
     },
     onError: (error: Error) => {
-      alert(`상태 변경 실패: ${error.message}`)
+      showDialog({
+        type: 'error',
+        title: '상태 변경 실패',
+        description: error.message,
+        confirmText: '확인',
+      })
     },
     onSettled: () => {
       hideLoading()

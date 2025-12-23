@@ -17,6 +17,7 @@ import { ROUTES } from '@/lib/constants/routes'
 import { getCurrentUserApi, uploadLicenseApi } from '@/lib/api/user-api'
 import { CustomDatePicker } from '@/components/CustomDatePicker'
 import { format } from 'date-fns'
+import useDialogStore from '@/store/useDialogStore'
 
 interface NewEmployee {
   userId: string
@@ -30,6 +31,7 @@ interface NewEmployee {
 /** 신규 직원 등록 */
 const NewUsersPage = () => {
   const [currentUserRole, setCurrentUserRole] = useState('MANAGER')
+  const { showDialog } = useDialogStore()
 
   const router = useRouter()
   const [employee, setEmployee] = useState<NewEmployee>({
@@ -81,11 +83,21 @@ const NewUsersPage = () => {
 
   const validateEmployee = () => {
     if (!employee.userId.trim()) {
-      alert('사번은 필수입니다.')
+      showDialog({
+        type: 'warning',
+        title: '입력 필요',
+        description: '사번은 필수입니다.',
+        confirmText: '확인',
+      })
       return false
     }
     if (!employee.name.trim()) {
-      alert('이름은 필수입니다.')
+      showDialog({
+        type: 'warning',
+        title: '입력 필요',
+        description: '이름은 필수입니다.',
+        confirmText: '확인',
+      })
       return false
     }
 
@@ -119,14 +131,24 @@ const NewUsersPage = () => {
 
       const createResult = await createResponse.json()
       if (!createResult.success) {
-        alert(createResult.error || '사용자 등록에 실패했습니다.')
+        showDialog({
+          type: 'error',
+          title: '등록 실패',
+          description: createResult.error || '사용자 등록에 실패했습니다.',
+          confirmText: '확인',
+        })
         return
       }
 
       // 존재하는 사번 + 활성화된 상태 : 등록 불가
       if (createResult.data.skipped.alreadyActive.length > 0) {
         const alreadyActiveUserIds = createResult.data.skipped.alreadyActive.join(', ')
-        alert(`${alreadyActiveUserIds}는 이미 존재하는 사번입니다.`)
+        showDialog({
+          type: 'error',
+          title: '등록 실패',
+          description: `${alreadyActiveUserIds}는 이미 존재하는 사번입니다.`,
+          confirmText: '확인',
+        })
         return
       }
 
@@ -145,16 +167,34 @@ const NewUsersPage = () => {
 
       // 존재하는 사번 + 비활성화된 상태 : 등록 가능
       if (createResult.data.reactivatedCount > 0) {
-        alert(
-          `${employee.userId} 사번은 비활성화 된 사용자입니다.\n복구 후 최신 정보로 갱신되었습니다.`,
-        )
+        showDialog({
+          type: 'success',
+          title: '복구 완료',
+          description: `${employee.userId} 사번은 비활성화 된 사용자입니다.\n복구 후 최신 정보로 갱신되었습니다.`,
+          confirmText: '확인',
+          onConfirm: () => {
+            router.replace(ROUTES.ADMIN.USERS)
+          },
+        })
       } else {
-        alert('신규 직원 등록 완료했습니다.')
+        showDialog({
+          type: 'success',
+          title: '등록 완료',
+          description: '신규 직원 등록이 완료되었습니다.',
+          confirmText: '확인',
+          onConfirm: () => {
+            router.replace(ROUTES.ADMIN.USERS)
+          },
+        })
       }
-      router.replace(ROUTES.ADMIN.USERS)
     } catch (error) {
       console.error('직원 등록 실패:', error)
-      alert('직원 등록에 실패했습니다.')
+      showDialog({
+        type: 'error',
+        title: '등록 실패',
+        description: '직원 등록에 실패했습니다.',
+        confirmText: '확인',
+      })
     } finally {
       setIsSubmitting(false)
     }

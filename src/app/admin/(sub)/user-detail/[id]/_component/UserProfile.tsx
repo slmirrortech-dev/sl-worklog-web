@@ -23,6 +23,7 @@ import { ROUTES } from '@/lib/constants/routes'
 import { SessionUser } from '@/lib/utils/auth-guards'
 import { CustomDatePicker } from '@/components/CustomDatePicker'
 import { useMutation } from '@tanstack/react-query'
+import useDialogStore from '@/store/useDialogStore'
 
 /** 기본 정보 */
 const UserProfile = ({
@@ -33,6 +34,7 @@ const UserProfile = ({
   currentUser: SessionUser
 }) => {
   const router = useRouter()
+  const { showDialog } = useDialogStore()
   const [freshUser, setFreshUser] = useState<UserResponseDto>(user)
   const [isEditing, setIsEditing] = useState<boolean>(false)
   const [editName, setEditName] = useState<string>(freshUser.name)
@@ -72,7 +74,12 @@ const UserProfile = ({
       setFreshUser(response.data)
     },
     onError: () => {
-      alert('사용자 정보 수정에 실패했습니다.')
+      showDialog({
+        type: 'error',
+        title: '수정 실패',
+        description: '사용자 정보 수정에 실패했습니다.',
+        confirmText: '확인',
+      })
     },
     onSettled: () => {
       setIsSaving(false)
@@ -104,15 +111,28 @@ const UserProfile = ({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={async () => {
-                    const confirmed = confirm(
-                      `사용자를 삭제하시겠습니까?\n삭제 후에도 1년 이내 동일 사번으로 재등록하면 기존 데이터가 복구됩니다.`,
-                    )
-                    if (!confirmed) return
-
-                    const res = await deleteUserApi(freshUser.id)
-                    alert(res.message)
-                    router.replace(ROUTES.ADMIN.USERS)
+                  onClick={() => {
+                    showDialog({
+                      type: 'warning',
+                      title: '사용자 삭제',
+                      description:
+                        '사용자를 삭제하시겠습니까?\n삭제 후에도 1년 이내 동일 사번으로 재등록하면 기존 데이터가 복구됩니다.',
+                      showCancel: true,
+                      cancelText: '취소',
+                      confirmText: '삭제',
+                      onConfirm: async () => {
+                        const res = await deleteUserApi(freshUser.id)
+                        showDialog({
+                          type: 'success',
+                          title: '삭제 완료',
+                          description: res.message,
+                          confirmText: '확인',
+                          onConfirm: () => {
+                            router.replace(ROUTES.ADMIN.USERS)
+                          },
+                        })
+                      },
+                    })
                   }}
                   disabled={isEditing}
                   className="border-red-300 text-red-700 hover:bg-red-50 disabled:opacity-50"

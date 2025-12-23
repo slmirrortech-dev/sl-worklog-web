@@ -161,7 +161,12 @@ const WorkPlacePage = () => {
     },
     onError: (error: Error) => {
       setSaveProgress(0)
-      alert(`상태 변경 실패: ${error.message}`)
+      showDialog({
+        type: 'error',
+        title: '상태 변경 실패',
+        description: error.message,
+        confirmText: '확인',
+      })
     },
   })
 
@@ -187,7 +192,12 @@ const WorkPlacePage = () => {
       })
     },
     onError: (error: Error) => {
-      alert(`백업 실패: ${error.message}`)
+      showDialog({
+        type: 'error',
+        title: '백업 실패',
+        description: error.message,
+        confirmText: '확인',
+      })
     },
     onSettled: () => {
       hideLoading()
@@ -335,7 +345,12 @@ const WorkPlacePage = () => {
       if (context?.previousData) {
         queryClient.setQueryData(['getAllFactoryLineApi'], context.previousData)
       }
-      alert(`작업자 이동 실패: ${error.message}`)
+      showDialog({
+        type: 'error',
+        title: '작업자 이동 실패',
+        description: error.message,
+        confirmText: '확인',
+      })
     },
     onSettled: () => {
       // 항상 refetch하여 서버 데이터와 동기화

@@ -16,9 +16,11 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getBackupSchedulesApi, updateBackupSchedulesApi } from '@/lib/api/backup-schedule-api'
+import useDialogStore from '@/store/useDialogStore'
 
 const WorkplaceLog = () => {
   const queryClient = useQueryClient()
+  const { showDialog } = useDialogStore()
 
   // 자동 백업 시간 설정 관련 상태
   const [isEditMode, setIsEditMode] = useState(false)
@@ -113,12 +115,22 @@ const WorkplaceLog = () => {
   // 시간 추가
   const handleAddTime = () => {
     if (!newTime) {
-      alert('시간을 입력해주세요.')
+      showDialog({
+        type: 'warning',
+        title: '입력 필요',
+        description: '시간을 입력해주세요.',
+        confirmText: '확인',
+      })
       return
     }
 
     if (tempBackupTimes.includes(newTime)) {
-      alert('이미 등록된 시간입니다.')
+      showDialog({
+        type: 'warning',
+        title: '중복된 시간',
+        description: '이미 등록된 시간입니다.',
+        confirmText: '확인',
+      })
       return
     }
 
@@ -138,10 +150,20 @@ const WorkplaceLog = () => {
       setTempBackupTimes([])
       setNewTime('')
       setIsEditMode(false)
-      alert('백업 시간이 저장되었습니다.')
+      showDialog({
+        type: 'success',
+        title: '저장 완료',
+        description: '백업 시간이 저장되었습니다.',
+        confirmText: '확인',
+      })
     } catch (error) {
       console.error('백업 시간 저장 실패:', error)
-      alert('백업 시간 저장 중 오류가 발생했습니다.')
+      showDialog({
+        type: 'error',
+        title: '저장 실패',
+        description: '백업 시간 저장 중 오류가 발생했습니다.',
+        confirmText: '확인',
+      })
     }
   }
 
@@ -155,7 +177,12 @@ const WorkplaceLog = () => {
       return response.data.ids
     } catch (error) {
       console.error('전체 ID 조회 실패:', error)
-      alert('전체 선택 중 오류가 발생했습니다.')
+      showDialog({
+        type: 'error',
+        title: '전체 선택 실패',
+        description: '전체 선택 중 오류가 발생했습니다.',
+        confirmText: '확인',
+      })
       return []
     }
   }
@@ -163,7 +190,12 @@ const WorkplaceLog = () => {
   // 선택된 스냅샷 다운로드 핸들러
   const handleDownloadSelected = async () => {
     if (selectedIds.size === 0) {
-      alert('다운로드할 항목을 선택해주세요.')
+      showDialog({
+        type: 'warning',
+        title: '선택 필요',
+        description: '다운로드할 항목을 선택해주세요.',
+        confirmText: '확인',
+      })
       return
     }
 
@@ -173,7 +205,12 @@ const WorkplaceLog = () => {
       const mergedData = response.data.data
 
       if (!mergedData || mergedData.length === 0) {
-        alert('다운로드할 데이터가 없습니다.')
+        showDialog({
+          type: 'warning',
+          title: '데이터 없음',
+          description: '다운로드할 데이터가 없습니다.',
+          confirmText: '확인',
+        })
         return
       }
 
@@ -228,13 +265,23 @@ const WorkplaceLog = () => {
       link.click()
       window.URL.revokeObjectURL(url)
 
-      alert(`${response.data.snapshotCount}개 스냅샷의 데이터가 다운로드되었습니다.`)
+      showDialog({
+        type: 'success',
+        title: '다운로드 완료',
+        description: `${response.data.snapshotCount}개 스냅샷의 데이터가 다운로드되었습니다.`,
+        confirmText: '확인',
+      })
 
       // 선택 초기화
       setSelectedIds(new Set())
     } catch (error) {
       console.error('Excel download error:', error)
-      alert('엑셀 다운로드 중 오류가 발생했습니다.')
+      showDialog({
+        type: 'error',
+        title: '다운로드 실패',
+        description: '엑셀 다운로드 중 오류가 발생했습니다.',
+        confirmText: '확인',
+      })
     }
   }
 

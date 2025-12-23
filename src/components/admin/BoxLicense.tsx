@@ -8,6 +8,7 @@ import { ApiResponse } from '@/types/common'
 import ModalLicense from '@/components/admin/ModalLicense'
 import { useRouter } from 'next/navigation'
 import { useLoading } from '@/contexts/LoadingContext'
+import useDialogStore from '@/store/useDialogStore'
 
 /**
  * 이미지 업로드/모달 보기 컴포넌트
@@ -24,6 +25,7 @@ export default function BoxLicense({
 }) {
   const router = useRouter()
   const { showLoading, hideLoading } = useLoading()
+  const { showDialog } = useDialogStore()
   const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState(false)
   const [file, setFile] = useState<File | null>(null)
@@ -60,7 +62,12 @@ export default function BoxLicense({
         router.refresh()
       }
     } catch {
-      alert('이미지 업로드에 실패했습니다.')
+      showDialog({
+        type: 'error',
+        title: '업로드 실패',
+        description: '이미지 업로드에 실패했습니다.',
+        confirmText: '확인',
+      })
     } finally {
       hideLoading()
     }
@@ -113,7 +120,12 @@ export default function BoxLicense({
                     router.refresh()
                   } catch (error) {
                     console.error(error)
-                    alert('면허증 이미지 삭제 실패했습니다.')
+                    showDialog({
+                      type: 'error',
+                      title: '삭제 실패',
+                      description: '면허증 이미지 삭제에 실패했습니다.',
+                      confirmText: '확인',
+                    })
                   } finally {
                     setIsLoading(false)
                   }
