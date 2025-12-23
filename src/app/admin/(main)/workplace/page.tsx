@@ -572,7 +572,7 @@ const WorkPlacePage = () => {
                       }}
                     >
                       {/* 라인명 */}
-                      <div className="flex items-center justify-center text-lg font-bold whitespace-nowrap border-b border-gray-200">
+                      <div className="flex items-center justify-center text-center text-lg font-bold border-b border-gray-200 px-2 break-words">
                         {line.name}
                       </div>
 
