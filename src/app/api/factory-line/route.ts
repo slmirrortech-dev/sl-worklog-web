@@ -62,6 +62,9 @@ async function getFactoryLine(request: NextRequest) {
     include: {
       shifts: false,
     },
+    orderBy: {
+      displayOrder: 'asc',
+    },
   })
 
   return ApiResponseFactory.success(factoryLine, '라인 정보를 가져왔습니다.')
@@ -78,12 +81,19 @@ async function updateFactoryLine(request: NextRequest) {
 
   const body: FactoryLineRequest[] = await request.json()
 
+  // 디버깅: 받은 데이터 로그
+  console.log('=== 라인 업데이트 요청 ===')
+  console.log('받은 라인 수:', body.length)
+  console.log('받은 데이터:', JSON.stringify(body, null, 2))
+
   // DB에 있는 라인 데이터 가져오기
   await prisma.$transaction(async (tx) => {
     const config = await tx.factoryConfig.findFirst()
     const processCount = config?.processCount ?? 7 // 기본값 7
 
     const dbLines = await tx.factoryLine.findMany()
+    console.log('DB에 있는 라인 수:', dbLines.length)
+    console.log('DB 라인:', JSON.stringify(dbLines.map(l => ({ id: l.id, name: l.name, workClassId: l.workClassId })), null, 2))
 
     const processedDbIds = new Set()
 
@@ -91,10 +101,13 @@ async function updateFactoryLine(request: NextRequest) {
       // id로 비교
       let match = dbLines.find((db) => db.id === item.id)
 
-      // id로 일치하는 게 없으면 이름으로 비교
+      // id로 일치하는 게 없으면 같은 반 내에서 이름으로 비교
       if (!match) {
-        match = dbLines.find((db) => db.name === item.name)
+        match = dbLines.find((db) => db.name === item.name && db.workClassId === item.workClassId)
       }
+
+      console.log(`처리 중: ${item.name} (id: ${item.id}, workClassId: ${item.workClassId})`)
+      console.log(`  매칭 결과:`, match ? `${match.name} (id: ${match.id})` : '없음 - 새로 생성')
 
       if (match) {
         // 기존 라인은 기본 정보만 업데이트 (shifts/slots는 유지)
@@ -122,14 +135,17 @@ async function updateFactoryLine(request: NextRequest) {
     }
 
     // 필요 없는 거 삭제
-    const linesToDelete = dbLines.filter((db) => !processedDbIds.has(db.id)).map((db) => db.id)
+    const linesToDelete = dbLines.filter((db) => !processedDbIds.has(db.id))
+    console.log('삭제할 라인:', linesToDelete.map(l => ({ id: l.id, name: l.name, workClassId: l.workClassId })))
+
     await tx.factoryLine.deleteMany({
       where: {
         id: {
-          in: linesToDelete,
+          in: linesToDelete.map((db) => db.id),
         },
       },
     })
+    console.log('=== 라인 업데이트 완료 ===\n')
   })
 
   return ApiResponseFactory.success({}, '라인 정보가 수정되었습니다.')

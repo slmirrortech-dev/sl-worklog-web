@@ -9,12 +9,9 @@ import { WorkStatus } from '@prisma/client'
 export const runtime = 'nodejs'
 
 /**
- * 공장 설정 가져오기
+ * 공장 설정 가져오기 (모니터 화면에서 로그인 없이 조회 가능)
  **/
 async function getFactoryConfig(request: NextRequest) {
-  // 권한 확인
-  await requireManagerOrAdmin(request)
-
   const factoryConfig = (await prisma.factoryConfig.findFirst()) as FactoryConfigResponse
 
   return ApiResponseFactory.success(factoryConfig, '공정 설정 정보를 가져왔습니다.')

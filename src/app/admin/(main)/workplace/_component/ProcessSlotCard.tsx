@@ -95,18 +95,18 @@ export default function ProcessSlotCard({
     },
     onSuccess: () => {
       // 라인 데이터 refetch
-      queryClient.invalidateQueries({ queryKey: ['getAllFactoryLineApi'] })
+      queryClient.invalidateQueries({ queryKey: ['getAllFactoryLineApi'] }).then(() => {
+        hideLoading()
+      })
     },
     onError: (error: Error) => {
+      hideLoading()
       showDialog({
         type: 'error',
         title: '상태 변경 실패',
         description: error.message,
         confirmText: '확인',
       })
-    },
-    onSettled: () => {
-      hideLoading()
     },
   })
 

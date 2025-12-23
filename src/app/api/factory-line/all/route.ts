@@ -7,12 +7,9 @@ import { ApiResponseFactory } from '@/lib/core/api-response-factory'
 export const runtime = 'nodejs'
 
 /**
- * 공장라인 모든 정보 가져오기
+ * 공장라인 모든 정보 가져오기 (모니터 화면에서 로그인 없이 조회 가능)
  **/
 async function getAllFactoryLine(request: NextRequest) {
-  // 권한 확인
-  await requireManagerOrAdmin(request)
-
   const factoryLine = await prisma.factoryLine.findMany({
     include: {
       workClass: true,
@@ -29,10 +26,23 @@ async function getAllFactoryLine(request: NextRequest) {
                 },
               },
             },
+            orderBy: {
+              slotIndex: 'asc',
+            },
           },
         },
       },
     },
+    orderBy: [
+      {
+        workClass: {
+          displayOrder: 'asc',
+        },
+      },
+      {
+        displayOrder: 'asc',
+      },
+    ],
   })
 
   return ApiResponseFactory.success(factoryLine, '라인 전체 정보를 가져왔습니다.')

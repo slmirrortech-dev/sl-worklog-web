@@ -8,12 +8,9 @@ import { WorkClassRequestModel } from '@/types/workplace'
 export const runtime = 'nodejs'
 
 /**
- * 반 가져오기
+ * 반 가져오기 (모니터 화면에서 로그인 없이 조회 가능)
  **/
 async function getWorkClasses(request: NextRequest) {
-  // 권한 확인
-  await requireManagerOrAdmin(request)
-
   const workClasses = await prisma.workClass.findMany({
     orderBy: { displayOrder: 'asc' },
   })
