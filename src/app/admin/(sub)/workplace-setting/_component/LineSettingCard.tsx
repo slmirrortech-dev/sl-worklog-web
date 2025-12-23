@@ -33,6 +33,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { getFactoryLineApi, getWorkClassesApi, updateFactoryLineApi } from '@/lib/api/workplace-api'
 import { FactoryLineRequest, FactoryLineResponse, WorkClassResponseDto } from '@/types/workplace'
 import { useLoading } from '@/contexts/LoadingContext'
+import useDialogStore from '@/store/useDialogStore'
 
 interface SortableLineItemProps {
   line: FactoryLineResponse
@@ -172,6 +173,7 @@ function SortableLineItem({
 }
 
 export default function LineSettingCard() {
+  const { showDialog } = useDialogStore()
   const { showLoading, hideLoading } = useLoading()
 
   const { data: classesData } = useQuery({
@@ -180,7 +182,7 @@ export default function LineSettingCard() {
     select: (response) => response.data,
   })
 
-  const { data: factoryLineData } = useQuery({
+  const { data: factoryLineData, refetch: factoryLineRefetch } = useQuery({
     queryKey: ['getFactoryLineApi'],
     queryFn: getFactoryLineApi,
     select: (response) => response.data,
@@ -188,6 +190,23 @@ export default function LineSettingCard() {
 
   const { mutate } = useMutation({
     mutationFn: updateFactoryLineApi,
+    onSuccess: () => {
+      factoryLineRefetch()
+      showDialog({
+        type: 'success',
+        title: '저장 완료',
+        description: '라인 정보가 저장되었습니다.',
+        confirmText: '확인',
+      })
+    },
+    onError: (error) => {
+      showDialog({
+        type: 'error',
+        title: '저장 실패',
+        description: `라인 정보 저장 중 오류가 발생했습니다. ${error?.message}`,
+        confirmText: '확인',
+      })
+    },
     onSettled: () => {
       hideLoading()
     },

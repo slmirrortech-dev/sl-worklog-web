@@ -4,6 +4,9 @@ import './globals.css'
 import React from 'react'
 import { LoadingProvider } from '@/contexts/LoadingContext'
 import LoadingOverlay from '@/components/common/LoadingOverlay'
+import QueryProvider from '@/contexts/QueryProvider'
+import GlobalDialog from '@/components/GlobalDialog'
+import GlobalLoading from '@/components/GlobalLoading'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -48,10 +51,15 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icon-192x192.png" />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <LoadingProvider>
-          {children}
-          <LoadingOverlay />
-        </LoadingProvider>
+        <QueryProvider>
+          <LoadingProvider>
+            {children}
+            <LoadingOverlay />
+          </LoadingProvider>
+          {/* 전역 Dialog 및 Loading */}
+          <GlobalDialog />
+          <GlobalLoading />
+        </QueryProvider>
       </body>
     </html>
   )
