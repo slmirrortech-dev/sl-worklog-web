@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { searchWorkplaceSnapshotsApi } from '@/lib/api/workplace-snapshot-api'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { format, subMonths } from 'date-fns'
+import { format } from 'date-fns'
 
 export type SearchStatesType = {
   startDate: Date
@@ -28,19 +28,16 @@ const useSearchWorkplaceLog = () => {
   }
 
   const today = new Date()
-  const oneMonthAgo = subMonths(today, 1)
 
   // 검색 필터 (사용자 입력용)
-  const [startDate, setStartDate] = useState(() => getInitialDate('startDate', oneMonthAgo))
+  const [startDate, setStartDate] = useState(() => getInitialDate('startDate', today))
   const [endDate, setEndDate] = useState(() => getInitialDate('endDate', today))
 
   const [page, setPage] = useState(() => getInitialNumber('page', 1))
   const [pageSize, setPageSize] = useState(() => getInitialNumber('pageSize', 50))
 
   // 실제 쿼리에 사용되는 검색 조건 (검색 버튼을 눌렀을 때만 업데이트)
-  const [appliedStartDate, setAppliedStartDate] = useState(() =>
-    getInitialDate('startDate', oneMonthAgo),
-  )
+  const [appliedStartDate, setAppliedStartDate] = useState(() => getInitialDate('startDate', today))
   const [appliedEndDate, setAppliedEndDate] = useState(() => getInitialDate('endDate', today))
 
   // 데이터 조회 결과
@@ -97,14 +94,13 @@ const useSearchWorkplaceLog = () => {
   // 필터 초기화
   const resetFilters = () => {
     const today = new Date()
-    const oneMonthAgo = subMonths(today, 1)
 
-    setStartDate(oneMonthAgo)
+    setStartDate(today)
     setEndDate(today)
     setPage(1)
 
     // 적용된 검색 조건도 초기화
-    setAppliedStartDate(oneMonthAgo)
+    setAppliedStartDate(today)
     setAppliedEndDate(today)
 
     // URL 초기화
