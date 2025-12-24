@@ -12,7 +12,10 @@ export const runtime = 'nodejs'
  * Master 계정 전용: 관리자/작업반장 비밀번호 초기화
  * 비밀번호를 사번(userId)으로 초기화하고 mustChangePassword를 true로 설정
  */
-async function resetPassword(req: NextRequest, { params }: { params: { id: string } }) {
+async function resetPassword(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
   // 1. 세션 체크
   const session = await getSessionUser(req)
 
@@ -21,9 +24,12 @@ async function resetPassword(req: NextRequest, { params }: { params: { id: strin
     throw new ApiError('Master 계정만 비밀번호를 초기화할 수 있습니다.', 403, 'MASTER_ONLY')
   }
 
-  // 3. 대상 사용자 조회
+  // 3. params await 처리
+  const { id } = await params
+
+  // 4. 대상 사용자 조회
   const targetUser = await prisma.user.findUnique({
-    where: { id: params.id },
+    where: { id },
   })
 
   if (!targetUser) {
@@ -63,7 +69,7 @@ async function resetPassword(req: NextRequest, { params }: { params: { id: strin
 
   // 8. Prisma DB: mustChangePassword = true 설정
   await prisma.user.update({
-    where: { id: params.id },
+    where: { id },
     data: {
       mustChangePassword: true,
     },
