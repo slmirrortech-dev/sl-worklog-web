@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react'
 
 import { UserResponseDto, updateUserRequestModel } from '@/types/user'
-import { Edit, Trash2, User, Calendar } from 'lucide-react'
+import { Edit, Trash2, User, Calendar, KeyRound } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -24,6 +24,7 @@ import { SessionUser } from '@/lib/utils/auth-guards'
 import { CustomDatePicker } from '@/components/CustomDatePicker'
 import { useMutation } from '@tanstack/react-query'
 import useDialogStore from '@/store/useDialogStore'
+import { useLoading } from '@/contexts/LoadingContext'
 
 /** 기본 정보 */
 const UserProfile = ({
@@ -35,6 +36,7 @@ const UserProfile = ({
 }) => {
   const router = useRouter()
   const { showDialog } = useDialogStore()
+  const { showLoading, hideLoading } = useLoading()
   const [freshUser, setFreshUser] = useState<UserResponseDto>(user)
   const [isEditing, setIsEditing] = useState<boolean>(false)
   const [editName, setEditName] = useState<string>(freshUser.name)
@@ -62,6 +64,66 @@ const UserProfile = ({
     }
 
     return false
+  }
+
+  const canResetPassword = () => {
+    // Master 계정만 관리자/작업반장 비밀번호 초기화 가능
+    if (currentUser.userId !== 'master') return false
+    if (freshUser.userId === 'master') return false // Master 본인은 불가
+    if (freshUser.role !== 'ADMIN' && freshUser.role !== 'MANAGER') return false
+    return true
+  }
+
+  const handleResetPassword = () => {
+    showDialog({
+      type: 'warning',
+      title: '비밀번호 초기화',
+      description: `${freshUser.name}(${freshUser.userId})님의 비밀번호를 사번으로 초기화하시겠습니까?\n\n초기화 후 해당 사용자는 다음 로그인 시 비밀번호 변경이 필요합니다.`,
+      showCancel: true,
+      cancelText: '취소',
+      confirmText: '초기화',
+      onConfirm: async () => {
+        try {
+          showLoading()
+          const response = await fetch(`/api/users/${freshUser.id}/reset-password`, {
+            method: 'POST',
+            credentials: 'include',
+          })
+
+          const result = await response.json()
+          hideLoading()
+
+          setTimeout(() => {
+            if (!result.success) {
+              showDialog({
+                type: 'error',
+                title: '초기화 실패',
+                description: result.error || '비밀번호 초기화에 실패했습니다.',
+                confirmText: '확인',
+              })
+            } else {
+              showDialog({
+                type: 'success',
+                title: '초기화 완료',
+                description: `${freshUser.name}(${freshUser.userId})님의 비밀번호가 사번으로 초기화되었습니다.`,
+                confirmText: '확인',
+              })
+            }
+          }, 300)
+        } catch (error) {
+          console.error('비밀번호 초기화 오류:', error)
+          hideLoading()
+          setTimeout(() => {
+            showDialog({
+              type: 'error',
+              title: '초기화 실패',
+              description: '비밀번호 초기화 중 오류가 발생했습니다.',
+              confirmText: '확인',
+            })
+          }, 300)
+        }
+      },
+    })
   }
 
   const { mutate: updateMutate } = useMutation({
@@ -107,7 +169,19 @@ const UserProfile = ({
                 <Edit className="w-4 h-4 mr-1" />
                 수정
               </Button>
-              {currentUser.id !== freshUser.id && (
+              {canResetPassword() && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleResetPassword}
+                  disabled={isEditing}
+                  className="border-orange-300 text-orange-700 hover:bg-orange-50 disabled:opacity-50"
+                >
+                  <KeyRound className="w-4 h-4 mr-1" />
+                  비밀번호 초기화
+                </Button>
+              )}
+              {currentUser.id !== freshUser.id && freshUser.userId !== 'master' && (
                 <Button
                   variant="outline"
                   size="sm"
