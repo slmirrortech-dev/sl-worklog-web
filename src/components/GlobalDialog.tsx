@@ -52,13 +52,19 @@ const GlobalDialog = () => {
   const config = iconConfig[type]
 
   const handleCancel = () => {
-    onCancel?.()
     hideDialog()
+    // hideDialog 후 다음 tick에 실행하여 상태 정리 보장
+    setTimeout(() => {
+      onCancel?.()
+    }, 0)
   }
 
   const handleConfirm = () => {
-    onConfirm?.()
     hideDialog()
+    // hideDialog 후 다음 tick에 실행하여 상태 정리 보장
+    setTimeout(() => {
+      onConfirm?.()
+    }, 0)
   }
 
   return (

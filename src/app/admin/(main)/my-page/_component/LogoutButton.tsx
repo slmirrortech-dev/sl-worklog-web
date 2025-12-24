@@ -30,12 +30,15 @@ const LogoutButton = () => {
                 router.push(ROUTES.ADMIN.LOGIN)
               } catch (error) {
                 console.error(error)
-                showDialog({
-                  type: 'error',
-                  title: '로그아웃 실패',
-                  description: '로그아웃에 실패했습니다.',
-                  confirmText: '확인',
-                })
+                // 다이얼로그가 완전히 닫힌 후 에러 메시지 표시
+                setTimeout(() => {
+                  showDialog({
+                    type: 'error',
+                    title: '로그아웃 실패',
+                    description: '로그아웃에 실패했습니다.',
+                    confirmText: '확인',
+                  })
+                }, 300)
               }
             },
           })

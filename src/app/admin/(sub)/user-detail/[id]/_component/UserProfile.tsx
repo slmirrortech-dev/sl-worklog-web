@@ -121,16 +121,31 @@ const UserProfile = ({
                       cancelText: '취소',
                       confirmText: '삭제',
                       onConfirm: async () => {
-                        const res = await deleteUserApi(freshUser.id)
-                        showDialog({
-                          type: 'success',
-                          title: '삭제 완료',
-                          description: res.message,
-                          confirmText: '확인',
-                          onConfirm: () => {
-                            router.replace(ROUTES.ADMIN.USERS)
-                          },
-                        })
+                        try {
+                          const res = await deleteUserApi(freshUser.id)
+                          // 다이얼로그가 완전히 닫힌 후 성공 메시지 표시
+                          setTimeout(() => {
+                            showDialog({
+                              type: 'success',
+                              title: '삭제 완료',
+                              description: res.message,
+                              confirmText: '확인',
+                              onConfirm: () => {
+                                router.replace(ROUTES.ADMIN.USERS)
+                              },
+                            })
+                          }, 300)
+                        } catch (error) {
+                          // 에러 발생 시에도 안전하게 처리
+                          setTimeout(() => {
+                            showDialog({
+                              type: 'error',
+                              title: '삭제 실패',
+                              description: '사용자 삭제 중 오류가 발생했습니다.',
+                              confirmText: '확인',
+                            })
+                          }, 300)
+                        }
                       },
                     })
                   }}
