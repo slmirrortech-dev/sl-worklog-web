@@ -30,14 +30,11 @@ const AreaWaitingWorker = ({ slot }: AreaWaitingWorkerProps) => {
   const [isShowLicense, setIsShowLicense] = useState(false)
   const { showToast } = useToast()
 
-  if (!worker) {
-    return <div className="w-full h-full" />
-  }
-
+  // Hooks는 조건문 위에서 항상 호출되어야 함
   const { data: licenseData } = useQuery({
     queryKey: ['license', worker?.licensePhotoUrl],
     queryFn: () => getLicenseApi(worker!.licensePhotoUrl!),
-    enabled: !!worker?.licensePhotoUrl,
+    enabled: !!worker && !!worker.licensePhotoUrl,
     select: (response) => {
       if (response && response.data?.url) {
         return response.data.url
@@ -46,6 +43,10 @@ const AreaWaitingWorker = ({ slot }: AreaWaitingWorkerProps) => {
       }
     },
   })
+
+  if (!worker) {
+    return <div className="w-full h-full" />
+  }
 
   return (
     <>
