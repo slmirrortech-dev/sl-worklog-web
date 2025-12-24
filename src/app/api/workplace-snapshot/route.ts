@@ -28,10 +28,11 @@ async function getWorkplaceSnapshots(request: NextRequest) {
   const where: any = {}
 
   // 날짜 범위 검색 (createdAt 기준)
+  // 프론트엔드에서 "yyyy-MM-dd HH:mm:ss" 형식으로 전달됨
   if (startDate && endDate) {
     where.createdAt = {
       gte: new Date(startDate),
-      lte: new Date(endDate + 'T23:59:59'),
+      lte: new Date(endDate),
     }
   } else if (startDate) {
     where.createdAt = {
@@ -39,7 +40,7 @@ async function getWorkplaceSnapshots(request: NextRequest) {
     }
   } else if (endDate) {
     where.createdAt = {
-      lte: new Date(endDate + 'T23:59:59'),
+      lte: new Date(endDate),
     }
   }
 

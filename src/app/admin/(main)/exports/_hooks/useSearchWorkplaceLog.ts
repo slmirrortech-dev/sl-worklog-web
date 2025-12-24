@@ -113,8 +113,8 @@ const useSearchWorkplaceLog = () => {
     queryKey: ['workplaceSnapshots', page, pageSize, appliedStartDate, appliedEndDate],
     queryFn: async () => {
       const response = await searchWorkplaceSnapshotsApi({
-        startDate: format(appliedStartDate, 'yyyy-MM-dd'),
-        endDate: format(appliedEndDate, 'yyyy-MM-dd'),
+        startDate: `${format(appliedStartDate, 'yyyy-MM-dd')} 00:00:00`,
+        endDate: `${format(appliedEndDate, 'yyyy-MM-dd')} 23:59:59`,
         page,
         pageSize,
       })
