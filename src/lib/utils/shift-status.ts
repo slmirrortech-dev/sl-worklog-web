@@ -25,7 +25,7 @@ export const colorWorkStatus = (status: WorkStatus) => {
     case 'NORMAL':
       return 'bg-green-100 text-green-800 border border-green-200'
     case 'OVERTIME':
-      return 'bg-violet-100 text-violet-800 border border-violet-200'
+      return 'bg-yellow-100 text-yellow-800 border border-yellow-200'
     case 'EXTENDED':
       return 'bg-red-100 text-red-800 border border-red-200'
   }
