@@ -16,6 +16,10 @@ async function resetPassword(req: NextRequest, { params }: { params: Promise<{ i
   // 1. 세션 체크
   const session = await getSessionUser(req)
 
+  if (!session) {
+    throw new ApiError('인증이 필요합니다.', 401, 'UNAUTHORIZED')
+  }
+
   // 2. Master 계정 확인
   if (session.userId !== 'master') {
     throw new ApiError('Master 계정만 비밀번호를 초기화할 수 있습니다.', 403, 'MASTER_ONLY')
