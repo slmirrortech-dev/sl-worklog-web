@@ -1,12 +1,13 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import React, { useState } from 'react'
 import Image from 'next/image'
-import { AlertCircle, CheckCircle } from 'lucide-react'
+import { AlertCircle } from 'lucide-react'
 import { changePasswordApi } from '@/lib/api/auth-api'
 import { ROUTES } from '@/lib/constants/routes'
-import { apiFetch } from '@/lib/api/api-fetch'
+import { useRouter } from 'next/navigation'
+import useDialogStore from '@/store/useDialogStore'
+import { useLoading } from '@/contexts/LoadingContext'
 
 /**
  * 관리자 > 비밀번호 변경 페이지
@@ -16,62 +17,37 @@ import { apiFetch } from '@/lib/api/api-fetch'
  * 사번과 이름으로 본인 확인 후 비밀번호 변경
  **/
 const ChangePasswordPage = () => {
+  const router = useRouter()
+  const { showDialog } = useDialogStore()
+  const { showLoading, hideLoading } = useLoading()
   const [userId, setUserId] = useState<string>('')
   const [name, setName] = useState<string>('')
   const [newPassword, setNewPassword] = useState<string>('')
   const [confirmPassword, setConfirmPassword] = useState<string>('')
   const [error, setError] = useState<string>('')
-  const [success, setSuccess] = useState<string>('')
-  const [isLoading, setIsLoading] = useState<boolean>(false)
-  const [isChecking, setIsChecking] = useState<boolean>(true)
-  const router = useRouter()
-
-  // 페이지 로드 시 비밀번호 변경 필요 여부 확인
-  useEffect(() => {
-    const checkPasswordChangeRequired = async () => {
-      try {
-        const response = await apiFetch<{ mustChangePassword: boolean }>(
-          '/api/auth/check-password-change',
-        )
-        if (!response.mustChangePassword) {
-          // 이미 비밀번호를 변경한 경우 작업장 현황으로 이동
-          window.location.href = ROUTES.ADMIN.WORKPLACE
-        } else {
-          setIsChecking(false)
-        }
-      } catch (error) {
-        console.error('비밀번호 변경 여부 확인 실패:', error)
-        setIsChecking(false)
-      }
-    }
-
-    checkPasswordChangeRequired()
-  }, [])
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
     setError('')
-    setSuccess('')
 
     // 클라이언트 측 유효성 검사
     if (newPassword !== confirmPassword) {
       setError('새 비밀번호가 일치하지 않습니다.')
-      setIsLoading(false)
       return
     }
 
     if (newPassword.length < 6) {
       setError('새 비밀번호는 최소 6자 이상이어야 합니다.')
-      setIsLoading(false)
       return
     }
 
     if (newPassword === userId) {
       setError('새 비밀번호는 사번과 달라야 합니다.')
-      setIsLoading(false)
       return
     }
+
+    // 전역 로딩 표시
+    showLoading()
 
     try {
       await changePasswordApi({
@@ -80,29 +56,21 @@ const ChangePasswordPage = () => {
         newPassword,
       })
 
-      setSuccess('비밀번호가 성공적으로 변경되었습니다. 잠시 후 작업장 현황 페이지로 이동합니다.')
-
-      // 2초 후 작업장 현황 페이지로 이동
-      setTimeout(() => {
-        window.location.href = ROUTES.ADMIN.WORKPLACE
-      }, 2000)
+      // 로딩 숨기고 성공 다이얼로그 표시
+      hideLoading()
+      showDialog({
+        type: 'success',
+        title: '비밀번호 변경 완료',
+        description: '비밀번호가 성공적으로 변경되었습니다.\n작업장 현황 페이지로 이동합니다.',
+        confirmText: '확인',
+        onConfirm: () => {
+          router.push(ROUTES.ADMIN.WORKPLACE)
+        },
+      })
     } catch (error) {
+      hideLoading()
       setError((error as Error).message)
-    } finally {
-      setIsLoading(false)
     }
-  }
-
-  // 비밀번호 변경 필요 여부 확인 중
-  if (isChecking) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-900 mx-auto"></div>
-          <p className="mt-4 text-gray-600">확인 중...</p>
-        </div>
-      </div>
-    )
   }
 
   return (
@@ -193,22 +161,12 @@ const ChangePasswordPage = () => {
               </div>
             )}
 
-            {success && (
-              <div className="flex items-center gap-2 text-green-600 bg-green-50 p-3 rounded-lg">
-                <CheckCircle className="w-5 h-5" />
-                <span className="text-sm">{success}</span>
-              </div>
-            )}
-
-            {!success && (
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full bg-primary-900 text-white py-3 px-4 rounded-lg font-medium hover:bg-primary-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isLoading ? '변경 중...' : '비밀번호 변경'}
-              </button>
-            )}
+            <button
+              type="submit"
+              className="w-full bg-primary-900 text-white py-3 px-4 rounded-lg font-medium hover:bg-primary-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+            >
+              비밀번호 변경
+            </button>
           </form>
         </div>
       </div>

@@ -5,8 +5,21 @@ import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
-const SubHeader = ({ title = '서브페이지' }: { title: string }) => {
+interface SubHeaderProps {
+  title: string
+  onBack?: () => void | Promise<void>
+}
+
+const SubHeader = ({ title = '서브페이지', onBack }: SubHeaderProps) => {
   const router = useRouter()
+
+  const handleBack = async () => {
+    if (onBack) {
+      await onBack()
+    } else {
+      router.back()
+    }
+  }
 
   return (
     <>
@@ -18,7 +31,7 @@ const SubHeader = ({ title = '서브페이지' }: { title: string }) => {
                 variant="ghost"
                 size="sm"
                 className="text-gray-600 hover:text-gray-900"
-                onClick={() => router.back()}
+                onClick={handleBack}
               >
                 <ArrowLeft className="w-4 h-4 mr-1" />
                 뒤로

@@ -23,8 +23,8 @@ export async function middleware(req: NextRequest) {
   else {
     // 로그인한 사용자가 로그인 페이지에 접근하려고 하는 경우
     if (pathname === ROUTES.ADMIN.LOGIN) {
-      // 비밀번호 변경 페이지로 리디렉션 (로그인 후 항상 비밀번호 변경 페이지 확인)
-      return NextResponse.redirect(new URL(ROUTES.ADMIN.CHANGE_PASSWORD, req.url))
+      // 작업장 현황으로 리디렉션 (비밀번호 변경은 layout에서 체크)
+      return NextResponse.redirect(new URL(ROUTES.ADMIN.WORKPLACE, req.url))
     }
   }
 
