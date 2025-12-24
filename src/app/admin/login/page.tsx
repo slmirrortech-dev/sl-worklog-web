@@ -3,9 +3,10 @@
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { AlertCircle } from 'lucide-react'
 import { loginAdminApi } from '@/lib/api/auth-api'
 import { ROUTES } from '@/lib/constants/routes'
+import { useLoading } from '@/contexts/LoadingContext'
+import useDialogStore from '@/store/useDialogStore'
 
 /**
  * 관리자 > 로그인 페이지
@@ -13,14 +14,16 @@ import { ROUTES } from '@/lib/constants/routes'
 const AdminLoginPage = () => {
   const [userId, setUserId] = useState<string>('')
   const [password, setPassword] = useState<string>('')
-  const [error, setError] = useState<string>('')
-  const [isLoading, setIsLoading] = useState<boolean>(false)
   const router = useRouter()
+  const { showLoading, hideLoading } = useLoading()
+  const { showDialog } = useDialogStore()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
-    setError('')
+
+    // 전역 로딩 표시
+    showLoading()
+
     try {
       const response = await loginAdminApi({
         userId: userId.trim(),
@@ -36,9 +39,14 @@ const AdminLoginPage = () => {
         window.location.href = ROUTES.ADMIN.WORKPLACE
       }
     } catch (error) {
-      setError((error as Error).message)
-    } finally {
-      setIsLoading(false)
+      hideLoading()
+      // 에러를 전역 모달로 표시
+      showDialog({
+        type: 'error',
+        title: '로그인 실패',
+        description: (error as Error).message || '로그인 중 오류가 발생했습니다.',
+        confirmText: '확인',
+      })
     }
   }
 
@@ -89,19 +97,11 @@ const AdminLoginPage = () => {
               />
             </div>
 
-            {error && (
-              <div className="flex items-center gap-2 text-red-600 bg-red-50 p-3 rounded-lg">
-                <AlertCircle className="w-5 h-5" />
-                <span className="text-sm">{error}</span>
-              </div>
-            )}
-
             <button
               type="submit"
-              disabled={isLoading}
-              className="w-full bg-primary-900 text-white py-3 px-4 rounded-lg font-medium hover:bg-primary-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-primary-900 text-white py-3 px-4 rounded-lg font-medium hover:bg-primary-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
             >
-              {isLoading ? '로그인 중...' : '로그인'}
+              로그인
             </button>
           </form>
         </div>
