@@ -12,10 +12,7 @@ export const runtime = 'nodejs'
  * Master 계정 전용: 관리자/작업반장 비밀번호 초기화
  * 비밀번호를 사번(userId)으로 초기화하고 mustChangePassword를 true로 설정
  */
-async function resetPassword(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+async function resetPassword(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   // 1. 세션 체크
   const session = await getSessionUser(req)
 
