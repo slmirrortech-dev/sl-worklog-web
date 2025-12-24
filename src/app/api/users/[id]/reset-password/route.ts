@@ -32,7 +32,11 @@ async function resetPassword(req: NextRequest, { params }: { params: { id: strin
 
   // 4. 관리자/작업반장만 초기화 가능
   if (targetUser.role !== 'ADMIN' && targetUser.role !== 'MANAGER') {
-    throw new ApiError('관리자 또는 작업반장만 비밀번호를 초기화할 수 있습니다.', 400, 'INVALID_ROLE')
+    throw new ApiError(
+      '관리자 또는 작업반장만 비밀번호를 초기화할 수 있습니다.',
+      400,
+      'INVALID_ROLE',
+    )
   }
 
   // 5. Master 본인은 초기화 불가
