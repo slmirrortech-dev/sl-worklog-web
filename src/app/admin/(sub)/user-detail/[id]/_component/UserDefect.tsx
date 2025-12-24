@@ -105,12 +105,14 @@ const UserDefect = ({ userId }: { userId: string }) => {
       return
     }
 
-    // Date 객체와 시간 문자열 결합
+    // Date 객체와 시간 문자열 결합 (KST 기준)
     const dateStr = format(newDate, 'yyyy-MM-dd')
-    const dateTimeStr = newTime ? `${dateStr} ${newTime}` : dateStr
+    const timeStr = newTime || '00:00:00'
+    // KST 시간대 포함 ISO 문자열 생성 후 UTC ISO String으로 변환
+    const kstDateTime = new Date(`${dateStr}T${timeStr}+09:00`)
 
     const newRecord: DefectLogCreateRequest = {
-      occurredAt: format(new Date(dateTimeStr), "yyyy-MM-dd'T'HH:mm:ss"),
+      occurredAt: kstDateTime.toISOString(),
       workerId: userId,
       lineName: newLine,
       className: newClass,

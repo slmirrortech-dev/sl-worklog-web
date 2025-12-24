@@ -28,7 +28,7 @@ async function getWorkplaceSnapshots(request: NextRequest) {
   const where: any = {}
 
   // 날짜 범위 검색 (createdAt 기준)
-  // 프론트엔드에서 "yyyy-MM-dd HH:mm:ss" 형식으로 전달됨
+  // 프론트엔드에서 ISO 8601 형식으로 전달됨 (예: "2025-12-24T00:00:00+09:00")
   if (startDate && endDate) {
     where.createdAt = {
       gte: new Date(startDate),

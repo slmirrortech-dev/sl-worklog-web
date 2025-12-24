@@ -3,7 +3,8 @@ import { ShiftType } from '@prisma/client'
 import { useQuery } from '@tanstack/react-query'
 import { searchDefectLogsApi } from '@/lib/api/defect-log-api'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { format, subMonths } from 'date-fns'
+import { subMonths, startOfDay, endOfDay } from 'date-fns'
+import { toZonedTime } from 'date-fns-tz'
 
 export type SearchStatesType = {
   startDate: Date
@@ -187,9 +188,13 @@ const useSearchDefectLog = () => {
       appliedMemo,
     ],
     queryFn: async () => {
+      // KST 기준으로 날짜 시작/끝 계산 후 UTC ISO String으로 변환
+      const kstStart = startOfDay(toZonedTime(appliedStartDate, 'Asia/Seoul'))
+      const kstEnd = endOfDay(toZonedTime(appliedEndDate, 'Asia/Seoul'))
+
       const response = await searchDefectLogsApi({
-        startDate: `${format(appliedStartDate, 'yyyy-MM-dd')} 00:00:00`,
-        endDate: `${format(appliedEndDate, 'yyyy-MM-dd')} 23:59:59`,
+        startDate: kstStart.toISOString(),
+        endDate: kstEnd.toISOString(),
         shiftType: appliedShiftType === 'ALL' ? undefined : appliedShiftType,
         lineName: appliedLineName || undefined,
         className: appliedClassName || undefined,
@@ -239,8 +244,8 @@ const useSearchDefectLog = () => {
     setPageSize: updatePageSize,
     totalCount,
     appliedFilters: {
-      startDate: `${format(appliedStartDate, 'yyyy-MM-dd')} 00:00:00`,
-      endDate: `${format(appliedEndDate, 'yyyy-MM-dd')} 23:59:59`,
+      startDate: startOfDay(toZonedTime(appliedStartDate, 'Asia/Seoul')).toISOString(),
+      endDate: endOfDay(toZonedTime(appliedEndDate, 'Asia/Seoul')).toISOString(),
       shiftType: appliedShiftType === 'ALL' ? undefined : appliedShiftType,
       lineName: appliedLineName || undefined,
       className: appliedClassName || undefined,

@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { searchWorkplaceSnapshotsApi } from '@/lib/api/workplace-snapshot-api'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { format } from 'date-fns'
+import { startOfDay, endOfDay } from 'date-fns'
+import { toZonedTime } from 'date-fns-tz'
 
 export type SearchStatesType = {
   startDate: Date
@@ -112,9 +113,13 @@ const useSearchWorkplaceLog = () => {
   const snapshotQuery = useQuery({
     queryKey: ['workplaceSnapshots', page, pageSize, appliedStartDate, appliedEndDate],
     queryFn: async () => {
+      // KST 기준으로 날짜 시작/끝 계산 후 UTC ISO String으로 변환
+      const kstStart = startOfDay(toZonedTime(appliedStartDate, 'Asia/Seoul'))
+      const kstEnd = endOfDay(toZonedTime(appliedEndDate, 'Asia/Seoul'))
+
       const response = await searchWorkplaceSnapshotsApi({
-        startDate: `${format(appliedStartDate, 'yyyy-MM-dd')} 00:00:00`,
-        endDate: `${format(appliedEndDate, 'yyyy-MM-dd')} 23:59:59`,
+        startDate: kstStart.toISOString(),
+        endDate: kstEnd.toISOString(),
         page,
         pageSize,
       })

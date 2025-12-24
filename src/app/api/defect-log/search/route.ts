@@ -35,7 +35,8 @@ async function searchDefectLog(request: NextRequest) {
   // where 조건 동적 구성
   const where: any = {}
 
-  // 날짜 범위 검색
+  // 날짜 범위 검색 (occurredAt 기준)
+  // 프론트엔드에서 ISO 8601 형식으로 전달됨 (예: "2025-12-24T00:00:00.000Z")
   if (startDate || endDate) {
     where.occurredAt = {}
     if (startDate) {
