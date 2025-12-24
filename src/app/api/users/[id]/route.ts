@@ -125,10 +125,7 @@ async function deleteUser(req: NextRequest, { params }: { params: Promise<{ id: 
     supabaseUserId: targetUser.supabaseUserId,
   })
 
-  if (
-    targetUser.supabaseUserId &&
-    (targetUser.role === 'ADMIN' || targetUser.role === 'MANAGER')
-  ) {
+  if (targetUser.supabaseUserId && (targetUser.role === 'ADMIN' || targetUser.role === 'MANAGER')) {
     console.log('[DELETE] Auth 삭제 시작:', targetUser.supabaseUserId)
     try {
       const { error } = await supabaseServer.auth.admin.deleteUser(targetUser.supabaseUserId)
