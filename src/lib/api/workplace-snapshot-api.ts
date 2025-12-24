@@ -7,6 +7,9 @@ import {
 } from '@/types/workplace-snapshot'
 import { ApiResponse } from '@/types/common'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 /**
  * 작업장 현황 스냅샷 목록 조회 (페이징)
  */
