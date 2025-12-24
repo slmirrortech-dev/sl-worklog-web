@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Trash2, Upload, User, FileImage } from 'lucide-react'
+import { Trash2, Upload, User, FileImage, FileSpreadsheet } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -18,6 +18,7 @@ import { getCurrentUserApi, uploadLicenseApi } from '@/lib/api/user-api'
 import { CustomDatePicker } from '@/components/CustomDatePicker'
 import { format } from 'date-fns'
 import useDialogStore from '@/store/useDialogStore'
+import ExcelUploadDialog from './_component/ExcelUploadDialog'
 
 interface NewEmployee {
   userId: string
@@ -32,6 +33,7 @@ interface NewEmployee {
 const NewUsersPage = () => {
   const [currentUserRole, setCurrentUserRole] = useState('MANAGER')
   const { showDialog } = useDialogStore()
+  const [isExcelDialogOpen, setIsExcelDialogOpen] = useState(false)
 
   const router = useRouter()
   const [employee, setEmployee] = useState<NewEmployee>({
@@ -207,11 +209,20 @@ const NewUsersPage = () => {
         <div className="space-y-6">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-              <div className="flex items-center">
+              <div className="flex items-center justify-between">
                 <h2 className="text-lg font-medium text-gray-900 flex items-center">
                   <User className="w-5 h-5 mr-2 text-gray-600" />
                   신규 직원 등록
                 </h2>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsExcelDialogOpen(true)}
+                  className="border-green-300 text-green-700 hover:bg-green-50"
+                >
+                  <FileSpreadsheet className="w-4 h-4 mr-2" />
+                  엑셀로 일괄 등록
+                </Button>
               </div>
             </div>
 
@@ -359,6 +370,13 @@ const NewUsersPage = () => {
           </div>
         </div>
       </main>
+
+      {/* 엑셀 업로드 다이얼로그 */}
+      <ExcelUploadDialog
+        open={isExcelDialogOpen}
+        onOpenChange={setIsExcelDialogOpen}
+        onUploadSuccess={() => router.push(ROUTES.ADMIN.USERS)}
+      />
     </div>
   )
 }
