@@ -6,8 +6,11 @@ export type UserRequestDto = {
   password: string
 }
 
-// 로그인 응답 DTO (supabaseUserId 제외)
-export type UserResponseDto = Omit<User, 'supabaseUserId'>
+// 로그인 응답 DTO (supabaseUserId, email 제외 - 보안)
+export type UserResponseDto = Omit<User, 'supabaseUserId' | 'email'>
+
+// 내부 서비스용 전체 User 타입 (Auth 작업 등에 사용)
+export type InternalUserDto = User
 
 // 로그인한 사용자 정보
 export type CurrentUserModel = Pick<

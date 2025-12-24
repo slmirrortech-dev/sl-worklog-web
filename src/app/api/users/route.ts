@@ -173,49 +173,36 @@ async function createUsers(req: NextRequest) {
         email = `${item.userId}@temp.invalid`
         const initialPassword = item.userId // 초기 비밀번호 (사번과 동일)
 
-        try {
-          if (existing.supabaseUserId) {
-            // 기존 Supabase 사용자 확인
+        // 기존 Supabase Auth 계정 확인
+        let authUserExists = false
+        if (existing.supabaseUserId) {
+          try {
             const { data: existingAuthUser } = await supabaseServer.auth.admin.getUserById(
               existing.supabaseUserId,
             )
-            if (!existingAuthUser.user) {
-              // Supabase 사용자가 없으면 새로 생성
-              const { data: newAuthUser, error } = await supabaseServer.auth.admin.createUser({
-                email,
-                password: initialPassword,
-                email_confirm: true,
-              })
-              if (error || !newAuthUser.user) {
-                throw new ApiError(`Supabase 사용자 생성 실패: ${error?.message}`, 500)
-              }
-              supabaseUserId = newAuthUser.user.id
-            }
-          } else {
-            // supabaseUserId가 없으면 새로 생성
-            const { data: newAuthUser, error } = await supabaseServer.auth.admin.createUser({
-              email,
-              password: initialPassword,
-              email_confirm: true,
-            })
-            if (error || !newAuthUser.user) {
-              throw new ApiError(`Supabase 사용자 생성 실패: ${error?.message}`, 500)
-            }
-            supabaseUserId = newAuthUser.user.id
+            authUserExists = !!existingAuthUser.user
+          } catch (error) {
+            console.error('Supabase Auth 사용자 확인 중 오류:', error)
+            authUserExists = false
           }
-        } catch (error) {
-          // 에러 발생 시에도 새로 생성 시도
-          const { data: newAuthUser, error: createError } =
-            await supabaseServer.auth.admin.createUser({
-              email,
-              password: initialPassword,
-              email_confirm: true,
-            })
-          if (createError || !newAuthUser.user) {
-            throw new ApiError(`Supabase 사용자 생성 실패: ${createError?.message}`, 500)
+        }
+
+        // Auth 계정이 없으면 새로 생성
+        if (!authUserExists) {
+          const { data: newAuthUser, error } = await supabaseServer.auth.admin.createUser({
+            email,
+            password: initialPassword,
+            email_confirm: true,
+          })
+          if (error || !newAuthUser.user) {
+            throw new ApiError(`Supabase 사용자 생성 실패: ${error?.message}`, 500)
           }
           supabaseUserId = newAuthUser.user.id
         }
+      } else {
+        // 작업자로 변경되는 경우: Auth 정보 제거
+        supabaseUserId = null
+        email = null
       }
 
       const updated = await prisma.user.update({
