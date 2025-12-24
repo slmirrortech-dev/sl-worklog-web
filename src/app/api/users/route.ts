@@ -49,6 +49,7 @@ export async function getUsers(request: NextRequest) {
   // WHERE 절 구성
   const whereClause: Record<string, unknown> = {
     isActive: true,
+    userId: { not: 'master' }, // Master 계정 제외
   }
 
   if (roleParam) {

@@ -117,6 +117,11 @@ async function deleteUser(req: NextRequest, { params }: { params: Promise<{ id: 
     throw new ApiError('자기 자신은 탈퇴할 수 없습니다.', 400, 'SELF')
   }
 
+  // Master 계정 보호
+  if (targetUser.userId === 'master') {
+    throw new ApiError('Master 계정은 삭제할 수 없습니다.', 403, 'MASTER_PROTECTED')
+  }
+
   // 관리자/반장인 경우 Supabase Auth 계정도 삭제
   console.log('[DELETE] 타겟 사용자:', {
     id: targetUser.id,
