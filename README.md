@@ -38,10 +38,6 @@ npm run db:seed
 npm run dev:local
 ```
 
-**로컬 접속 정보:**
-- 앱: http://localhost:3000
-- Supabase Studio: http://127.0.0.1:54323
-
 ## 주요 명령어
 
 ```bash
@@ -114,6 +110,4 @@ prisma/
 ```
 
 ## 문서
-
-- [코딩 컨벤션 및 아키텍처](.claude/CLAUDE.md)
 - [사용 가이드](https://kkomyoung.notion.site/27e8e4df974d807c8165fe913cdd000b)
