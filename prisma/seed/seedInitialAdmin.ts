@@ -5,17 +5,17 @@ const prisma = new PrismaClient()
 
 /**
  * 초기 관리자 등록
- * - 이름: 최승혁
- * - 사번: 1107709
+ * - 이름: 최고관리자
+ * - 사번: master
  * - 권한: ADMIN
  */
 export async function seedInitialAdmin() {
   console.log('👤 초기 관리자 등록 시작...')
 
-  const userId = '1107709'
-  const name = '최승혁'
+  const userId = 'master'
+  const name = '최고관리자'
   const email = `${userId}@temp.invalid`
-  const initialPassword = userId // 초기 비밀번호는 사번과 동일
+  const initialPassword = process.env.INITIAL_ADMIN_PASSWORD || userId
 
   try {
     // Supabase Admin Client 생성
@@ -81,7 +81,7 @@ export async function seedInitialAdmin() {
           userId: userId,
           name: name,
           role: 'ADMIN',
-          mustChangePassword: true,
+          mustChangePassword: false,
           isActive: true,
         },
       })
@@ -95,7 +95,7 @@ export async function seedInitialAdmin() {
           userId: userId,
           name: name,
           role: 'ADMIN',
-          mustChangePassword: true,
+          mustChangePassword: false,
           isActive: true,
         },
       })
@@ -106,14 +106,13 @@ export async function seedInitialAdmin() {
     console.log(`     - 사번: ${user.userId}`)
     console.log(`     - 이름: ${user.name}`)
     console.log(`     - 권한: ${user.role}`)
-    console.log(`     - 초기 비밀번호: ${initialPassword} (사번과 동일)`)
+    console.log(`     - 초기 비밀번호: [환경변수 INITIAL_ADMIN_PASSWORD 사용]`)
     console.log(`     - 비밀번호 변경 필수: ${user.mustChangePassword}`)
 
     console.log('\n🎉 초기 관리자 등록 완료!')
     console.log('\n📝 로그인 정보:')
     console.log(`   사번: ${userId}`)
-    console.log(`   초기 비밀번호: ${initialPassword}`)
-    console.log('   로그인 후 비밀번호를 변경해주세요.')
+    console.log('   비밀번호: 환경변수에 설정된 값')
   } catch (error) {
     console.error('❌ 초기 관리자 등록 실패:', error)
     throw error

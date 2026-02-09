@@ -28,6 +28,10 @@ DROP POLICY IF EXISTS "line_shifts_read_all" ON "public"."line_shifts";
 DROP POLICY IF EXISTS "line_shifts_write_authenticated" ON "public"."line_shifts";
 DROP POLICY IF EXISTS "process_slots_read_all" ON "public"."process_slots";
 DROP POLICY IF EXISTS "process_slots_write_authenticated" ON "public"."process_slots";
+DROP POLICY IF EXISTS "training_logs_authenticated_all" ON "public"."training_logs";
+DROP POLICY IF EXISTS "defect_logs_authenticated_all" ON "public"."defect_logs";
+DROP POLICY IF EXISTS "workplace_snapshots_authenticated_all" ON "public"."workplace_snapshots";
+DROP POLICY IF EXISTS "backup_schedules_authenticated_all" ON "public"."backup_schedules";
 
 -- ============================================
 -- 2. 모든 테이블 RLS 활성화
@@ -39,6 +43,10 @@ ALTER TABLE "public"."factory_configs" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."factory_lines" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."line_shifts" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."process_slots" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "public"."training_logs" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "public"."defect_logs" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "public"."workplace_snapshots" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "public"."backup_schedules" ENABLE ROW LEVEL SECURITY;
 
 -- ============================================
 -- 3. users 테이블 정책 (authenticated만 접근)
@@ -133,6 +141,50 @@ USING (true);
 
 CREATE POLICY "process_slots_write_authenticated"
 ON "public"."process_slots"
+FOR ALL
+TO authenticated
+USING (true)
+WITH CHECK (true);
+
+-- ============================================
+-- 9. training_logs 테이블 정책 (authenticated만 접근)
+-- ============================================
+
+CREATE POLICY "training_logs_authenticated_all"
+ON "public"."training_logs"
+FOR ALL
+TO authenticated
+USING (true)
+WITH CHECK (true);
+
+-- ============================================
+-- 10. defect_logs 테이블 정책 (authenticated만 접근)
+-- ============================================
+
+CREATE POLICY "defect_logs_authenticated_all"
+ON "public"."defect_logs"
+FOR ALL
+TO authenticated
+USING (true)
+WITH CHECK (true);
+
+-- ============================================
+-- 11. workplace_snapshots 테이블 정책 (authenticated만 접근)
+-- ============================================
+
+CREATE POLICY "workplace_snapshots_authenticated_all"
+ON "public"."workplace_snapshots"
+FOR ALL
+TO authenticated
+USING (true)
+WITH CHECK (true);
+
+-- ============================================
+-- 12. backup_schedules 테이블 정책 (authenticated만 접근)
+-- ============================================
+
+CREATE POLICY "backup_schedules_authenticated_all"
+ON "public"."backup_schedules"
 FOR ALL
 TO authenticated
 USING (true)

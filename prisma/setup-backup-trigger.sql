@@ -30,8 +30,13 @@ DECLARE
   cron_hour TEXT;
   job_name TEXT;
   cron_schedule TEXT;
-  api_url TEXT := 'https://factory-worklog.vercel.app/api/cron/backup-workplace';
-  cron_secret TEXT := '3lCTBt0h/dSkuajiTefchUIQnUYFtms1CHB1bZ6Qg40=';
+  -- ⚠️ [수동 설정 필요] Vercel 배포 URL로 변경하세요
+  api_url TEXT := 'https://sl-worklog-web.vercel.app/api/cron/backup-workplace';
+
+  -- ⚠️ [수동 설정 필요] Vercel 환경변수 CRON_SECRET과 동일한 값을 넣으세요
+  -- 생성 방법: openssl rand -base64 32
+  cron_secret TEXT := 'bQDDiKoC3+lHmoMI8l+iFDS24b2xhWTmn4qggMukWxs=';
+
   sql_cmd TEXT;
 BEGIN
   -- ========================================
@@ -137,8 +142,10 @@ DECLARE
   cron_hour TEXT;
   job_name TEXT;
   cron_schedule TEXT;
-  api_url TEXT := 'https://factory-worklog.vercel.app/api/cron/backup-workplace';
-  cron_secret TEXT := '3lCTBt0h/dSkuajiTefchUIQnUYFtms1CHB1bZ6Qg40=';
+  -- ⚠️ [수동 설정 필요] 위 함수와 동일한 값으로 변경하세요
+  api_url TEXT := 'https://sl-worklog-web.vercel.app/api/cron/backup-workplace';
+  cron_secret TEXT := 'YOUR_CRON_SECRET_HERE';
+
   sql_cmd TEXT;
 BEGIN
   RAISE NOTICE '=== 초기 cron job 생성 시작 ===';
