@@ -44,3 +44,6 @@ next-env.d.ts
 
 # 테스트 이미지
 /public/uploads
+
+# DB 백업 파일
+/backups

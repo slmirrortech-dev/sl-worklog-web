@@ -109,5 +109,24 @@ prisma/
 └── enable-realtime.sql # Realtime 설정
 ```
 
+## DB 백업 (주 1회 권장)
+
+Supabase 무료 플랜은 자동 백업이 안 되므로 수동 백업 필요:
+
+```bash
+# 운영 DB 백업 (backups/ 폴더에 저장)
+npm run backup:prod
+```
+
+백업 파일을 Google Drive에 업로드하려면:
+```bash
+# rclone 설치 및 설정
+brew install rclone
+rclone config  # gdrive 이름으로 Google Drive 연동
+
+# 업로드
+rclone copy backups/backup_xxx.sql gdrive:sl-worklog-backup/
+```
+
 ## 문서
 - [사용 가이드](https://kkomyoung.notion.site/27e8e4df974d807c8165fe913cdd000b)

@@ -1,0 +1,58 @@
+name: Weekly DB Backup
+
+on:
+  # 매주 월요일 오전 9시 (KST) = 일요일 자정 (UTC)
+  schedule:
+    - cron: '0 0 * * 1'
+  # 수동 실행 가능
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set timestamp
+        id: timestamp
+        run: echo "timestamp=$(date +%Y%m%d_%H%M%S)" >> $GITHUB_OUTPUT
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Create backup
+        env:
+          DIRECT_URL: ${{ secrets.DIRECT_URL }}
+        run: |
+          pg_dump "$DIRECT_URL" \
+            --no-owner \
+            --no-acl \
+            --clean \
+            --if-exists \
+            > backup_${{ steps.timestamp.outputs.timestamp }}.sql
+
+          echo "Backup file created: backup_${{ steps.timestamp.outputs.timestamp }}.sql"
+          ls -lh backup_*.sql
+
+      - name: Install rclone
+        run: |
+          curl https://rclone.org/install.sh | sudo bash
+
+      - name: Configure rclone
+        env:
+          RCLONE_CONFIG: ${{ secrets.RCLONE_CONFIG }}
+        run: |
+          mkdir -p ~/.config/rclone
+          echo "$RCLONE_CONFIG" > ~/.config/rclone/rclone.conf
+
+      - name: Upload to Google Drive
+        run: |
+          rclone copy backup_${{ steps.timestamp.outputs.timestamp }}.sql gdrive:sl-worklog-backup/
+          echo "✅ Uploaded to Google Drive: sl-worklog-backup/backup_${{ steps.timestamp.outputs.timestamp }}.sql"
+
+      - name: Cleanup old backups (keep last 4 weeks)
+        run: |
+          # Google Drive에서 4주 이상 된 백업 삭제
+          rclone delete gdrive:sl-worklog-backup/ --min-age 28d || true
+          echo "✅ Old backups cleaned up"
