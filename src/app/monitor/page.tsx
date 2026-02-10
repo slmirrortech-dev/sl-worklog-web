@@ -1,6 +1,5 @@
 'use client'
 
-// 동적 렌더링 강제
 import {
   getAllFactoryLineApi,
   getFactoryConfigApi,
@@ -19,6 +18,7 @@ import { ShiftType } from '@prisma/client'
 import AreaWaitingWorker from '@/app/monitor/_component/AreaWaitingWorker'
 import { useLoading } from '@/contexts/LoadingContext'
 import { useFactoryLineRealtime } from '@/hooks/useAllFactoryLineRealtime'
+import NoData from '@/app/monitor/_component/Nodata'
 
 const MonitorPage = () => {
   useFactoryLineRealtime()
@@ -99,10 +99,6 @@ const MonitorPage = () => {
     }
   }
 
-  useEffect(() => {
-    console.log('filteredFactoryLines', filteredFactoryLines)
-  }, [filteredFactoryLines])
-
   return (
     <>
       {isFullscreen && (
@@ -121,104 +117,109 @@ const MonitorPage = () => {
       <main className="w-screen h-screen bg-white overflow-hidden flex flex-col">
         {/* 그리드 영역 */}
         <div className="flex-1 overflow-hidden">
-          {filteredFactoryLines &&
-            filteredFactoryLines.length > 0 &&
-            factoryConfigData &&
-            factoryConfigData > 0 && (
-              <div
-                className="grid h-full w-full"
-                style={{
-                  gridTemplateColumns: `50px repeat(${filteredFactoryLines.length}, minmax(0, 1fr))`,
-                  gridTemplateRows: `minmax(100px, 1.2fr) repeat(${factoryConfigData}, 1fr)`,
-                }}
-              >
-                {/* 좌상단 코너 - 빈 셀 */}
-                <div className="bg-slate-200 border-b-1 border-r-1 border-white flex items-center justify-center">
-                  <span
-                    className="font-bold text-gray-600"
-                    style={{ fontSize: 'clamp(0.75rem, 1.5vw, 1.25rem)' }}
-                  ></span>
-                </div>
+          {isPendingClasses || isPendingAllFactoryLineData || isPendingFactoryConfig ? null : filteredFactoryLines.length === 0 || !factoryConfigData ? (
+            <NoData
+              name={
+                classesData?.find((item) => item.id === viewClassId)?.name
+                  ? `${classesData.find((item) => item.id === viewClassId)?.name}반`
+                  : ''
+              }
+            />
+          ) : (
+            <div
+              className="grid h-full w-full"
+              style={{
+                gridTemplateColumns: `50px repeat(${filteredFactoryLines.length}, minmax(0, 1fr))`,
+                gridTemplateRows: `minmax(100px, 1.2fr) repeat(${factoryConfigData}, 1fr)`,
+              }}
+            >
+              {/* 좌상단 코너 - 빈 셀 */}
+              <div className="bg-slate-200 border-b-1 border-r-1 border-white flex items-center justify-center">
+                <span
+                  className="font-bold text-gray-600"
+                  style={{ fontSize: 'clamp(0.75rem, 1.5vw, 1.25rem)' }}
+                ></span>
+              </div>
 
-                {/* 상단 라인명 헤더 */}
-                {filteredFactoryLines.map((line) => {
-                  const targetShift = line.shifts?.find((shift: any) => shift.type === viewType)
-                  const status = targetShift?.status || 'NORMAL'
+              {/* 상단 라인명 헤더 */}
+              {filteredFactoryLines.map((line) => {
+                const targetShift = line.shifts?.find((shift: any) => shift.type === viewType)
+                const status = targetShift?.status || 'NORMAL'
 
-                  return (
-                    <div key={line.id} className="flex flex-col bg-slate-200 border-white min-w-0">
-                      {/* 라인명 */}
-                      <div className="flex-1 flex items-center justify-center border-r-1 border-white px-2 py-2 min-h-0">
-                        <span
-                          className="font-bold text-center break-words leading-tight w-full"
-                          style={{
-                            fontSize: 'clamp(0.75rem, 1.2vw, 1.25rem)',
-                            wordBreak: 'break-word',
-                            overflowWrap: 'break-word',
-                          }}
-                        >
-                          {line.name}
-                        </span>
-                      </div>
-
-                      {/* 라인 상태 */}
-                      <div
-                        className={`flex items-center justify-center px-1 ${colorWorkStatus(status)}`}
+                return (
+                  <div key={line.id} className="flex flex-col bg-slate-200 border-white min-w-0">
+                    {/* 라인명 */}
+                    <div className="flex-1 flex items-center justify-center border-r-1 border-white px-2 py-2 min-h-0">
+                      <span
+                        className="font-bold text-center break-words leading-tight w-full"
                         style={{
-                          minHeight: 'clamp(30px, 3vh, 50px)',
+                          fontSize: 'clamp(0.75rem, 1.2vw, 1.25rem)',
+                          wordBreak: 'break-word',
+                          overflowWrap: 'break-word',
                         }}
                       >
-                        <span
-                          className="font-semibold text-center leading-tight"
-                          style={{
-                            fontSize: 'clamp(0.65rem, 1.2vw, 1rem)',
-                            wordBreak: 'keep-all',
-                          }}
-                        >
-                          {displayWorkStatus(status)}
-                        </span>
-                      </div>
-                    </div>
-                  )
-                })}
-
-                {/* 공정별 행 */}
-                {Array.from({ length: factoryConfigData! }, (_, processIndex) => (
-                  <React.Fragment key={`process-${processIndex}`}>
-                    {/* 좌측 공정명 */}
-                    <div className="flex items-center justify-center bg-slate-100 border-r-1 border-b border-gray-200">
-                      <span
-                        className="font-bold text-black"
-                        style={{ fontSize: 'clamp(1rem, 1.1vw, 1.5rem)' }}
-                      >
-                        P{processIndex + 1}
+                        {line.name}
                       </span>
                     </div>
 
-                    {/* 각 라인별 공정 셀 */}
-                    {filteredFactoryLines.map((line, lineIndex) => {
-                      const targetShift = line.shifts?.find((shift: any) => shift.type === viewType)
-                      const slot = targetShift?.slots?.[processIndex]
+                    {/* 라인 상태 */}
+                    <div
+                      className={`flex items-center justify-center px-1 ${colorWorkStatus(status)}`}
+                      style={{
+                        minHeight: 'clamp(30px, 3vh, 50px)',
+                      }}
+                    >
+                      <span
+                        className="font-semibold text-center leading-tight"
+                        style={{
+                          fontSize: 'clamp(0.65rem, 1.2vw, 1rem)',
+                          wordBreak: 'keep-all',
+                        }}
+                      >
+                        {displayWorkStatus(status)}
+                      </span>
+                    </div>
+                  </div>
+                )
+              })}
 
-                      return (
-                        <div
-                          key={`${line.id}-p${processIndex}`}
-                          className={`flex items-center justify-center bg-white border-b border-gray-200 min-w-0 overflow-hidden ${
-                            lineIndex < filteredFactoryLines.length - 1 ? 'border-r' : ''
-                          }`}
-                        >
-                          {slot ? (
-                            <AreaWaitingWorker slot={slot} />
-                          ) : (
-                            <div className="w-full h-full" />
-                          )}
-                        </div>
-                      )
-                    })}
-                  </React.Fragment>
-                ))}
-              </div>
-            )}
+              {/* 공정별 행 */}
+              {Array.from({ length: factoryConfigData! }, (_, processIndex) => (
+                <React.Fragment key={`process-${processIndex}`}>
+                  {/* 좌측 공정명 */}
+                  <div className="flex items-center justify-center bg-slate-100 border-r-1 border-b border-gray-200">
+                    <span
+                      className="font-bold text-black"
+                      style={{ fontSize: 'clamp(1rem, 1.1vw, 1.5rem)' }}
+                    >
+                      P{processIndex + 1}
+                    </span>
+                  </div>
+
+                  {/* 각 라인별 공정 셀 */}
+                  {filteredFactoryLines.map((line, lineIndex) => {
+                    const targetShift = line.shifts?.find((shift: any) => shift.type === viewType)
+                    const slot = targetShift?.slots?.[processIndex]
+
+                    return (
+                      <div
+                        key={`${line.id}-p${processIndex}`}
+                        className={`flex items-center justify-center bg-white border-b border-gray-200 min-w-0 overflow-hidden ${
+                          lineIndex < filteredFactoryLines.length - 1 ? 'border-r' : ''
+                        }`}
+                      >
+                        {slot ? (
+                          <AreaWaitingWorker slot={slot} />
+                        ) : (
+                          <div className="w-full h-full" />
+                        )}
+                      </div>
+                    )
+                  })}
+                </React.Fragment>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* 하단 고정 헤더 */}
