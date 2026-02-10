@@ -117,7 +117,10 @@ const MonitorPage = () => {
       <main className="w-screen h-screen bg-white overflow-hidden flex flex-col">
         {/* 그리드 영역 */}
         <div className="flex-1 overflow-hidden">
-          {isPendingClasses || isPendingAllFactoryLineData || isPendingFactoryConfig ? null : filteredFactoryLines.length === 0 || !factoryConfigData ? (
+          {isPendingClasses ||
+          isPendingAllFactoryLineData ||
+          isPendingFactoryConfig ? null : filteredFactoryLines.length === 0 ||
+            !factoryConfigData ? (
             <NoData
               name={
                 classesData?.find((item) => item.id === viewClassId)?.name
