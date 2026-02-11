@@ -173,12 +173,21 @@ const WorkPlacePage = () => {
   // 작업장 현황 백업
   const createSnapshotMutation = useMutation({
     mutationFn: async () => {
-      await createWorkplaceSnapshotApi()
+      return await createWorkplaceSnapshotApi()
     },
     onMutate: () => {
       showLoading()
     },
-    onSuccess: () => {
+    onSuccess: (response) => {
+      if (!response.data) {
+        showDialog({
+          type: 'warning',
+          title: '백업 데이터 없음',
+          description: '저장할 작업장 데이터가 없어 스냅샷이 생성되지 않았습니다.',
+          confirmText: '확인',
+        })
+        return
+      }
       showDialog({
         type: 'success',
         title: '작업장 현황 백업 완료',
