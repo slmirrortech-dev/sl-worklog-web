@@ -63,7 +63,7 @@ const MonitorPage = () => {
   }, [isPendingClasses, isPendingAllFactoryLineData, isPendingFactoryConfig])
 
   useEffect(() => {
-    if (viewClassId && allFactoryLineData && allFactoryLineData.length > 0) {
+    if (viewClassId && allFactoryLineData) {
       setFilteredFactoryLines(allFactoryLineData.filter((item) => item.workClassId === viewClassId))
     }
   }, [allFactoryLineData, viewClassId])

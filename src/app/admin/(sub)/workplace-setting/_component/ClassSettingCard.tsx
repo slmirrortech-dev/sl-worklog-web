@@ -22,10 +22,11 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getWorkClassesApi, updateWorkClassApi } from '@/lib/api/workplace-api'
 import { WorkClassResponseDto } from '@/types/workplace'
 import { useLoading } from '@/contexts/LoadingContext'
+import useDialogStore from '@/store/useDialogStore'
 
 type ClassItem = WorkClassResponseDto
 
@@ -148,6 +149,8 @@ function SortableItem({ classItem, index, disabled, onDelete, onUpdateName }: So
 }
 
 export default function ClassSettingCard() {
+  const queryClient = useQueryClient()
+  const { showDialog } = useDialogStore()
   const { showLoading, hideLoading } = useLoading()
 
   const [mounted, setMounted] = useState(false)
@@ -155,16 +158,28 @@ export default function ClassSettingCard() {
   const [classes, setClasses] = useState<ClassItem[]>([])
   const [newClassName, setNewClassName] = useState('')
 
-  const { mutate } = useMutation({
-    mutationFn: updateWorkClassApi,
-  })
-
   // api 호출
   const { data, refetch } = useQuery({
     queryKey: ['getWorkClassesApi'],
     queryFn: getWorkClassesApi,
     select: (response) => {
       return response.data
+    },
+  })
+
+  const { mutate } = useMutation({
+    mutationFn: updateWorkClassApi,
+    onSuccess: () => {
+      refetch()
+      showDialog({
+        type: 'success',
+        title: '저장 완료',
+        description: '반 정보가 저장되었습니다.',
+        confirmText: '확인',
+      })
+    },
+    onSettled: () => {
+      hideLoading()
     },
   })
 
@@ -231,14 +246,7 @@ export default function ClassSettingCard() {
     // 로딩 스피너
     showLoading()
 
-    mutate(classes, {
-      onSuccess: () => {
-        refetch()
-      },
-      onSettled: () => {
-        hideLoading()
-      },
-    })
+    mutate(classes)
   }
 
   const handleCancel = () => {

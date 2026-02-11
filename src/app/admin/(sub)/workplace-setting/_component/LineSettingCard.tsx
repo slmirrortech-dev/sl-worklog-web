@@ -29,7 +29,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getFactoryLineApi, getWorkClassesApi, updateFactoryLineApi } from '@/lib/api/workplace-api'
 import { FactoryLineRequest, FactoryLineResponse, WorkClassResponseDto } from '@/types/workplace'
 import { useLoading } from '@/contexts/LoadingContext'
@@ -173,6 +173,7 @@ function SortableLineItem({
 }
 
 export default function LineSettingCard() {
+  const queryClient = useQueryClient()
   const { showDialog } = useDialogStore()
   const { showLoading, hideLoading } = useLoading()
 
@@ -192,6 +193,8 @@ export default function LineSettingCard() {
     mutationFn: updateFactoryLineApi,
     onSuccess: () => {
       factoryLineRefetch()
+      // 모니터/작업현황 페이지에서 사용하는 쿼리도 갱신
+      queryClient.refetchQueries({ queryKey: ['getAllFactoryLineApi'] })
       showDialog({
         type: 'success',
         title: '저장 완료',

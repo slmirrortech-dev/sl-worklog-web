@@ -17,6 +17,8 @@
 ALTER PUBLICATION supabase_realtime ADD TABLE factory_lines;
 ALTER PUBLICATION supabase_realtime ADD TABLE line_shifts;
 ALTER PUBLICATION supabase_realtime ADD TABLE process_slots;
+ALTER PUBLICATION supabase_realtime ADD TABLE work_classes;
+ALTER PUBLICATION supabase_realtime ADD TABLE factory_configs;
 
 -- ============================================
 -- 확인 방법:
