@@ -30,19 +30,27 @@ async function getWorkplaceSnapshots(request: NextRequest) {
   // 날짜 범위 검색 (createdAt 기준, KST 기준으로 처리)
   if (startDate && endDate) {
     // ISO 8601 형식이면 그대로 사용, 아니면 KST 타임존 추가
-    const startDateParsed = startDate.includes('T') ? new Date(startDate) : new Date(startDate + 'T00:00:00+09:00')
-    const endDateParsed = endDate.includes('T') ? new Date(endDate) : new Date(endDate + 'T23:59:59+09:00')
+    const startDateParsed = startDate.includes('T')
+      ? new Date(startDate)
+      : new Date(startDate + 'T00:00:00+09:00')
+    const endDateParsed = endDate.includes('T')
+      ? new Date(endDate)
+      : new Date(endDate + 'T23:59:59+09:00')
     where.createdAt = {
       gte: startDateParsed,
       lte: endDateParsed,
     }
   } else if (startDate) {
-    const startDateParsed = startDate.includes('T') ? new Date(startDate) : new Date(startDate + 'T00:00:00+09:00')
+    const startDateParsed = startDate.includes('T')
+      ? new Date(startDate)
+      : new Date(startDate + 'T00:00:00+09:00')
     where.createdAt = {
       gte: startDateParsed,
     }
   } else if (endDate) {
-    const endDateParsed = endDate.includes('T') ? new Date(endDate) : new Date(endDate + 'T23:59:59+09:00')
+    const endDateParsed = endDate.includes('T')
+      ? new Date(endDate)
+      : new Date(endDate + 'T23:59:59+09:00')
     where.createdAt = {
       lte: endDateParsed,
     }
