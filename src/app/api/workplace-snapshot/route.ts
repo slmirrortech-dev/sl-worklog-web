@@ -119,6 +119,14 @@ async function createWorkplaceSnapshot(request: NextRequest) {
     공정순서: slot.slotIndex,
   }))
 
+  // 데이터가 없으면 스냅샷 생성하지 않음
+  if (snapshotData.length === 0) {
+    return ApiResponseFactory.success(
+      null,
+      '저장할 작업장 데이터가 없어 스냅샷이 생성되지 않았습니다.',
+    )
+  }
+
   // 스냅샷 저장
   const snapshot = await prisma.workplaceSnapshot.create({
     data: {

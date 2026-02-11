@@ -53,6 +53,18 @@ export async function POST(request: NextRequest) {
       공정순서: slot.slotIndex,
     }))
 
+    // 데이터가 없으면 스냅샷 생성하지 않음
+    if (snapshotData.length === 0) {
+      console.log('[Cron] 저장할 데이터가 없어 스냅샷 생성 건너뜀')
+      return NextResponse.json({
+        ok: true,
+        message: '저장할 작업장 데이터가 없어 스냅샷이 생성되지 않았습니다.',
+        snapshotId: null,
+        recordCount: 0,
+        timestamp: new Date().toISOString(),
+      })
+    }
+
     // 스냅샷 저장 (자동 백업이므로 createdBy는 null)
     const snapshot = await prisma.workplaceSnapshot.create({
       data: {
