@@ -27,20 +27,24 @@ async function getWorkplaceSnapshots(request: NextRequest) {
   // where 조건 동적 구성
   const where: any = {}
 
-  // 날짜 범위 검색 (createdAt 기준)
-  // 프론트엔드에서 ISO 8601 형식으로 전달됨 (예: "2025-12-24T00:00:00+09:00")
+  // 날짜 범위 검색 (createdAt 기준, KST 기준으로 처리)
   if (startDate && endDate) {
+    // ISO 8601 형식이면 그대로 사용, 아니면 KST 타임존 추가
+    const startDateParsed = startDate.includes('T') ? new Date(startDate) : new Date(startDate + 'T00:00:00+09:00')
+    const endDateParsed = endDate.includes('T') ? new Date(endDate) : new Date(endDate + 'T23:59:59+09:00')
     where.createdAt = {
-      gte: new Date(startDate),
-      lte: new Date(endDate),
+      gte: startDateParsed,
+      lte: endDateParsed,
     }
   } else if (startDate) {
+    const startDateParsed = startDate.includes('T') ? new Date(startDate) : new Date(startDate + 'T00:00:00+09:00')
     where.createdAt = {
-      gte: new Date(startDate),
+      gte: startDateParsed,
     }
   } else if (endDate) {
+    const endDateParsed = endDate.includes('T') ? new Date(endDate) : new Date(endDate + 'T23:59:59+09:00')
     where.createdAt = {
-      lte: new Date(endDate),
+      lte: endDateParsed,
     }
   }
 

@@ -20,19 +20,19 @@ async function getWorkplaceSnapshotIds(request: NextRequest) {
   // where 조건 동적 구성
   const where: any = {}
 
-  // 날짜 범위 검색 (createdAt 기준)
+  // 날짜 범위 검색 (createdAt 기준, KST 기준으로 처리)
   if (startDate && endDate) {
     where.createdAt = {
-      gte: new Date(startDate),
-      lte: new Date(endDate + 'T23:59:59'),
+      gte: new Date(startDate + 'T00:00:00+09:00'), // KST 자정 시작
+      lte: new Date(endDate + 'T23:59:59+09:00'), // KST 자정 직전 종료
     }
   } else if (startDate) {
     where.createdAt = {
-      gte: new Date(startDate),
+      gte: new Date(startDate + 'T00:00:00+09:00'),
     }
   } else if (endDate) {
     where.createdAt = {
-      lte: new Date(endDate + 'T23:59:59'),
+      lte: new Date(endDate + 'T23:59:59+09:00'),
     }
   }
 
